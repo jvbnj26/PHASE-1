@@ -1,0 +1,2 @@
+ALTER TABLE public.custom_pages ADD COLUMN IF NOT EXISTS status text NOT NULL DEFAULT 'published' CHECK (status IN ('draft','published','archived'));
+CREATE INDEX IF NOT EXISTS custom_pages_status_idx ON public.custom_pages(status);

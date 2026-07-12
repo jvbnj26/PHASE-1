@@ -1,0 +1,177 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* JVBNA Design System - White with Orange and Green accents */
+
+@import url('https://fonts.googleapis.com/css2?family=Merriweather:wght@400;700&family=Open+Sans:wght@400;500;600;700&display=swap');
+
+@layer base {
+  :root {
+    /* Core Colors - White background with saffron orange and forest green */
+    --background: 0 0% 100%;
+    --foreground: 220 15% 20%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 220 15% 20%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 220 15% 20%;
+
+    /* Primary - Saffron Orange (spiritual, warm) */
+    --primary: 18 100% 50%;
+    --primary-foreground: 0 0% 100%;
+
+    /* Secondary - Forest Green (peace, nature) */
+    --secondary: 120 35% 25%;
+    --secondary-foreground: 0 0% 100%;
+
+    /* Muted backgrounds */
+    --muted: 40 30% 96%;
+    --muted-foreground: 220 10% 45%;
+
+    /* Accent - Golden yellow for highlights */
+    --accent: 45 100% 51%;
+    --accent-foreground: 220 15% 15%;
+
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 40 20% 88%;
+    --input: 40 20% 88%;
+    --ring: 18 100% 50%;
+
+    --radius: 0.5rem;
+
+    /* Admin sidebar */
+    --sidebar-background: 220 15% 97%;
+    --sidebar-foreground: 220 15% 30%;
+    --sidebar-primary: 18 100% 50%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 40 30% 94%;
+    --sidebar-accent-foreground: 220 15% 20%;
+    --sidebar-border: 40 20% 88%;
+    --sidebar-ring: 18 100% 50%;
+
+    /* Custom JVBNA tokens */
+    --nav-bg: 40 40% 50%;
+    --nav-text: 0 0% 100%;
+    --hero-overlay: 120 35% 20%;
+    --section-light: 40 30% 98%;
+    --table-header: 40 30% 94%;
+    --table-border: 40 20% 85%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    @apply bg-background text-foreground font-sans antialiased;
+    font-family: 'Open Sans', sans-serif;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'Merriweather', serif;
+    @apply font-bold tracking-tight;
+  }
+}
+
+@layer components {
+  /* Navigation bar styling */
+  .nav-bar {
+    @apply bg-nav text-nav-foreground;
+  }
+
+  /* Hero section with gradient overlay */
+  .hero-overlay {
+    background: linear-gradient(135deg, hsl(var(--hero-overlay) / 0.85), hsl(var(--primary) / 0.7));
+  }
+
+  /* Section containers */
+  .section-light {
+    @apply bg-section;
+  }
+
+  /* Event cards */
+  .event-card {
+    @apply bg-card rounded-lg shadow-md overflow-hidden transition-all duration-300 hover:shadow-xl hover:-translate-y-1;
+  }
+
+  /* Table styling for executive committee */
+  .data-table {
+    @apply w-full border-collapse;
+  }
+
+  .data-table th {
+    @apply bg-table-header text-left px-4 py-3 font-semibold border border-table-border;
+  }
+
+  .data-table td {
+    @apply px-4 py-3 border border-table-border;
+  }
+
+  .data-table tr:hover {
+    @apply bg-muted/50;
+  }
+
+  /* Flyer display grid */
+  .flyer-grid {
+    @apply grid gap-6;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  }
+
+  /* Admin panel styling */
+  .admin-card {
+    @apply bg-card rounded-xl shadow-sm border border-border p-6 transition-all hover:shadow-md;
+  }
+
+  .admin-input {
+    @apply w-full px-4 py-2.5 border border-input rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all;
+  }
+
+  .admin-button {
+    @apply px-6 py-2.5 rounded-lg font-medium transition-all duration-200;
+  }
+
+  .admin-button-primary {
+    @apply admin-button bg-primary text-primary-foreground hover:bg-primary/90;
+  }
+
+  .admin-button-secondary {
+    @apply admin-button bg-secondary text-secondary-foreground hover:bg-secondary/90;
+  }
+}
+
+@layer utilities {
+  /* Smooth fade-in animation */
+  .fade-in {
+    animation: fadeIn 0.5s ease-out;
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* Slide animations for carousel */
+  .slide-in-right {
+    animation: slideInRight 0.5s ease-out;
+  }
+
+  @keyframes slideInRight {
+    from { opacity: 0; transform: translateX(20px); }
+    to { opacity: 1; transform: translateX(0); }
+  }
+
+  /* Container with max-width */
+  .container-custom {
+    @apply max-w-7xl mx-auto px-4 sm:px-6 lg:px-8;
+  }
+}

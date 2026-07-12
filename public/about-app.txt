@@ -1,0 +1,17 @@
+JVBNA New Jersey Website and Content Management App
+
+Purpose:
+This application is a modern, easy-to-use website for Jain Vishwa Bharati of North America - New Jersey (JVBNA NJ). It serves as a digital home for the center, sharing information about events, activities, spiritual guidance, volunteering, donations, and contact details with the community and visitors.
+
+What the app does:
+- Presents a clean, professional public-facing website with white, orange, and green branding.
+- Provides a homepage hero banner carousel, welcome message, and highlights upcoming events and activities.
+- Displays dedicated pages for About Us, Events, Activities, Spiritual Guidance, Volunteering, Donation, Calendar, and Contact Us.
+- Embeds a Google Calendar so the center can share events without building a custom calendar.
+- Supports images, auto-playing videos, and rich text content on event cards and throughout the site.
+- Offers a complete admin dashboard for non-technical staff to log in and edit almost every section of the website, including text, images, banners, events, activities, board/committee members, contact details, and settings.
+- Includes user authentication so community members can sign up, log in, RSVP for events, and access member-only features.
+- Uses a consistent template-based layout so staff can update content without worrying about design or formatting.
+
+Goal:
+The goal is to make it simple for JVBNA NJ staff to keep the website fresh, accurate, and visually appealing while giving visitors a professional and welcoming experience.
