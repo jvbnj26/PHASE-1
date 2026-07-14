@@ -359,9 +359,9 @@ export default function AdminPagesPage() {
 
                   {draft.blocks.map((b, idx) => (
                     <Card key={b.id} className="p-4 space-y-3 bg-muted/40">
-                      <div className="flex items-center justify-between gap-2">
+                      <div className="flex items-center justify-between gap-2 flex-wrap">
                         <Select value={b.layout} onValueChange={(v) => updateBlock(idx, { layout: v as PageBlock['layout'] })}>
-                          <SelectTrigger className="w-[300px]"><SelectValue /></SelectTrigger>
+                          <SelectTrigger className="w-full sm:w-[300px]"><SelectValue /></SelectTrigger>
                           <SelectContent>
                             {LAYOUT_OPTIONS.map((l) => (
                               <SelectItem key={l.value} value={l.value}>

@@ -1,4 +1,4 @@
-import { ReactNode } from 'react';
+import { ReactNode, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import {
@@ -15,7 +15,9 @@ import {
   MapPin,
   BookOpen,
   HandHeart,
-  Layers
+  Layers,
+  Menu,
+  X
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import JVBLogo from '@/components/JVBLogo';
@@ -46,6 +48,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
   const { user, logout } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   const handleLogout = () => {
     logout();
@@ -54,10 +57,36 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
 
   return (
     <div className="min-h-screen bg-muted flex">
+      {/* Mobile top bar */}
+      <div className="lg:hidden fixed top-0 inset-x-0 z-30 h-16 bg-foreground text-background flex items-center justify-between px-4 border-b border-background/10">
+        <Link to="/" className="flex items-center gap-2 min-w-0">
+          <JVBLogo className="w-8 h-8 shrink-0" />
+          <p className="font-semibold text-sm truncate">JVBNA Admin</p>
+        </Link>
+        <button
+          onClick={() => setIsSidebarOpen(true)}
+          className="p-2 hover:bg-background/10 rounded-lg shrink-0"
+          aria-label="Open menu"
+        >
+          <Menu className="w-6 h-6" />
+        </button>
+      </div>
+
+      {/* Mobile overlay */}
+      {isSidebarOpen && (
+        <div
+          className="lg:hidden fixed inset-0 bg-black/50 z-40"
+          onClick={() => setIsSidebarOpen(false)}
+        />
+      )}
+
       {/* Sidebar */}
-      <aside className="w-64 bg-foreground text-background flex flex-col fixed h-full">
+      <aside
+        className={`w-64 bg-foreground text-background flex flex-col fixed h-full z-50 transition-transform duration-200 ease-in-out
+          ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'} lg:translate-x-0`}
+      >
         {/* Logo */}
-        <div className="p-4 border-b border-background/10">
+        <div className="p-4 border-b border-background/10 flex items-center justify-between">
           <Link to="/" className="flex items-center gap-3">
             <JVBLogo className="w-10 h-10" />
             <div>
@@ -65,6 +94,13 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
               <p className="text-xs text-background/60">Website Manager</p>
             </div>
           </Link>
+          <button
+            onClick={() => setIsSidebarOpen(false)}
+            className="lg:hidden p-1.5 hover:bg-background/10 rounded-lg"
+            aria-label="Close menu"
+          >
+            <X className="w-5 h-5" />
+          </button>
         </div>
 
         {/* Navigation */}
@@ -77,6 +113,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
                 <li key={item.name}>
                   <Link
                     to={item.path}
+                    onClick={() => setIsSidebarOpen(false)}
                     className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-colors ${
                       isActive
                         ? 'bg-primary text-primary-foreground'
@@ -118,8 +155,8 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
       </aside>
 
       {/* Main content */}
-      <main className="flex-1 ml-64">
-        <div className="p-8">
+      <main className="flex-1 lg:ml-64 pt-16 lg:pt-0 w-full min-w-0">
+        <div className="p-4 sm:p-6 lg:p-8">
           {children}
         </div>
       </main>

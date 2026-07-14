@@ -92,7 +92,7 @@ export default function Header() {
           </Link>
 
           {/* Contact info */}
-          <div className="flex items-center gap-6 text-sm">
+          <div className="flex items-center gap-3 sm:gap-6 text-sm">
             <a href="mailto:INFO@JVBNJ.ORG" className="flex items-center gap-2 text-muted-foreground hover:text-primary transition-colors">
               <Mail className="w-4 h-4" />
               <span className="hidden sm:inline">INFO@JVBNJ.ORG</span>
@@ -101,46 +101,50 @@ export default function Header() {
               <Phone className="w-4 h-4" />
               <span className="hidden sm:inline">848-219-5195</span>
             </a>
-            <Link to="/donate">
-              <Button variant="outline" className="border-primary text-primary hover:bg-primary hover:text-primary-foreground font-semibold">
-                DONATE
-              </Button>
-            </Link>
 
-            {isAuthenticated ? (
-              <div className="flex items-center gap-2">
-                <Link to="/member">
-                  <Button variant="ghost" className="text-foreground hover:text-primary font-semibold gap-1.5">
-                    <UserCircle className="w-5 h-5 text-secondary" />
-                    <span className="hidden md:inline truncate max-w-[120px]">
-                      {(user?.user_metadata?.name as string)?.split(' ')[0] || 'MY ACCOUNT'}
-                    </span>
-                  </Button>
-                </Link>
-                <Button
-                  variant="secondary"
-                  className="font-semibold"
-                  onClick={handleLogout}
-                >
-                  <LogOut className="w-4 h-4 mr-1.5" />
-                  LOG OUT
+            {/* Action buttons: desktop-only here — mobile equivalents live in the hamburger menu to prevent this row from overflowing on narrow screens */}
+            <div className="hidden lg:flex items-center gap-3">
+              <Link to="/donate">
+                <Button variant="outline" className="border-primary text-primary hover:bg-primary hover:text-primary-foreground font-semibold">
+                  DONATE
                 </Button>
-              </div>
-            ) : (
-              <div className="flex items-center gap-2">
-                <Link to="/auth?tab=signin">
-                  <Button variant="ghost" className="text-foreground hover:text-primary font-semibold">
-                    <LogIn className="w-4 h-4 mr-1.5" />
-                    LOG IN
+              </Link>
+
+              {isAuthenticated ? (
+                <div className="flex items-center gap-2">
+                  <Link to="/member">
+                    <Button variant="ghost" className="text-foreground hover:text-primary font-semibold gap-1.5">
+                      <UserCircle className="w-5 h-5 text-secondary" />
+                      <span className="hidden md:inline truncate max-w-[120px]">
+                        {(user?.user_metadata?.name as string)?.split(' ')[0] || 'MY ACCOUNT'}
+                      </span>
+                    </Button>
+                  </Link>
+                  <Button
+                    variant="secondary"
+                    className="font-semibold"
+                    onClick={handleLogout}
+                  >
+                    <LogOut className="w-4 h-4 mr-1.5" />
+                    LOG OUT
                   </Button>
-                </Link>
-                <Link to="/signup">
-                  <Button variant="secondary" className="font-semibold">
-                    SIGN UP
-                  </Button>
-                </Link>
-              </div>
-            )}
+                </div>
+              ) : (
+                <div className="flex items-center gap-2">
+                  <Link to="/auth?tab=signin">
+                    <Button variant="ghost" className="text-foreground hover:text-primary font-semibold">
+                      <LogIn className="w-4 h-4 mr-1.5" />
+                      LOG IN
+                    </Button>
+                  </Link>
+                  <Link to="/signup">
+                    <Button variant="secondary" className="font-semibold">
+                      SIGN UP
+                    </Button>
+                  </Link>
+                </div>
+              )}
+            </div>
           </div>
         </div>
       </div>
@@ -229,6 +233,51 @@ export default function Header() {
                   )}
                 </div>
               ))}
+
+              {/* Action buttons — desktop shows these in the top bar instead */}
+              <div className="mt-3 pt-3 border-t border-primary-foreground/20 px-4 flex flex-col gap-2">
+                <Link to="/donate" onClick={() => setIsMobileMenuOpen(false)}>
+                  <Button variant="secondary" className="w-full font-semibold">
+                    DONATE
+                  </Button>
+                </Link>
+
+                {isAuthenticated ? (
+                  <>
+                    <Link to="/member" onClick={() => setIsMobileMenuOpen(false)}>
+                      <Button variant="ghost" className="w-full text-primary-foreground hover:text-white hover:bg-primary-foreground/10 font-semibold gap-1.5">
+                        <UserCircle className="w-5 h-5" />
+                        {(user?.user_metadata?.name as string)?.split(' ')[0] || 'MY ACCOUNT'}
+                      </Button>
+                    </Link>
+                    <Button
+                      variant="outline"
+                      className="w-full border-primary-foreground/40 text-primary-foreground hover:bg-primary-foreground/10 font-semibold"
+                      onClick={() => {
+                        setIsMobileMenuOpen(false);
+                        handleLogout();
+                      }}
+                    >
+                      <LogOut className="w-4 h-4 mr-1.5" />
+                      LOG OUT
+                    </Button>
+                  </>
+                ) : (
+                  <>
+                    <Link to="/auth?tab=signin" onClick={() => setIsMobileMenuOpen(false)}>
+                      <Button variant="ghost" className="w-full text-primary-foreground hover:text-white hover:bg-primary-foreground/10 font-semibold">
+                        <LogIn className="w-4 h-4 mr-1.5" />
+                        LOG IN
+                      </Button>
+                    </Link>
+                    <Link to="/signup" onClick={() => setIsMobileMenuOpen(false)}>
+                      <Button variant="outline" className="w-full border-primary-foreground/40 text-primary-foreground hover:bg-primary-foreground/10 font-semibold">
+                        SIGN UP
+                      </Button>
+                    </Link>
+                  </>
+                )}
+              </div>
             </div>
           )}
         </div>
