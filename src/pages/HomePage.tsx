@@ -46,8 +46,10 @@ export default function HomePage() {
   return (
     <PublicLayout>
       <EventPopup />
-      {/* Hero Banner Carousel */}
-      <section className="relative h-[400px] md:h-[500px] overflow-hidden">
+      {/* Hero Banner Carousel — aspect ratio widens per breakpoint (rather than a fixed
+          px height) so the wide banner images aren't cropped down to a thin sliver on
+          narrow phones the way a tall fixed-height box against a panoramic image would. */}
+      <section className="relative w-full aspect-[16/9] sm:aspect-[2/1] md:aspect-[21/9] lg:h-[500px] overflow-hidden">
         {bannerSlides.map((slide, index) => (
           <div
             key={slide.id}
@@ -67,24 +69,24 @@ export default function HomePage() {
         {/* Navigation arrows */}
         <button
           onClick={prevSlide}
-          className="absolute left-4 top-1/2 -translate-y-1/2 w-12 h-12 rounded-full bg-white/20 hover:bg-white/30 flex items-center justify-center transition-colors"
+          className="absolute left-2 sm:left-4 top-1/2 -translate-y-1/2 w-9 h-9 sm:w-12 sm:h-12 rounded-full bg-white/20 hover:bg-white/30 flex items-center justify-center transition-colors"
         >
-          <ChevronLeft className="w-6 h-6 text-white" />
+          <ChevronLeft className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
         </button>
         <button
           onClick={nextSlide}
-          className="absolute right-4 top-1/2 -translate-y-1/2 w-12 h-12 rounded-full bg-white/20 hover:bg-white/30 flex items-center justify-center transition-colors"
+          className="absolute right-2 sm:right-4 top-1/2 -translate-y-1/2 w-9 h-9 sm:w-12 sm:h-12 rounded-full bg-white/20 hover:bg-white/30 flex items-center justify-center transition-colors"
         >
-          <ChevronRight className="w-6 h-6 text-white" />
+          <ChevronRight className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
         </button>
 
         {/* Slide indicators */}
-        <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex gap-2">
+        <div className="absolute bottom-3 sm:bottom-6 left-1/2 -translate-x-1/2 flex gap-2">
           {bannerSlides.map((_, index) => (
             <button
               key={index}
               onClick={() => setCurrentSlide(index)}
-              className={`w-3 h-3 rounded-full transition-colors ${
+              className={`w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full transition-colors ${
                 index === currentSlide ? 'bg-white' : 'bg-white/50 hover:bg-white/70'
               }`}
             />
@@ -109,10 +111,10 @@ export default function HomePage() {
             </div>
 
             {/* Spiritual Masters */}
-            <div className="flex justify-center gap-8">
+            <div className="flex justify-center flex-wrap gap-4 sm:gap-8">
               {spiritualMasters.map((master) => (
                 <div key={master.id} className="text-center">
-                  <div className="w-40 h-48 md:w-48 md:h-56 rounded-lg overflow-hidden bg-muted mb-3 shadow-md">
+                  <div className="w-32 h-40 sm:w-40 sm:h-48 md:w-48 md:h-56 rounded-lg overflow-hidden bg-muted mb-3 shadow-md">
                     <img
                       src={getImageSrc(master.imageUrl)}
                       alt={master.name}
