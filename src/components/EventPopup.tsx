@@ -124,8 +124,10 @@ export default function EventPopup() {
         </button>
 
         <div className="grid md:grid-cols-2 gap-0">
-          {/* Event Image */}
-          <div className="aspect-square md:aspect-auto bg-muted">
+          {/* Event Image — object-contain so flyer text near the image edges (e.g. the
+              Bhikshu Bhakti flyer, 570x340) isn't cropped off by a square box the way
+              object-cover would. */}
+          <div className="aspect-square md:aspect-auto bg-muted overflow-hidden">
             {featuredEvent.videoUrl ? (
               <video
                 src={featuredEvent.videoUrl}
@@ -139,7 +141,7 @@ export default function EventPopup() {
               <img
                 src={imageUrl}
                 alt={featuredEvent.title}
-                className="w-full h-full object-cover"
+                className="w-full h-full object-contain"
               />
             )}
           </div>

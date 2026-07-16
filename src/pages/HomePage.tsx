@@ -46,10 +46,11 @@ export default function HomePage() {
   return (
     <PublicLayout>
       <EventPopup />
-      {/* Hero Banner Carousel — aspect ratio widens per breakpoint (rather than a fixed
-          px height) so the wide banner images aren't cropped down to a thin sliver on
-          narrow phones the way a tall fixed-height box against a panoramic image would. */}
-      <section className="relative w-full aspect-[16/9] sm:aspect-[2/1] md:aspect-[21/9] lg:h-[500px] overflow-hidden">
+      {/* Hero Banner Carousel — object-contain (not object-cover) so the full banner is
+          always visible regardless of its aspect ratio or the viewport's, since the
+          default banner-mahapragya asset is an ultra-wide 1020x285 panorama that any
+          cover-fit box would crop the sides off of on a narrower phone screen. */}
+      <section className="relative w-full aspect-[16/9] sm:aspect-[2/1] md:aspect-[21/9] lg:h-[500px] overflow-hidden bg-secondary">
         {bannerSlides.map((slide, index) => (
           <div
             key={slide.id}
@@ -60,9 +61,8 @@ export default function HomePage() {
             <img
               src={getImageSrc(slide.imageUrl)}
               alt={slide.title || 'JVBNA Banner'}
-              className="w-full h-full object-cover"
+              className="w-full h-full object-contain"
             />
-
           </div>
         ))}
 
