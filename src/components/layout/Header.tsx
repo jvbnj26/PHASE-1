@@ -27,6 +27,7 @@ const navItems = [
     ],
   },
   { name: 'ACTIVITIES', path: '/activities' },
+  { name: 'BLOG', path: '/blog' },
   { name: 'CALENDAR', path: '/calendar' },
   { name: 'PHOTOS', path: '/photos' },
   { name: 'SPIRITUAL GUIDANCE', path: '/spiritual-guidance' },

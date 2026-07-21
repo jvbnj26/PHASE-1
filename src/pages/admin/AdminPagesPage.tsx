@@ -4,7 +4,6 @@ import AdminLayout from '@/components/admin/AdminLayout';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Card } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -13,6 +12,7 @@ import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { supabase } from '@/integrations/supabase/client';
 import { useCustomPages, slugify, type PageBlock, type CustomPage, type PageStatus } from '@/hooks/useCustomPages';
+import RichTextEditor from '@/components/admin/RichTextEditor';
 import { toast } from 'sonner';
 
 // Built-in site pages — managed via their own editors
@@ -44,7 +44,6 @@ function newBlock(): PageBlock {
   return {
     id: crypto.randomUUID(),
     layout: 'text-image-right',
-    heading: '',
     body: '',
     imageUrl: '',
   };
@@ -381,10 +380,11 @@ export default function AdminPagesPage() {
                       </div>
 
                       {b.layout !== 'image' && b.layout !== 'image-full' && (
-                        <>
-                          <Input placeholder="Heading (optional)" value={b.heading || ''} onChange={(e) => updateBlock(idx, { heading: e.target.value })} />
-                          <Textarea placeholder="Body text" rows={4} value={b.body || ''} onChange={(e) => updateBlock(idx, { body: e.target.value })} />
-                        </>
+                        <RichTextEditor
+                          value={b.body || ''}
+                          onChange={(html) => updateBlock(idx, { body: html })}
+                          placeholder="Write this section's content — pick a heading style from the dropdown, or just start typing..."
+                        />
                       )}
 
                       {b.layout !== 'text' && (

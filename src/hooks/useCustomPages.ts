@@ -4,7 +4,7 @@ import { supabase } from '@/integrations/supabase/client';
 export type PageBlock = {
   id: string;
   layout: 'text' | 'image' | 'text-image-right' | 'text-image-left' | 'image-full';
-  heading?: string;
+  /** Rich text HTML, produced by the block editor's WYSIWYG toolbar. */
   body?: string;
   imageUrl?: string;
   imageAlt?: string;

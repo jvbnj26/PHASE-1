@@ -16,6 +16,7 @@ import {
   BookOpen,
   HandHeart,
   Layers,
+  Newspaper,
   Menu,
   X
 } from 'lucide-react';
@@ -29,6 +30,7 @@ interface AdminLayoutProps {
 const sidebarItems = [
   { name: 'Dashboard', path: '/admin/dashboard', icon: LayoutDashboard },
   { name: 'Pages', path: '/admin/pages', icon: FileText },
+  { name: 'Blog', path: '/admin/blog', icon: Newspaper },
   { name: 'Home Page', path: '/admin/home', icon: Home },
   { name: 'About Us', path: '/admin/about', icon: FileText },
   { name: 'Events', path: '/admin/events', icon: Calendar },

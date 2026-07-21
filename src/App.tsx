@@ -24,6 +24,8 @@ import NotFound from "./pages/NotFound";
 import SignupPage from "./pages/SignupPage";
 import MemberDashboard from "./pages/MemberDashboard";
 import CustomPageView from "./pages/CustomPageView";
+import BlogPage from "./pages/BlogPage";
+import BlogPostPage from "./pages/BlogPostPage";
 
 // Admin Pages
 import AdminLoginPage from "./pages/admin/AdminLoginPage";
@@ -43,6 +45,7 @@ import AdminMembersPage from "./pages/admin/AdminMembersPage";
 import AdminMemberDetailPage from "./pages/admin/AdminMemberDetailPage";
 import AdminPagesPage from "./pages/admin/AdminPagesPage";
 import AdminProgramsPage from "./pages/admin/AdminProgramsPage";
+import AdminBlogPage from "./pages/admin/AdminBlogPage";
 import RequireAdmin from "./components/admin/RequireAdmin";
 
 const queryClient = new QueryClient();
@@ -77,6 +80,9 @@ const App = () => (
               
               <Route path="/p/:slug" element={<CustomPageView />} />
               <Route path="/p/:parent/:slug" element={<CustomPageView />} />
+
+              <Route path="/blog" element={<BlogPage />} />
+              <Route path="/blog/:slug" element={<BlogPostPage />} />
               
               
               {/* Admin Routes — login is public; everything else requires isAdmin */}
@@ -98,6 +104,7 @@ const App = () => (
                 <Route path="/admin/settings" element={<AdminSettingsPage />} />
                 <Route path="/admin/pages" element={<AdminPagesPage />} />
                 <Route path="/admin/programs" element={<AdminProgramsPage />} />
+                <Route path="/admin/blog" element={<AdminBlogPage />} />
               </Route>
               
               {/* Catch-all */}

@@ -1,20 +1,22 @@
 import { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
+import DOMPurify from 'dompurify';
 import PublicLayout from '@/components/layout/PublicLayout';
 import PageHero from '@/components/layout/PageHero';
 import { supabase } from '@/integrations/supabase/client';
 import { CustomPage, PageBlock } from '@/hooks/useCustomPages';
+import { useAuth } from '@/contexts/AuthContext';
 import NotFound from './NotFound';
 
 function Block({ b }: { b: PageBlock }) {
-  const text = (
-    <div className="prose max-w-none">
-      {b.heading && <h2 className="text-2xl font-serif font-bold text-primary mb-3">{b.heading}</h2>}
-      {b.body && <p className="text-foreground/80 whitespace-pre-line leading-relaxed">{b.body}</p>}
-    </div>
-  );
+  const text = b.body ? (
+    <div
+      className="prose max-w-none prose-headings:font-serif prose-headings:text-primary prose-a:text-secondary"
+      dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(b.body) }}
+    />
+  ) : null;
   const img = b.imageUrl ? (
-    <img src={b.imageUrl} alt={b.imageAlt || b.heading || ''} className="w-full h-auto rounded-lg shadow-md object-cover" />
+    <img src={b.imageUrl} alt={b.imageAlt || ''} className="w-full h-auto rounded-lg shadow-md object-cover" />
   ) : null;
 
   if (b.layout === 'image-full' && img) {
@@ -45,13 +47,14 @@ function Block({ b }: { b: PageBlock }) {
 
 export default function CustomPageView() {
   const { slug, parent } = useParams();
+  const { isAdmin, loading: authLoading } = useAuth();
   const [page, setPage] = useState<CustomPage | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     (async () => {
       setLoading(true);
-      let q = supabase.from('custom_pages').select('*').eq('slug', slug).eq('status', 'published');
+      let q = supabase.from('custom_pages').select('*').eq('slug', slug);
       q = parent ? q.eq('parent_slug', parent) : q.is('parent_slug', null);
       const { data } = await q.maybeSingle();
       setPage(data as any);
@@ -59,7 +62,7 @@ export default function CustomPageView() {
     })();
   }, [slug, parent]);
 
-  if (loading) {
+  if (loading || authLoading) {
     return (
       <PublicLayout>
         <div className="container-custom py-20 text-center text-muted-foreground">Loading...</div>
@@ -67,9 +70,17 @@ export default function CustomPageView() {
     );
   }
   if (!page) return <NotFound />;
+  // Unpublished pages are previews only — visible to admins so they can check
+  // a draft before publishing, but 404 for everyone else.
+  if (page.status !== 'published' && !isAdmin) return <NotFound />;
 
   return (
     <PublicLayout>
+      {page.status !== 'published' && (
+        <div className="bg-accent text-accent-foreground text-center text-sm font-medium py-2">
+          Preview only — this page is {page.status} and not visible to the public.
+        </div>
+      )}
       <PageHero title={page.title} />
       <section className="container-custom py-12">
         {page.parent_slug && (
