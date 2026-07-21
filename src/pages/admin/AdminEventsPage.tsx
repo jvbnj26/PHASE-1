@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { Navigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { useSiteContent } from '@/contexts/SiteContentContext';
@@ -7,19 +7,120 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { 
+import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Plus, Trash2, Save, Image, Calendar, Bell, Zap } from 'lucide-react';
+import { Plus, Trash2, Save, Image, Calendar, Bell, Zap, X } from 'lucide-react';
 import { classifyEvent } from '@/lib/utils';
 import { ImageUploadButton } from '@/components/admin/ImageUploadButton';
 import { Switch } from '@/components/ui/switch';
 import { useToast } from '@/hooks/use-toast';
-import { Event } from '@/data/siteContent';
+import { Event, EventMediaItem } from '@/data/siteContent';
+
+const MAX_MEDIA_ITEMS = 5;
+const MAX_IMAGE_BYTES = 5 * 1024 * 1024;
+const MAX_VIDEO_BYTES = 15 * 1024 * 1024;
+
+function readAsDataUrl(file: File): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result as string);
+    reader.onerror = () => reject(reader.error);
+    reader.readAsDataURL(file);
+  });
+}
+
+function EventMediaGallery({
+  media, onChange,
+}: { media: EventMediaItem[]; onChange: (media: EventMediaItem[]) => void }) {
+  const { toast } = useToast();
+  const inputRef = useRef<HTMLInputElement>(null);
+  const remaining = MAX_MEDIA_ITEMS - media.length;
+
+  const handleFiles = async (files: FileList) => {
+    const picked = Array.from(files);
+    if (picked.length > remaining) {
+      toast({
+        title: 'Too many files',
+        description: `Only ${remaining} more item(s) can be added (max ${MAX_MEDIA_ITEMS} total).`,
+        variant: 'destructive',
+      });
+    }
+    const toAdd: EventMediaItem[] = [];
+    for (const file of picked.slice(0, remaining)) {
+      const isVideo = file.type.startsWith('video/');
+      const isImage = file.type.startsWith('image/');
+      if (!isVideo && !isImage) {
+        toast({ title: 'Unsupported file', description: `${file.name} is not an image or video.`, variant: 'destructive' });
+        continue;
+      }
+      const maxBytes = isVideo ? MAX_VIDEO_BYTES : MAX_IMAGE_BYTES;
+      if (file.size > maxBytes) {
+        toast({
+          title: 'File too large',
+          description: `${file.name} exceeds the ${maxBytes / (1024 * 1024)}MB limit for ${isVideo ? 'videos' : 'photos'}.`,
+          variant: 'destructive',
+        });
+        continue;
+      }
+      const url = await readAsDataUrl(file);
+      toAdd.push({ url, type: isVideo ? 'video' : 'image' });
+    }
+    if (toAdd.length) onChange([...media, ...toAdd]);
+  };
+
+  return (
+    <div className="space-y-2">
+      <Label>Event Photos & Videos <span className="text-muted-foreground font-normal">(up to {MAX_MEDIA_ITEMS} — shown as an auto-scrolling gallery)</span></Label>
+      <div className="flex flex-wrap gap-2">
+        {media.map((item, i) => (
+          <div key={i} className="relative w-20 h-20 rounded border overflow-hidden bg-muted">
+            {item.type === 'video' ? (
+              <video src={item.url} className="w-full h-full object-cover" muted />
+            ) : (
+              <img src={item.url} alt="" className="w-full h-full object-cover" />
+            )}
+            <button
+              type="button"
+              onClick={() => onChange(media.filter((_, idx) => idx !== i))}
+              className="absolute top-0.5 right-0.5 bg-black/60 rounded-full p-0.5 text-white hover:bg-black/80"
+            >
+              <X className="w-3 h-3" />
+            </button>
+          </div>
+        ))}
+        {media.length < MAX_MEDIA_ITEMS && (
+          <button
+            type="button"
+            onClick={() => inputRef.current?.click()}
+            className="w-20 h-20 rounded border border-dashed flex flex-col items-center justify-center text-muted-foreground hover:bg-muted text-xs gap-1"
+          >
+            <Plus className="w-4 h-4" />
+            Add
+          </button>
+        )}
+      </div>
+      <input
+        ref={inputRef}
+        type="file"
+        accept="image/*,video/*"
+        multiple
+        className="hidden"
+        onChange={(e) => {
+          if (e.target.files?.length) handleFiles(e.target.files);
+          e.target.value = '';
+        }}
+      />
+      <p className="text-xs text-muted-foreground">
+        {media.length}/{MAX_MEDIA_ITEMS} items · Photos up to 5MB, videos up to 15MB.
+      </p>
+    </div>
+  );
+}
 
 export default function AdminEventsPage() {
   const { isAuthenticated } = useAuth();
@@ -65,9 +166,13 @@ export default function AdminEventsPage() {
   };
 
   const updateEvent = (id: string, field: keyof Event, value: string) => {
-    setLocalEvents(localEvents.map(e => 
+    setLocalEvents(localEvents.map(e =>
       e.id === id ? { ...e, [field]: value } : e
     ));
+  };
+
+  const updateEventMedia = (id: string, media: EventMediaItem[]) => {
+    setLocalEvents(localEvents.map(e => (e.id === id ? { ...e, media } : e)));
   };
 
   return (
@@ -300,6 +405,11 @@ export default function AdminEventsPage() {
                     />
                   </div>
 
+                  <EventMediaGallery
+                    media={event.media || []}
+                    onChange={(media) => updateEventMedia(event.id, media)}
+                  />
+
                   <div className="grid md:grid-cols-2 gap-4">
                     <div>
                       <Label>RSVP Link (optional)</Label>
@@ -310,11 +420,11 @@ export default function AdminEventsPage() {
                       />
                     </div>
                     <div>
-                      <Label>Registration Link (optional)</Label>
+                      <Label>View Photos Link (optional)</Label>
                       <Input
-                        value={event.registrationLink || ''}
-                        onChange={(e) => updateEvent(event.id, 'registrationLink', e.target.value)}
-                        placeholder="https://..."
+                        value={event.photosLink || ''}
+                        onChange={(e) => updateEvent(event.id, 'photosLink', e.target.value)}
+                        placeholder="Google Photos album URL"
                       />
                     </div>
                   </div>

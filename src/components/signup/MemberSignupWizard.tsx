@@ -1,6 +1,5 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { usePrograms } from '@/hooks/usePrograms';
 import { ChevronLeft, ChevronRight, Check, Trash2, Plus, Loader2, FlaskConical } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -15,13 +14,14 @@ import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import {
   formSchema, defaultValues, SignupForm, ChildInput,
-  AGE_GROUPS, GENDERS, MEMBER_TYPES, MEMBERSHIP_STATUS, CONTACT_METHODS,
-  NEWSLETTER_FREQ, MEAL_PREFS, EVENT_TYPES, VOLUNTEER_AREAS, AVAILABILITY,
-  CERTIFICATIONS, GIVING_CATEGORIES, RELATIONSHIPS, ORGANIZATION_ROLES,
+  AGE_GROUPS, GENDERS, MEMBER_TYPES, CONTACT_METHODS,
+  NEWSLETTER_FREQ, EVENT_TYPES, VOLUNTEER_AREAS, AVAILABILITY,
+  RELATIONSHIPS, ORGANIZATION_ROLES, DONOR_CATEGORIES,
 } from '@/lib/signupSchema';
+import donorCategoriesImg from '@/assets/donor-categories.png';
 
 const STEPS = [
-  'Account', 'About You', 'Contact', 'Household', 'Programs',
+  'Account', 'About You', 'Contact', 'Household',
   'Events', 'Giving', 'Communication', 'Consent', 'Review',
 ] as const;
 
@@ -68,13 +68,35 @@ function MultiCheck<T extends string>({
   );
 }
 
+function DonorCategoryPicker({
+  value, onChange,
+}: { value: string | undefined; onChange: (v: string) => void }) {
+  return (
+    <div className="space-y-3">
+      <Field label="Donor category" hint="Choose the contribution tier you'd like to commit to.">
+        <Select value={value ?? ''} onValueChange={onChange}>
+          <SelectTrigger><SelectValue placeholder="Select a category…" /></SelectTrigger>
+          <SelectContent>
+            {DONOR_CATEGORIES.map((x) => <SelectItem key={x} value={x}>{x}</SelectItem>)}
+          </SelectContent>
+        </Select>
+      </Field>
+      <img
+        src={donorCategoriesImg}
+        alt="Donor contribution categories and benefits"
+        className="w-full max-w-xl rounded-lg border object-contain"
+      />
+    </div>
+  );
+}
+
 export default function MemberSignupWizard() {
   const navigate = useNavigate();
-  const { programs: availablePrograms, isLoading: programsLoading } = usePrograms();
   const [step, setStep] = useState(0);
   const [data, setData] = useState<SignupForm>(defaultValues);
   const [errors, setErrors] = useState<Errors>({});
   const [submitting, setSubmitting] = useState(false);
+  const submitInFlight = useRef(false);
 
   const set = <K extends keyof SignupForm>(k: K, v: SignupForm[K]) => {
     setData((d) => ({ ...d, [k]: v }));
@@ -110,16 +132,10 @@ export default function MemberSignupWizard() {
         first_name: 'Arjun',
         last_name: 'Shah',
         preferred_name: 'AJ',
-        date_of_birth: '1990-03-15',
         age_group: 'Adult',
         gender: 'Male',
-        marital_status: 'Married',
-        occupation: 'Software Engineer',
-        employer_or_school: 'Tech Corp NJ',
-        language_preference: 'English',
         member_type: 'Parent',
         organization_role: 'General Member',
-        membership_status: 'New',
         how_heard_about_us: 'Friend',
         referred_by: 'Priya Mehta',
         has_household: true,
@@ -137,7 +153,7 @@ export default function MemberSignupWizard() {
         emergency_contact_relationship: 'Spouse',
       },
       3: {
-        household_name: 'Shah Family',
+        household_name: 'Shah',
         spouse_partner_name: 'Priya Shah',
         relationship_to_household: 'Father',
         is_primary_household_contact: true,
@@ -152,52 +168,32 @@ export default function MemberSignupWizard() {
           authorized_pickup_people: 'Priya Shah, Arjun Shah',
           parent_notes: '',
         }],
-        wants_program_enrollment: true,
+        interested_in_gyanshala: true,
       },
       4: {
-        interested_programs: ['Teacher', 'Coordinator'],
-        current_class_group: 'Adult Swadhyay',
-        preferred_program_time: 'Sunday mornings',
-        attendance_expectation: 'Weekly',
-        previous_religious_education: 'Gyanshala Level 3',
-        accommodations: '',
-        parent_volunteer_interest: true,
-        program_notes: 'Happy to help with Gyanshala coordination',
-      },
-      5: {
         interested_event_types: ['Worship/service', 'Sunday school', 'Cultural events'],
-        meal_preference: 'Vegetarian',
-        food_allergies: 'None',
         willing_to_volunteer: true,
         volunteer_areas: ['Teaching', 'Registration'],
         availability: ['Weekends', 'Evenings'],
-        skills_talents: 'Web development, public speaking, Hindi fluency',
-        certifications: ['Teaching'],
+      },
+      5: {
+        donor_category: 'Punyamitra',
+        donation_receipt_email: 'arjun.tax@example.com',
       },
       6: {
-        interested_in_donating: true,
-        preferred_donation_type: 'Recurring',
-        preferred_giving_category: ['General fund', 'Sunday school'],
-        tax_receipt_needed: true,
-        donation_receipt_email: 'arjun.tax@example.com',
-        employer_matching_interest: true,
-        anonymous_donation_preference: false,
-      },
-      7: {
         general_announcements: true,
         event_reminders: true,
         donation_reminders: true,
         volunteer_requests: true,
-        emergency_alerts: true,
         newsletter_frequency: 'Monthly',
         preferred_language_comm: 'English',
         whatsapp_group_interest: true,
         do_not_contact: false,
       },
-      8: {
+      7: {
         email_consent: true,
         sms_consent: true,
-        photo_video_consent: true,
+        photo_video_consent: true as any,
         parent_guardian_consent: true,
         data_accuracy_confirmation: true as any,
       },
@@ -210,22 +206,20 @@ export default function MemberSignupWizard() {
   };
 
   const showHouseholdStep = data.member_type === 'Parent' || data.has_household;
-  const showProgramsStep = data.wants_program_enrollment || data.children.length > 0;
-  const showDonationDetails = data.interested_in_donating;
   const showVolunteerDetails = data.willing_to_volunteer;
+  const showDonorCategory = data.member_type === 'Donor';
 
   // Step fields to validate
   const stepFields: Record<number, (keyof SignupForm)[]> = {
     0: ['email', 'password', 'confirm_password', 'preferred_contact_method', 'terms_accepted', 'privacy_accepted', 'primary_phone'],
-    1: ['first_name', 'last_name', 'age_group', 'gender', 'member_type', 'organization_role', 'membership_status'],
-    2: [],
-    3: showHouseholdStep ? ['children'] : [],
+    1: ['first_name', 'last_name', 'age_group', 'gender', 'member_type', 'organization_role'],
+    2: ['street_address', 'city', 'state', 'zip_code'],
+    3: [],
     4: [],
     5: [],
-    6: showDonationDetails ? ['donation_receipt_email'] : [],
-    7: [],
-    8: ['data_accuracy_confirmation', 'parent_guardian_consent'],
-    9: [],
+    6: [],
+    7: ['data_accuracy_confirmation', 'photo_video_consent', 'parent_guardian_consent'],
+    8: [],
   };
 
   const validateStep = (s: number): boolean => {
@@ -249,20 +243,19 @@ export default function MemberSignupWizard() {
       toast.error('Please fix the highlighted fields');
       return;
     }
-    // Skip household/programs steps when not applicable
+    // Skip household step when not applicable
     let n = step + 1;
     if (n === 3 && !showHouseholdStep) n = 4;
-    if (n === 4 && !showProgramsStep) n = 5;
     setStep(Math.min(n, STEPS.length - 1));
   };
   const back = () => {
     let n = step - 1;
-    if (n === 4 && !showProgramsStep) n = 3;
     if (n === 3 && !showHouseholdStep) n = 2;
     setStep(Math.max(n, 0));
   };
 
   const submit = async () => {
+    if (submitInFlight.current) return;
     const result = formSchema.safeParse(data);
     if (!result.success) {
       const e: Errors = {};
@@ -275,6 +268,7 @@ export default function MemberSignupWizard() {
       return;
     }
 
+    submitInFlight.current = true;
     setSubmitting(true);
     try {
       const redirectUrl = `${window.location.origin}/`;
@@ -289,6 +283,14 @@ export default function MemberSignupWizard() {
       if (signUpErr) throw signUpErr;
       const userId = signUpData.user?.id;
       if (!userId) throw new Error('Account created but no user id returned');
+
+      // Supabase returns a user with no identities (and no error) when the
+      // email is already registered, to avoid leaking which emails exist.
+      if (signUpData.user && signUpData.user.identities?.length === 0) {
+        toast.error('An account with this email already exists. Please sign in instead.');
+        navigate('/auth?tab=signin');
+        return;
+      }
 
       // If email confirmation required, no session — surface that.
       const session = signUpData.session;
@@ -305,13 +307,9 @@ export default function MemberSignupWizard() {
         user_id: userId,
         first_name: data.first_name, last_name: data.last_name,
         preferred_name: data.preferred_name || null,
-        date_of_birth: data.date_of_birth || null,
         age_group: data.age_group, gender: data.gender,
-        marital_status: data.marital_status || null,
-        occupation: data.occupation || null,
-        employer_or_school: data.employer_or_school || null,
-        language_preference: data.language_preference || null,
-        member_type: data.member_type, membership_status: data.membership_status,
+        school_name: data.age_group === 'Youth' ? (data.school_name || null) : null,
+        member_type: data.member_type,
         organization_role: data.organization_role,
         profile_picture_url: data.profile_picture_url || null,
         how_heard_about_us: data.how_heard_about_us || null,
@@ -321,26 +319,26 @@ export default function MemberSignupWizard() {
         primary_phone: data.primary_phone || null,
         secondary_phone: data.secondary_phone || null,
         preferred_contact_method: data.preferred_contact_method,
-        street_address: data.street_address || null,
-        city: data.city || null, state: data.state || null,
-        zip_code: data.zip_code || null, country: data.country || null,
+        street_address: data.street_address,
+        city: data.city, state: data.state,
+        zip_code: data.zip_code, country: data.country || null,
         emergency_contact_name: data.emergency_contact_name || null,
         emergency_contact_phone: data.emergency_contact_phone || null,
         emergency_contact_relationship: data.emergency_contact_relationship || null,
+        interested_in_gyanshala: showHouseholdStep ? data.interested_in_gyanshala : false,
       });
       if (mpErr) throw mpErr;
 
-      let householdId: string | null = null;
       if (showHouseholdStep) {
         const { data: hh, error: hhErr } = await supabase.from('households').insert({
-          household_name: data.household_name || `${data.last_name} Household`,
+          household_name: data.household_name || data.last_name,
           primary_contact_user_id: userId,
           street_address: data.street_address || null,
           city: data.city || null, state: data.state || null,
           zip_code: data.zip_code || null, country: data.country || null,
         }).select('id').single();
         if (hhErr) throw hhErr;
-        householdId = hh.id;
+        const householdId = hh.id;
         await supabase.from('household_members').insert({
           household_id: householdId, user_id: userId,
           relationship_to_household: data.relationship_to_household || null,
@@ -366,41 +364,18 @@ export default function MemberSignupWizard() {
         }
       }
 
-      if (showProgramsStep) {
-        await supabase.from('program_enrollments').insert({
-          user_id: userId,
-          interested_programs: data.interested_programs,
-          current_class_group: data.current_class_group || null,
-          previous_religious_education: data.previous_religious_education || null,
-          preferred_program_time: data.preferred_program_time || null,
-          attendance_expectation: data.attendance_expectation || null,
-          accommodations: data.accommodations || null,
-          parent_volunteer_interest: data.parent_volunteer_interest,
-          program_notes: data.program_notes || null,
-        });
-      }
-
       await supabase.from('event_preferences').insert({
         user_id: userId,
         interested_event_types: data.interested_event_types,
-        meal_preference: data.meal_preference || null,
-        food_allergies: data.food_allergies || null,
         willing_to_volunteer: data.willing_to_volunteer,
         volunteer_areas: showVolunteerDetails ? data.volunteer_areas : [],
         availability: showVolunteerDetails ? data.availability : [],
-        skills_talents: showVolunteerDetails ? data.skills_talents || null : null,
-        certifications: showVolunteerDetails ? data.certifications : [],
       });
 
       await supabase.from('donation_preferences').insert({
         user_id: userId,
-        interested_in_donating: data.interested_in_donating,
-        preferred_donation_type: showDonationDetails ? data.preferred_donation_type || null : null,
-        preferred_giving_category: showDonationDetails ? data.preferred_giving_category : [],
-        tax_receipt_needed: data.tax_receipt_needed,
-        donation_receipt_email: data.donation_receipt_email || null,
-        employer_matching_interest: data.employer_matching_interest,
-        anonymous_donation_preference: data.anonymous_donation_preference,
+        donor_category: data.donor_category || null,
+        donation_receipt_email: data.donation_receipt_email || data.email,
       });
 
       await supabase.from('communication_preferences').insert({
@@ -409,7 +384,6 @@ export default function MemberSignupWizard() {
         event_reminders: data.event_reminders,
         donation_reminders: data.donation_reminders,
         volunteer_requests: data.volunteer_requests,
-        emergency_alerts: data.emergency_alerts,
         newsletter_frequency: data.newsletter_frequency,
         preferred_language: data.preferred_language_comm || null,
         whatsapp_group_interest: data.whatsapp_group_interest,
@@ -434,6 +408,7 @@ export default function MemberSignupWizard() {
       console.error(err);
       toast.error(err.message || 'Signup failed');
     } finally {
+      submitInFlight.current = false;
       setSubmitting(false);
     }
   };
@@ -550,32 +525,22 @@ export default function MemberSignupWizard() {
               <Field label="Preferred name">
                 <Input value={data.preferred_name} onChange={(e) => set('preferred_name', e.target.value)} />
               </Field>
-              <Field label="Date of birth">
-                <Input type="date" value={data.date_of_birth} onChange={(e) => set('date_of_birth', e.target.value)} />
-              </Field>
-              <Field label="Age group" required>
+              <Field label="Age group" required hint="Teen (13–19), Youth (20–30), Adult (30+)">
                 <Select value={data.age_group} onValueChange={(v) => set('age_group', v as any)}>
                   <SelectTrigger><SelectValue /></SelectTrigger>
                   <SelectContent>{AGE_GROUPS.map((x) => <SelectItem key={x} value={x}>{x}</SelectItem>)}</SelectContent>
                 </Select>
               </Field>
+              {data.age_group === 'Youth' && (
+                <Field label="Which school?" hint="College/university you currently attend">
+                  <Input value={data.school_name} onChange={(e) => set('school_name', e.target.value)} />
+                </Field>
+              )}
               <Field label="Gender" required>
                 <Select value={data.gender} onValueChange={(v) => set('gender', v as any)}>
                   <SelectTrigger><SelectValue /></SelectTrigger>
                   <SelectContent>{GENDERS.map((x) => <SelectItem key={x} value={x}>{x}</SelectItem>)}</SelectContent>
                 </Select>
-              </Field>
-              <Field label="Marital status">
-                <Input value={data.marital_status} onChange={(e) => set('marital_status', e.target.value)} />
-              </Field>
-              <Field label="Occupation">
-                <Input value={data.occupation} onChange={(e) => set('occupation', e.target.value)} />
-              </Field>
-              <Field label="Employer or school">
-                <Input value={data.employer_or_school} onChange={(e) => set('employer_or_school', e.target.value)} />
-              </Field>
-              <Field label="Language preference">
-                <Input value={data.language_preference} onChange={(e) => set('language_preference', e.target.value)} />
               </Field>
               <Field label="Member type" required>
                 <Select value={data.member_type} onValueChange={(v) => set('member_type', v as any)}>
@@ -589,12 +554,6 @@ export default function MemberSignupWizard() {
                   <SelectContent>{ORGANIZATION_ROLES.map((x) => <SelectItem key={x} value={x}>{x}</SelectItem>)}</SelectContent>
                 </Select>
               </Field>
-              <Field label="Membership status" required>
-                <Select value={data.membership_status} onValueChange={(v) => set('membership_status', v as any)}>
-                  <SelectTrigger><SelectValue /></SelectTrigger>
-                  <SelectContent>{MEMBERSHIP_STATUS.map((x) => <SelectItem key={x} value={x}>{x}</SelectItem>)}</SelectContent>
-                </Select>
-              </Field>
               <Field label="How did you hear about us?">
                 <Input value={data.how_heard_about_us} onChange={(e) => set('how_heard_about_us', e.target.value)} />
               </Field>
@@ -602,6 +561,11 @@ export default function MemberSignupWizard() {
                 <Input value={data.referred_by} onChange={(e) => set('referred_by', e.target.value)} />
               </Field>
             </div>
+            {showDonorCategory && (
+              <div className="pt-2 pl-4 border-l-2 border-primary/30">
+                <DonorCategoryPicker value={data.donor_category} onChange={(v) => set('donor_category', v as any)} />
+              </div>
+            )}
             <div className="pt-2">
               <label className="flex items-center gap-2 text-sm">
                 <Checkbox checked={data.has_household} onCheckedChange={(c) => set('has_household', !!c)} />
@@ -617,14 +581,14 @@ export default function MemberSignupWizard() {
             <div className="grid sm:grid-cols-2 gap-4">
               <Field label="Secondary email"><Input type="email" value={data.secondary_email} onChange={(e) => set('secondary_email', e.target.value)} /></Field>
               <Field label="Secondary phone"><Input value={data.secondary_phone} onChange={(e) => set('secondary_phone', e.target.value)} /></Field>
-              <Field label="Street address"><Input value={data.street_address} onChange={(e) => set('street_address', e.target.value)} /></Field>
-              <Field label="City"><Input value={data.city} onChange={(e) => set('city', e.target.value)} /></Field>
-              <Field label="State"><Input value={data.state} onChange={(e) => set('state', e.target.value)} /></Field>
-              <Field label="ZIP code"><Input value={data.zip_code} onChange={(e) => set('zip_code', e.target.value)} /></Field>
+              <Field label="Street address" required error={errors.street_address}><Input value={data.street_address} onChange={(e) => set('street_address', e.target.value)} /></Field>
+              <Field label="City" required error={errors.city}><Input value={data.city} onChange={(e) => set('city', e.target.value)} /></Field>
+              <Field label="State" required error={errors.state}><Input value={data.state} onChange={(e) => set('state', e.target.value)} /></Field>
+              <Field label="ZIP code" required error={errors.zip_code}><Input value={data.zip_code} onChange={(e) => set('zip_code', e.target.value)} /></Field>
               <Field label="Country"><Input value={data.country} onChange={(e) => set('country', e.target.value)} /></Field>
             </div>
             <div className="pt-2">
-              <h3 className="font-semibold text-sm mb-2">Emergency contact</h3>
+              <h3 className="font-semibold text-sm mb-2">Emergency contact <span className="text-muted-foreground font-normal">(optional)</span></h3>
               <div className="grid sm:grid-cols-3 gap-4">
                 <Field label="Name"><Input value={data.emergency_contact_name} onChange={(e) => set('emergency_contact_name', e.target.value)} /></Field>
                 <Field label="Phone"><Input value={data.emergency_contact_phone} onChange={(e) => set('emergency_contact_phone', e.target.value)} /></Field>
@@ -638,8 +602,16 @@ export default function MemberSignupWizard() {
           <>
             <h2 className="text-2xl font-serif font-bold">Household & family</h2>
             <div className="grid sm:grid-cols-2 gap-4">
-              <Field label="Household name"><Input value={data.household_name} onChange={(e) => set('household_name', e.target.value)} /></Field>
-              <Field label="Spouse / partner name"><Input value={data.spouse_partner_name} onChange={(e) => set('spouse_partner_name', e.target.value)} /></Field>
+              <Field label="Last name" hint="Your family/household last name">
+                <Input
+                  value={data.household_name}
+                  placeholder={data.last_name}
+                  onChange={(e) => set('household_name', e.target.value)}
+                />
+              </Field>
+              <Field label="Spouse / partner name" hint="Enter NA if not married">
+                <Input value={data.spouse_partner_name} onChange={(e) => set('spouse_partner_name', e.target.value)} />
+              </Field>
               <Field label="Your relationship to household">
                 <Select value={data.relationship_to_household} onValueChange={(v) => set('relationship_to_household', v as any)}>
                   <SelectTrigger><SelectValue placeholder="Select…" /></SelectTrigger>
@@ -656,12 +628,11 @@ export default function MemberSignupWizard() {
 
             <div className="pt-2">
               <div className="flex items-center justify-between mb-3">
-                <h3 className="font-semibold">Children / students</h3>
+                <h3 className="font-semibold">Children <span className="text-muted-foreground font-normal text-sm">(optional)</span></h3>
                 <Button type="button" variant="outline" size="sm" onClick={addChild}>
                   <Plus className="w-4 h-4 mr-1" />Add child
                 </Button>
               </div>
-              {errors.children && <p className="text-xs text-destructive mb-2">{errors.children}</p>}
               {data.children.length === 0 && (
                 <p className="text-sm text-muted-foreground italic">No children added.</p>
               )}
@@ -706,85 +677,20 @@ export default function MemberSignupWizard() {
             </div>
             <div className="pt-2">
               <label className="flex items-center gap-2 text-sm">
-                <Checkbox checked={data.wants_program_enrollment} onCheckedChange={(c) => set('wants_program_enrollment', !!c)} />
-                We're interested in religious school / programs
+                <Checkbox checked={data.interested_in_gyanshala} onCheckedChange={(c) => set('interested_in_gyanshala', !!c)} />
+                Are you interested in Gyanshala?
               </label>
             </div>
           </>
         )}
 
-        {step === 4 && showProgramsStep && (
-          <>
-            <h2 className="text-2xl font-serif font-bold">Program enrollment</h2>
-            <Field label="Programs & roles" hint="Select all that apply. Programs are configured by the admin.">
-              {programsLoading ? (
-                <p className="text-sm text-muted-foreground">Loading programs…</p>
-              ) : availablePrograms.filter((p) => p.active).length === 0 ? (
-                <p className="text-sm text-muted-foreground">No programs available at this time.</p>
-              ) : (
-                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-                  {availablePrograms.filter((p) => p.active).map((prog) => {
-                    const checked = data.interested_programs.includes(prog.name);
-                    return (
-                      <label
-                        key={prog.id}
-                        className={`flex items-center gap-2 px-3 py-2 rounded-md border cursor-pointer text-sm transition-colors ${
-                          checked ? 'bg-primary/10 border-primary text-foreground' : 'bg-background hover:bg-muted'
-                        }`}
-                        title={prog.description}
-                      >
-                        <Checkbox
-                          checked={checked}
-                          onCheckedChange={(c) =>
-                            set(
-                              'interested_programs',
-                              c
-                                ? [...data.interested_programs, prog.name]
-                                : data.interested_programs.filter((n) => n !== prog.name),
-                            )
-                          }
-                        />
-                        {prog.name}
-                      </label>
-                    );
-                  })}
-                </div>
-              )}
-            </Field>
-            <div className="grid sm:grid-cols-2 gap-4">
-              <Field label="Current class / group"><Input value={data.current_class_group} onChange={(e) => set('current_class_group', e.target.value)} /></Field>
-              <Field label="Preferred service / program time"><Input value={data.preferred_program_time} onChange={(e) => set('preferred_program_time', e.target.value)} /></Field>
-              <Field label="Attendance expectation"><Input value={data.attendance_expectation} onChange={(e) => set('attendance_expectation', e.target.value)} /></Field>
-              <Field label="Previous religious education"><Input value={data.previous_religious_education} onChange={(e) => set('previous_religious_education', e.target.value)} /></Field>
-            </div>
-            <Field label="Special accommodations">
-              <Textarea rows={2} value={data.accommodations} onChange={(e) => set('accommodations', e.target.value)} />
-            </Field>
-            <label className="flex items-center gap-2 text-sm">
-              <Checkbox checked={data.parent_volunteer_interest} onCheckedChange={(c) => set('parent_volunteer_interest', !!c)} />
-              Parent interested in volunteering with programs
-            </label>
-            <Field label="Additional program notes">
-              <Textarea rows={2} value={data.program_notes} onChange={(e) => set('program_notes', e.target.value)} />
-            </Field>
-          </>
-        )}
-
-        {step === 5 && (
+        {step === 4 && (
           <>
             <h2 className="text-2xl font-serif font-bold">Events & community</h2>
+            <p className="text-sm text-muted-foreground">Everything on this page is optional.</p>
             <Field label="Interested event types">
               <MultiCheck options={EVENT_TYPES} value={data.interested_event_types} onChange={(v) => set('interested_event_types', v)} />
             </Field>
-            <div className="grid sm:grid-cols-2 gap-4">
-              <Field label="Meal preference">
-                <Select value={data.meal_preference} onValueChange={(v) => set('meal_preference', v as any)}>
-                  <SelectTrigger><SelectValue /></SelectTrigger>
-                  <SelectContent>{MEAL_PREFS.map((x) => <SelectItem key={x} value={x}>{x}</SelectItem>)}</SelectContent>
-                </Select>
-              </Field>
-              <Field label="Food allergies"><Input value={data.food_allergies} onChange={(e) => set('food_allergies', e.target.value)} /></Field>
-            </div>
             <label className="flex items-center gap-2 text-sm">
               <Checkbox checked={data.willing_to_volunteer} onCheckedChange={(c) => set('willing_to_volunteer', !!c)} />
               I'd like to volunteer at events
@@ -797,67 +703,26 @@ export default function MemberSignupWizard() {
                 <Field label="Availability">
                   <MultiCheck options={AVAILABILITY} value={data.availability} onChange={(v) => set('availability', v)} />
                 </Field>
-                <Field label="Skills / talents">
-                  <Textarea rows={2} value={data.skills_talents} onChange={(e) => set('skills_talents', e.target.value)} />
-                </Field>
-                <Field label="Certifications">
-                  <MultiCheck options={CERTIFICATIONS} value={data.certifications} onChange={(v) => set('certifications', v)} />
-                </Field>
               </div>
             )}
+          </>
+        )}
+
+        {step === 5 && (
+          <>
+            <h2 className="text-2xl font-serif font-bold">Giving preferences</h2>
+            <p className="text-sm text-muted-foreground">
+              We never collect card numbers or bank credentials here. Choosing a category now means
+              it's already on file when you visit the Donate page to pay.
+            </p>
+            <DonorCategoryPicker value={data.donor_category} onChange={(v) => set('donor_category', v as any)} />
+            <Field label="Email for donor records" error={errors.donation_receipt_email} hint="Defaults to your account email if left blank">
+              <Input type="email" value={data.donation_receipt_email} onChange={(e) => set('donation_receipt_email', e.target.value)} />
+            </Field>
           </>
         )}
 
         {step === 6 && (
-          <>
-            <h2 className="text-2xl font-serif font-bold">Giving preferences</h2>
-            <p className="text-sm text-muted-foreground">
-              We never collect card numbers or bank credentials here. This is only your interest.
-            </p>
-            <label className="flex items-center gap-2 text-sm">
-              <Checkbox checked={data.interested_in_donating} onCheckedChange={(c) => set('interested_in_donating', !!c)} />
-              I'm interested in donating
-            </label>
-            {showDonationDetails && (
-              <div className="space-y-4 pl-4 border-l-2 border-primary/30">
-                <div className="grid sm:grid-cols-2 gap-4">
-                  <Field label="Donation type">
-                    <Select value={data.preferred_donation_type} onValueChange={(v) => set('preferred_donation_type', v as any)}>
-                      <SelectTrigger><SelectValue placeholder="Select…" /></SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="One-time">One-time</SelectItem>
-                        <SelectItem value="Recurring">Recurring</SelectItem>
-                        <SelectItem value="Not sure">Not sure</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </Field>
-                  <Field label="Receipt email" error={errors.donation_receipt_email}>
-                    <Input type="email" value={data.donation_receipt_email} onChange={(e) => set('donation_receipt_email', e.target.value)} />
-                  </Field>
-                </div>
-                <Field label="Giving categories">
-                  <MultiCheck options={GIVING_CATEGORIES} value={data.preferred_giving_category} onChange={(v) => set('preferred_giving_category', v)} />
-                </Field>
-                <div className="space-y-2">
-                  <label className="flex items-center gap-2 text-sm">
-                    <Checkbox checked={data.tax_receipt_needed} onCheckedChange={(c) => set('tax_receipt_needed', !!c)} />
-                    I'd like a tax receipt
-                  </label>
-                  <label className="flex items-center gap-2 text-sm">
-                    <Checkbox checked={data.employer_matching_interest} onCheckedChange={(c) => set('employer_matching_interest', !!c)} />
-                    Interested in employer matching gifts
-                  </label>
-                  <label className="flex items-center gap-2 text-sm">
-                    <Checkbox checked={data.anonymous_donation_preference} onCheckedChange={(c) => set('anonymous_donation_preference', !!c)} />
-                    Keep my donations anonymous
-                  </label>
-                </div>
-              </div>
-            )}
-          </>
-        )}
-
-        {step === 7 && (
           <>
             <h2 className="text-2xl font-serif font-bold">Communication preferences</h2>
             <div className="space-y-2">
@@ -866,7 +731,6 @@ export default function MemberSignupWizard() {
                 ['event_reminders', 'Event reminders'],
                 ['donation_reminders', 'Donation reminders'],
                 ['volunteer_requests', 'Volunteer requests'],
-                ['emergency_alerts', 'Emergency alerts'],
                 ['whatsapp_group_interest', 'WhatsApp group'],
                 ['do_not_contact', 'Do not contact me'],
               ] as const).map(([k, l]) => (
@@ -890,7 +754,7 @@ export default function MemberSignupWizard() {
           </>
         )}
 
-        {step === 8 && (
+        {step === 7 && (
           <>
             <h2 className="text-2xl font-serif font-bold">Consent & privacy</h2>
             <div className="space-y-2 text-sm">
@@ -903,9 +767,10 @@ export default function MemberSignupWizard() {
                 I consent to receive SMS communications
               </label>
               <label className="flex items-start gap-2">
-                <Checkbox checked={data.photo_video_consent} onCheckedChange={(c) => set('photo_video_consent', !!c)} />
-                I consent to photo / video use at events
+                <Checkbox checked={data.photo_video_consent} onCheckedChange={(c) => set('photo_video_consent', (!!c) as any)} />
+                I consent to photo / video use at events <span className="text-destructive">*</span>
               </label>
+              {errors.photo_video_consent && <p className="text-xs text-destructive ml-6">{errors.photo_video_consent}</p>}
               {data.children.length > 0 && (
                 <>
                   <label className="flex items-start gap-2">
@@ -924,7 +789,7 @@ export default function MemberSignupWizard() {
           </>
         )}
 
-        {step === 9 && (
+        {step === 8 && (
           <>
             <h2 className="text-2xl font-serif font-bold">Review & submit</h2>
             <p className="text-sm text-muted-foreground">Make sure everything looks right before creating your account.</p>
@@ -939,8 +804,7 @@ export default function MemberSignupWizard() {
               <Row k="Member type" v={data.member_type} />
               <Row k="Organization role" v={data.organization_role} />
               <Row k="Photo" v={data.profile_picture_url ? 'Uploaded' : '—'} />
-              <Row k="Status" v={data.membership_status} />
-
+              {showDonorCategory && <Row k="Donor category" v={data.donor_category} />}
             </ReviewSection>
             <ReviewSection title="Address" onEdit={() => setStep(2)}>
               <Row k="Address" v={[data.street_address, data.city, data.state, data.zip_code].filter(Boolean).join(', ')} />
@@ -948,23 +812,19 @@ export default function MemberSignupWizard() {
             </ReviewSection>
             {showHouseholdStep && (
               <ReviewSection title="Household" onEdit={() => setStep(3)}>
-                <Row k="Household" v={data.household_name} />
+                <Row k="Last name" v={data.household_name || data.last_name} />
                 <Row k="Children" v={`${data.children.length}`} />
+                <Row k="Interested in Gyanshala" v={data.interested_in_gyanshala ? 'Yes' : 'No'} />
               </ReviewSection>
             )}
-            {showProgramsStep && (
-              <ReviewSection title="Programs" onEdit={() => setStep(4)}>
-                <Row k="Programs" v={data.interested_programs.join(', ')} />
-              </ReviewSection>
-            )}
-            <ReviewSection title="Events & volunteering" onEdit={() => setStep(5)}>
+            <ReviewSection title="Events & volunteering" onEdit={() => setStep(4)}>
               <Row k="Event types" v={data.interested_event_types.join(', ')} />
               <Row k="Willing to volunteer" v={data.willing_to_volunteer ? 'Yes' : 'No'} />
             </ReviewSection>
-            <ReviewSection title="Giving" onEdit={() => setStep(6)}>
-              <Row k="Interested in donating" v={data.interested_in_donating ? 'Yes' : 'No'} />
+            <ReviewSection title="Giving" onEdit={() => setStep(5)}>
+              <Row k="Donor category" v={data.donor_category || 'Not selected'} />
             </ReviewSection>
-            <ReviewSection title="Communication" onEdit={() => setStep(7)}>
+            <ReviewSection title="Communication" onEdit={() => setStep(6)}>
               <Row k="Newsletter" v={data.newsletter_frequency} />
             </ReviewSection>
           </>

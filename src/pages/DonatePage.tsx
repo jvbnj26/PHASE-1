@@ -1,14 +1,24 @@
+import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import PublicLayout from '@/components/layout/PublicLayout';
 import PageHero from '@/components/layout/PageHero';
 import { useSiteContent } from '@/contexts/SiteContentContext';
 import { useAuth } from '@/contexts/AuthContext';
+import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { CreditCard, Building2, Globe, CheckCircle, Heart, Shield, ArrowRight, LogIn } from 'lucide-react';
+import donorCategoriesImg from '@/assets/donor-categories.png';
 
 export default function DonatePage() {
   const { donationContent } = useSiteContent();
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, user } = useAuth();
+  const [donorCategory, setDonorCategory] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!user) { setDonorCategory(null); return; }
+    supabase.from('donation_preferences').select('donor_category').eq('user_id', user.id).maybeSingle()
+      .then(({ data }) => setDonorCategory(data?.donor_category ?? null));
+  }, [user]);
 
   return (
     <PublicLayout>
@@ -56,6 +66,27 @@ export default function DonatePage() {
                 <p key={idx}>{line}</p>
               ))}
             </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Donor categories */}
+      <section className="py-16 bg-gradient-to-br from-section to-muted/30">
+        <div className="container-custom max-w-4xl">
+          <div className="text-center max-w-2xl mx-auto mb-10">
+            <p className="text-primary font-semibold text-sm uppercase tracking-wider mb-2">Contribution Tiers</p>
+            <h2 className="font-serif text-3xl md:text-4xl font-bold text-foreground mb-3">Donor Categories</h2>
+            <p className="text-muted-foreground">
+              Choose a contribution category during signup and it's already on file — just add your
+              payment info here when you're ready to give.
+            </p>
+          </div>
+          <div className="bg-white rounded-2xl border border-border p-4 md:p-6">
+            <img
+              src={donorCategoriesImg}
+              alt="Donor contribution categories, amounts, and benefits"
+              className="w-full rounded-lg object-contain"
+            />
           </div>
         </div>
       </section>
@@ -143,9 +174,16 @@ export default function DonatePage() {
                 Every contribution, large or small, helps sustain our mission of peace, nonviolence, and spiritual upliftment.
               </p>
               {isAuthenticated ? (
-                <Button size="lg" className="bg-white text-primary hover:bg-white/90 font-semibold">
-                  Donate Now <ArrowRight className="w-4 h-4 ml-1" />
-                </Button>
+                <div className="space-y-3">
+                  {donorCategory && (
+                    <p className="text-white/90 text-sm">
+                      You signed up as: <span className="font-semibold">{donorCategory}</span>
+                    </p>
+                  )}
+                  <Button size="lg" className="bg-white text-primary hover:bg-white/90 font-semibold">
+                    Donate Now <ArrowRight className="w-4 h-4 ml-1" />
+                  </Button>
+                </div>
               ) : (
                 <div className="space-y-3">
                   <p className="text-white/80 text-sm">Please sign in to donate.</p>

@@ -85,7 +85,6 @@ export type Database = {
           created_at: string
           do_not_contact: boolean | null
           donation_reminders: boolean | null
-          emergency_alerts: boolean | null
           event_reminders: boolean | null
           general_announcements: boolean | null
           id: string
@@ -100,7 +99,6 @@ export type Database = {
           created_at?: string
           do_not_contact?: boolean | null
           donation_reminders?: boolean | null
-          emergency_alerts?: boolean | null
           event_reminders?: boolean | null
           general_announcements?: boolean | null
           id?: string
@@ -115,7 +113,6 @@ export type Database = {
           created_at?: string
           do_not_contact?: boolean | null
           donation_reminders?: boolean | null
-          emergency_alerts?: boolean | null
           event_reminders?: boolean | null
           general_announcements?: boolean | null
           id?: string
@@ -214,41 +211,26 @@ export type Database = {
       }
       donation_preferences: {
         Row: {
-          anonymous_donation_preference: boolean | null
           created_at: string
           donation_receipt_email: string | null
-          employer_matching_interest: boolean | null
+          donor_category: string | null
           id: string
-          interested_in_donating: boolean | null
-          preferred_donation_type: string | null
-          preferred_giving_category: string[] | null
-          tax_receipt_needed: boolean | null
           updated_at: string
           user_id: string
         }
         Insert: {
-          anonymous_donation_preference?: boolean | null
           created_at?: string
           donation_receipt_email?: string | null
-          employer_matching_interest?: boolean | null
+          donor_category?: string | null
           id?: string
-          interested_in_donating?: boolean | null
-          preferred_donation_type?: string | null
-          preferred_giving_category?: string[] | null
-          tax_receipt_needed?: boolean | null
           updated_at?: string
           user_id: string
         }
         Update: {
-          anonymous_donation_preference?: boolean | null
           created_at?: string
           donation_receipt_email?: string | null
-          employer_matching_interest?: boolean | null
+          donor_category?: string | null
           id?: string
-          interested_in_donating?: boolean | null
-          preferred_donation_type?: string | null
-          preferred_giving_category?: string[] | null
-          tax_receipt_needed?: boolean | null
           updated_at?: string
           user_id?: string
         }
@@ -257,13 +239,9 @@ export type Database = {
       event_preferences: {
         Row: {
           availability: string[] | null
-          certifications: string[] | null
           created_at: string
-          food_allergies: string | null
           id: string
           interested_event_types: string[] | null
-          meal_preference: string | null
-          skills_talents: string | null
           updated_at: string
           user_id: string
           volunteer_areas: string[] | null
@@ -271,13 +249,9 @@ export type Database = {
         }
         Insert: {
           availability?: string[] | null
-          certifications?: string[] | null
           created_at?: string
-          food_allergies?: string | null
           id?: string
           interested_event_types?: string[] | null
-          meal_preference?: string | null
-          skills_talents?: string | null
           updated_at?: string
           user_id: string
           volunteer_areas?: string[] | null
@@ -285,13 +259,9 @@ export type Database = {
         }
         Update: {
           availability?: string[] | null
-          certifications?: string[] | null
           created_at?: string
-          food_allergies?: string | null
           id?: string
           interested_event_types?: string[] | null
-          meal_preference?: string | null
-          skills_talents?: string | null
           updated_at?: string
           user_id?: string
           volunteer_areas?: string[] | null
@@ -382,22 +352,18 @@ export type Database = {
           city: string | null
           country: string | null
           created_at: string
-          date_of_birth: string | null
           emergency_contact_name: string | null
           emergency_contact_phone: string | null
           emergency_contact_relationship: string | null
-          employer_or_school: string | null
           first_name: string | null
           gender: string | null
           how_heard_about_us: string | null
           id: string
+          interested_in_gyanshala: boolean | null
           join_date: string | null
-          language_preference: string | null
           last_name: string | null
-          marital_status: string | null
           member_type: string | null
           membership_status: string | null
-          occupation: string | null
           organization_role: string | null
           preferred_contact_method: string | null
           preferred_name: string | null
@@ -405,6 +371,7 @@ export type Database = {
           primary_phone: string | null
           profile_picture_url: string | null
           referred_by: string | null
+          school_name: string | null
           secondary_email: string | null
           secondary_phone: string | null
           state: string | null
@@ -418,22 +385,18 @@ export type Database = {
           city?: string | null
           country?: string | null
           created_at?: string
-          date_of_birth?: string | null
           emergency_contact_name?: string | null
           emergency_contact_phone?: string | null
           emergency_contact_relationship?: string | null
-          employer_or_school?: string | null
           first_name?: string | null
           gender?: string | null
           how_heard_about_us?: string | null
           id?: string
+          interested_in_gyanshala?: boolean | null
           join_date?: string | null
-          language_preference?: string | null
           last_name?: string | null
-          marital_status?: string | null
           member_type?: string | null
           membership_status?: string | null
-          occupation?: string | null
           organization_role?: string | null
           preferred_contact_method?: string | null
           preferred_name?: string | null
@@ -441,6 +404,7 @@ export type Database = {
           primary_phone?: string | null
           profile_picture_url?: string | null
           referred_by?: string | null
+          school_name?: string | null
           secondary_email?: string | null
           secondary_phone?: string | null
           state?: string | null
@@ -454,22 +418,18 @@ export type Database = {
           city?: string | null
           country?: string | null
           created_at?: string
-          date_of_birth?: string | null
           emergency_contact_name?: string | null
           emergency_contact_phone?: string | null
           emergency_contact_relationship?: string | null
-          employer_or_school?: string | null
           first_name?: string | null
           gender?: string | null
           how_heard_about_us?: string | null
           id?: string
+          interested_in_gyanshala?: boolean | null
           join_date?: string | null
-          language_preference?: string | null
           last_name?: string | null
-          marital_status?: string | null
           member_type?: string | null
           membership_status?: string | null
-          occupation?: string | null
           organization_role?: string | null
           preferred_contact_method?: string | null
           preferred_name?: string | null
@@ -477,6 +437,7 @@ export type Database = {
           primary_phone?: string | null
           profile_picture_url?: string | null
           referred_by?: string | null
+          school_name?: string | null
           secondary_email?: string | null
           secondary_phone?: string | null
           state?: string | null
@@ -484,6 +445,51 @@ export type Database = {
           updated_at?: string
           user_id?: string | null
           zip_code?: string | null
+        }
+        Relationships: []
+      }
+      posts: {
+        Row: {
+          author: string | null
+          category: string | null
+          content: string
+          created_at: string
+          excerpt: string | null
+          featured_image_url: string | null
+          id: string
+          published_at: string | null
+          slug: string
+          status: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          author?: string | null
+          category?: string | null
+          content?: string
+          created_at?: string
+          excerpt?: string | null
+          featured_image_url?: string | null
+          id?: string
+          published_at?: string | null
+          slug: string
+          status?: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          author?: string | null
+          category?: string | null
+          content?: string
+          created_at?: string
+          excerpt?: string | null
+          featured_image_url?: string | null
+          id?: string
+          published_at?: string | null
+          slug?: string
+          status?: string
+          title?: string
+          updated_at?: string
         }
         Relationships: []
       }
@@ -513,62 +519,6 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
-      }
-      program_enrollments: {
-        Row: {
-          accommodations: string | null
-          attendance_expectation: string | null
-          created_at: string
-          current_class_group: string | null
-          id: string
-          interested_programs: string[] | null
-          parent_volunteer_interest: boolean | null
-          preferred_program_time: string | null
-          previous_religious_education: string | null
-          program_notes: string | null
-          student_id: string | null
-          updated_at: string
-          user_id: string
-        }
-        Insert: {
-          accommodations?: string | null
-          attendance_expectation?: string | null
-          created_at?: string
-          current_class_group?: string | null
-          id?: string
-          interested_programs?: string[] | null
-          parent_volunteer_interest?: boolean | null
-          preferred_program_time?: string | null
-          previous_religious_education?: string | null
-          program_notes?: string | null
-          student_id?: string | null
-          updated_at?: string
-          user_id: string
-        }
-        Update: {
-          accommodations?: string | null
-          attendance_expectation?: string | null
-          created_at?: string
-          current_class_group?: string | null
-          id?: string
-          interested_programs?: string[] | null
-          parent_volunteer_interest?: boolean | null
-          preferred_program_time?: string | null
-          previous_religious_education?: string | null
-          program_notes?: string | null
-          student_id?: string | null
-          updated_at?: string
-          user_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "program_enrollments_student_id_fkey"
-            columns: ["student_id"]
-            isOneToOne: false
-            referencedRelation: "student_profiles"
-            referencedColumns: ["id"]
-          },
-        ]
       }
       rsvps: {
         Row: {

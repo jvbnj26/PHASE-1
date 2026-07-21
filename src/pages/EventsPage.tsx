@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 import { useRsvps } from '@/hooks/useRsvps';
 import eventBhikshuBhakti from '@/assets/event-bhikshu-bhakti.jpeg';
+import EventMediaCarousel, { eventMediaFor } from '@/components/EventMediaCarousel';
 
 type EventType = 'upcoming' | 'ongoing' | 'past';
 
@@ -30,17 +31,19 @@ export default function EventsPage() {
     past: 'PAST EVENTS',
   }[eventType];
 
-  const handleRsvp = async (eventId: string, eventTitle: string) => {
+  const handleRsvp = async (eventId: string, eventTitle: string, rsvpLink?: string) => {
     if (!isAuthenticated) {
       navigate(`/auth?tab=signin&redirect=/events/upcoming`);
       return;
     }
+    const wasRsvped = rsvpIds.has(eventId);
     const ok = await toggleRsvp(eventId, eventTitle);
     if (ok) {
-      if (rsvpIds.has(eventId)) {
+      if (wasRsvped) {
         toast.success('RSVP cancelled.');
       } else {
         toast.success(`You're registered for ${eventTitle}!`);
+        if (rsvpLink) window.open(rsvpLink, '_blank', 'noopener,noreferrer');
       }
     } else {
       toast.error('Something went wrong. Please try again.');
@@ -110,27 +113,13 @@ export default function EventsPage() {
                 const imageUrl = event.imageUrl === 'event-bhikshu-bhakti'
                   ? eventBhikshuBhakti
                   : event.imageUrl;
+                const media = eventMediaFor({ ...event, imageUrl });
                 const hasRsvp = rsvpIds.has(event.id);
 
                 return (
                   <div key={event.id} className="event-card">
                     <div className="aspect-[3/4] bg-muted overflow-hidden relative">
-                      {event.videoUrl ? (
-                        <video
-                          src={event.videoUrl}
-                          autoPlay
-                          loop
-                          muted
-                          playsInline
-                          className="w-full h-full object-contain bg-black"
-                        />
-                      ) : (
-                        <img
-                          src={imageUrl}
-                          alt={event.title}
-                          className="w-full h-full object-cover"
-                        />
-                      )}
+                      <EventMediaCarousel media={media} alt={event.title} />
                       {/* RSVP'd badge overlay */}
                       {hasRsvp && (
                         <div className="absolute top-3 right-3 flex items-center gap-1.5 bg-secondary text-white text-xs font-semibold px-2.5 py-1 rounded-full shadow">
@@ -158,7 +147,7 @@ export default function EventsPage() {
                             size="sm"
                             variant={hasRsvp ? 'secondary' : 'default'}
                             disabled={rsvpLoading}
-                            onClick={() => handleRsvp(event.id, event.title)}
+                            onClick={() => handleRsvp(event.id, event.title, event.rsvpLink)}
                             className="gap-2"
                           >
                             {hasRsvp ? (
@@ -171,11 +160,11 @@ export default function EventsPage() {
                           </Button>
                         )}
 
-                        {/* External registration link (separate from RSVP) */}
-                        {event.registrationLink && (
-                          <a href={event.registrationLink} target="_blank" rel="noopener noreferrer">
+                        {/* External photos link (Google Photos album, etc.) */}
+                        {event.photosLink && (
+                          <a href={event.photosLink} target="_blank" rel="noopener noreferrer">
                             <Button variant="outline" size="sm" className="gap-2">
-                              Register <ExternalLink className="w-4 h-4" />
+                              View Photos <ExternalLink className="w-4 h-4" />
                             </Button>
                           </a>
                         )}

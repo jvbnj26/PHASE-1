@@ -14,7 +14,7 @@ import { useRsvps } from '@/hooks/useRsvps';
 import { toast } from 'sonner';
 import {
   User, Calendar, CheckCircle2, X, Edit, Save, Loader2,
-  Phone, Mail, MapPin, Shield, Bell
+  Phone, Mail, MapPin, Shield, Bell, ExternalLink
 } from 'lucide-react';
 
 export default function MemberDashboard() {
@@ -95,12 +95,13 @@ export default function MemberDashboard() {
     }
   };
 
-  const handleRsvp = async (eventId: string, eventTitle: string) => {
+  const handleRsvp = async (eventId: string, eventTitle: string, rsvpLink?: string) => {
     const ok = await toggleRsvp(eventId, eventTitle);
     if (ok) {
       toast.success(`You're registered for ${eventTitle}!`);
       setRsvps((prev) => [...prev, { event_id: eventId, event_title: eventTitle, created_at: new Date().toISOString() }]);
       refreshRsvps();
+      if (rsvpLink) window.open(rsvpLink, '_blank', 'noopener,noreferrer');
     }
   };
 
@@ -284,17 +285,25 @@ export default function MemberDashboard() {
                                 <p className="text-sm text-muted-foreground mt-1 line-clamp-2">{event.description}</p>
                               )}
                             </div>
-                            <Button
-                              size="sm"
-                              variant={hasRsvp ? 'outline' : 'default'}
-                              onClick={() => hasRsvp
-                                ? handleCancelRsvp(event.id, event.title)
-                                : handleRsvp(event.id, event.title)
-                              }
-                              className="shrink-0"
-                            >
-                              {hasRsvp ? 'Cancel RSVP' : 'RSVP'}
-                            </Button>
+                            <div className="flex gap-2 shrink-0">
+                              <Button
+                                size="sm"
+                                variant={hasRsvp ? 'outline' : 'default'}
+                                onClick={() => hasRsvp
+                                  ? handleCancelRsvp(event.id, event.title)
+                                  : handleRsvp(event.id, event.title, event.rsvpLink)
+                                }
+                              >
+                                {hasRsvp ? 'Cancel RSVP' : 'RSVP'}
+                              </Button>
+                              {event.photosLink && (
+                                <a href={event.photosLink} target="_blank" rel="noopener noreferrer">
+                                  <Button size="sm" variant="outline" className="gap-1.5">
+                                    View Photos <ExternalLink className="w-3.5 h-3.5" />
+                                  </Button>
+                                </a>
+                              )}
+                            </div>
                           </Card>
                         );
                       })}
@@ -451,7 +460,6 @@ export default function MemberDashboard() {
                         ['Event reminders', commPrefs.event_reminders],
                         ['Donation reminders', commPrefs.donation_reminders],
                         ['Volunteer requests', commPrefs.volunteer_requests],
-                        ['Emergency alerts', commPrefs.emergency_alerts],
                         ['WhatsApp group', commPrefs.whatsapp_group_interest],
                       ] as [string, boolean][]).map(([label, val]) => (
                         <div key={label} className="flex items-center justify-between py-2 border-b last:border-0">

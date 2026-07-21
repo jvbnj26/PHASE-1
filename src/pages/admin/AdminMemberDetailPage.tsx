@@ -18,7 +18,7 @@ import { ORGANIZATION_ROLES } from '@/lib/signupSchema';
 
 const EDITABLE_FIELDS = [
   'first_name','last_name','preferred_name','primary_email','primary_phone','secondary_phone',
-  'member_type','organization_role','membership_status','age_group','occupation','employer_or_school',
+  'member_type','organization_role','membership_status','age_group','school_name',
   'street_address','city','state','zip_code','country',
   'emergency_contact_name','emergency_contact_phone','emergency_contact_relationship',
   'profile_picture_url',
@@ -30,7 +30,6 @@ export default function AdminMemberDetailPage() {
   const [profile, setProfile] = useState<any>(null);
   const [households, setHouseholds] = useState<any[]>([]);
   const [students, setStudents] = useState<any[]>([]);
-  const [programs, setPrograms] = useState<any[]>([]);
   const [eventPrefs, setEventPrefs] = useState<any>(null);
   const [donationPrefs, setDonationPrefs] = useState<any>(null);
   const [commPrefs, setCommPrefs] = useState<any>(null);
@@ -45,11 +44,10 @@ export default function AdminMemberDetailPage() {
   const load = async () => {
     if (!id) return;
     setLoading(true);
-    const [mp, hh, sp, pe, ep, dp, cp, co, an, al, rv] = await Promise.all([
+    const [mp, hh, sp, ep, dp, cp, co, an, al, rv] = await Promise.all([
       supabase.from('member_profiles').select('*').eq('user_id', id).maybeSingle(),
       supabase.from('household_members').select('*, households(*)').eq('user_id', id),
       supabase.from('student_profiles').select('*').eq('parent_user_id', id),
-      supabase.from('program_enrollments').select('*').eq('user_id', id),
       supabase.from('event_preferences').select('*').eq('user_id', id).maybeSingle(),
       supabase.from('donation_preferences').select('*').eq('user_id', id).maybeSingle(),
       supabase.from('communication_preferences').select('*').eq('user_id', id).maybeSingle(),
@@ -61,7 +59,6 @@ export default function AdminMemberDetailPage() {
     setProfile(mp.data);
     setHouseholds(hh.data || []);
     setStudents(sp.data || []);
-    setPrograms(pe.data || []);
     setEventPrefs(ep.data);
     setDonationPrefs(dp.data);
     setCommPrefs(cp.data);
@@ -150,8 +147,7 @@ export default function AdminMemberDetailPage() {
             <TabsTrigger value="profile">Profile</TabsTrigger>
             <TabsTrigger value="rsvps">RSVPs {rsvps.length > 0 && `(${rsvps.length})`}</TabsTrigger>
             <TabsTrigger value="household">Household</TabsTrigger>
-            <TabsTrigger value="students">Students</TabsTrigger>
-            <TabsTrigger value="programs">Programs</TabsTrigger>
+            <TabsTrigger value="students">Children</TabsTrigger>
             <TabsTrigger value="events">Events</TabsTrigger>
             <TabsTrigger value="donations">Donations</TabsTrigger>
             <TabsTrigger value="comm">Communication</TabsTrigger>
@@ -283,32 +279,13 @@ export default function AdminMemberDetailPage() {
             </Card>
           </TabsContent>
 
-          <TabsContent value="programs">
-            <Card className="p-6">
-              {programs.length === 0 ? <p className="text-muted-foreground">No enrollments.</p> :
-                programs.map((p) => (
-                  <div key={p.id} className="border-b last:border-0 py-3 text-sm">
-                    <p><b>Programs:</b> {p.interested_programs?.join(', ') || '—'}</p>
-                    <p><b>Current class:</b> {p.current_class_group || '—'}</p>
-                    <p><b>Preferred time:</b> {p.preferred_program_time || '—'}</p>
-                    {p.accommodations && <p><b>Accommodations:</b> {p.accommodations}</p>}
-                  </div>
-                ))
-              }
-            </Card>
-          </TabsContent>
-
           <TabsContent value="events">
             <Card className="p-6 text-sm space-y-2">
               {!eventPrefs ? <p className="text-muted-foreground">No event preferences.</p> : (<>
                 <p><b>Interested events:</b> {eventPrefs.interested_event_types?.join(', ') || '—'}</p>
-                <p><b>Meal:</b> {eventPrefs.meal_preference || '—'}</p>
-                <p><b>Allergies:</b> {eventPrefs.food_allergies || '—'}</p>
                 <p><b>Volunteer:</b> {eventPrefs.willing_to_volunteer ? 'Yes' : 'No'}</p>
                 <p><b>Areas:</b> {eventPrefs.volunteer_areas?.join(', ') || '—'}</p>
                 <p><b>Availability:</b> {eventPrefs.availability?.join(', ') || '—'}</p>
-                <p><b>Skills:</b> {eventPrefs.skills_talents || '—'}</p>
-                <p><b>Certifications:</b> {eventPrefs.certifications?.join(', ') || '—'}</p>
               </>)}
             </Card>
           </TabsContent>
@@ -316,13 +293,8 @@ export default function AdminMemberDetailPage() {
           <TabsContent value="donations">
             <Card className="p-6 text-sm space-y-2">
               {!donationPrefs ? <p className="text-muted-foreground">No donation preferences.</p> : (<>
-                <p><b>Interested:</b> {donationPrefs.interested_in_donating ? 'Yes' : 'No'}</p>
-                <p><b>Type:</b> {donationPrefs.preferred_donation_type || '—'}</p>
-                <p><b>Categories:</b> {donationPrefs.preferred_giving_category?.join(', ') || '—'}</p>
-                <p><b>Tax receipt:</b> {donationPrefs.tax_receipt_needed ? 'Yes' : 'No'}</p>
+                <p><b>Donor category:</b> {donationPrefs.donor_category || '—'}</p>
                 <p><b>Receipt email:</b> {donationPrefs.donation_receipt_email || '—'}</p>
-                <p><b>Employer match:</b> {donationPrefs.employer_matching_interest ? 'Yes' : 'No'}</p>
-                <p><b>Anonymous:</b> {donationPrefs.anonymous_donation_preference ? 'Yes' : 'No'}</p>
               </>)}
             </Card>
           </TabsContent>
@@ -334,7 +306,6 @@ export default function AdminMemberDetailPage() {
                 <p><b>Event reminders:</b> {commPrefs.event_reminders ? 'Yes' : 'No'}</p>
                 <p><b>Donation reminders:</b> {commPrefs.donation_reminders ? 'Yes' : 'No'}</p>
                 <p><b>Volunteer requests:</b> {commPrefs.volunteer_requests ? 'Yes' : 'No'}</p>
-                <p><b>Emergency alerts:</b> {commPrefs.emergency_alerts ? 'Yes' : 'No'}</p>
                 <p><b>Newsletter:</b> {commPrefs.newsletter_frequency}</p>
                 <p><b>Language:</b> {commPrefs.preferred_language || '—'}</p>
                 <p><b>WhatsApp group:</b> {commPrefs.whatsapp_group_interest ? 'Yes' : 'No'}</p>

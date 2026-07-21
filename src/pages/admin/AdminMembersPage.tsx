@@ -23,13 +23,9 @@ const MEMBER_COLUMNS: { key: string; header: string }[] = [
   { key: 'first_name', header: 'first_name' },
   { key: 'last_name', header: 'last_name' },
   { key: 'preferred_name', header: 'preferred_name' },
-  { key: 'date_of_birth', header: 'date_of_birth' },
   { key: 'age_group', header: 'age_group' },
+  { key: 'school_name', header: 'school_name' },
   { key: 'gender', header: 'gender' },
-  { key: 'marital_status', header: 'marital_status' },
-  { key: 'occupation', header: 'occupation' },
-  { key: 'employer_or_school', header: 'employer_or_school' },
-  { key: 'language_preference', header: 'language_preference' },
   { key: 'member_type', header: 'member_type' },
   { key: 'organization_role', header: 'organization_role' },
   { key: 'profile_picture_url', header: 'profile_picture_url' },
@@ -50,32 +46,36 @@ const MEMBER_COLUMNS: { key: string; header: string }[] = [
   { key: 'emergency_contact_name', header: 'emergency_contact_name' },
   { key: 'emergency_contact_phone', header: 'emergency_contact_phone' },
   { key: 'emergency_contact_relationship', header: 'emergency_contact_relationship' },
+  { key: 'interested_in_gyanshala', header: 'interested_in_gyanshala' },
   { key: 'created_at', header: 'created_at' },
   { key: 'updated_at', header: 'updated_at' },
 ];
 
-const DATE_FIELDS = new Set(['date_of_birth', 'join_date']);
+const DATE_FIELDS = new Set(['join_date']);
 const TIMESTAMP_FIELDS = new Set(['created_at', 'updated_at']);
 
 const DUMMY_MEMBERS = [
-  ['Aarav','Shah','Aaru','1985-04-12','Adult','Male','Married','Software Engineer','Google','English','Member','Board Member','Active','2022-01-15','Friend','Priya Mehta','aarav.shah@example.com','aarav.work@example.com','555-201-3344','555-998-1122','Email','12 Maple Ave','Edison','NJ','08820','USA','Priya Shah','555-201-9988','Spouse'],
-  ['Priya','Mehta','','1990-07-30','Adult','Female','Married','Pediatrician','Atlantic Health','English','Parent','Sunday School Teacher','Active','2021-09-01','Temple event','','priya.mehta@example.com','','555-410-7788','','Phone','45 Oak Street','Princeton','NJ','08540','USA','Rohan Mehta','555-410-1010','Spouse'],
-  ['Rohan','Patel','Ron','1978-11-02','Adult','Male','Married','Accountant','Self-employed','Gujarati','Donor','Trustee','Active','2019-03-20','Website','','rohan.patel@example.com','','555-665-1212','555-665-3434','SMS','88 Birch Lane','Iselin','NJ','08830','USA','Anita Patel','555-665-9090','Spouse'],
-  ['Anita','Joshi','','1995-02-18','Adult','Female','Single','Graduate Student','Rutgers University','English','Volunteer','Volunteer Lead','Active','2023-06-10','Instagram','Priya Mehta','anita.joshi@example.com','','555-887-2211','','WhatsApp','22 Cedar Court','New Brunswick','NJ','08901','USA','Vikram Joshi','555-887-3322','Father'],
-  ['Vikram','Sharma','Vik','1965-09-25','Senior','Male','Married','Retired','','Hindi','Member','President','Active','2010-05-05','Founding member','','vikram.sharma@example.com','','555-330-4455','','Email','9 Pine Drive','Parsippany','NJ','07054','USA','Meena Sharma','555-330-9911','Spouse'],
-  ['Meena','Sharma','','1968-12-04','Senior','Female','Married','Homemaker','','Hindi','Member','General Member','Active','2010-05-05','Spouse','Vikram Sharma','meena.sharma@example.com','','555-330-4456','','Phone','9 Pine Drive','Parsippany','NJ','07054','USA','Vikram Sharma','555-330-4455','Spouse'],
-  ['Karan','Desai','','2008-03-14','Teen','Male','Single','Student','Edison High School','English','Student','General Member','Active','2022-09-01','Parent','Nisha Desai','karan.desai@example.com','','555-220-5566','','Email','100 Elm Road','Edison','NJ','08817','USA','Nisha Desai','555-220-7788','Mother'],
-  ['Nisha','Desai','','1982-06-09','Adult','Female','Married','Marketing Director','Pfizer','English','Parent','Event Coordinator','Active','2018-04-12','Friend','','nisha.desai@example.com','','555-220-7788','','Email','100 Elm Road','Edison','NJ','08817','USA','Sameer Desai','555-220-9090','Spouse'],
-  ['Sameer','Kapoor','','1975-10-22','Adult','Male','Married','Architect','SK Designs','English','Donor','Vice President','Active','2015-11-30','Community event','','sameer.kapoor@example.com','','555-554-6677','','Email','7 Willow Way','Morristown','NJ','07960','USA','Ritu Kapoor','555-554-8899','Spouse'],
-  ['Ritu','Kapoor','','1977-01-15','Adult','Female','Married','Nurse','Mount Sinai','English','Volunteer','Secretary','Active','2016-02-14','Spouse','Sameer Kapoor','ritu.kapoor@example.com','','555-554-8899','','SMS','7 Willow Way','Morristown','NJ','07960','USA','Sameer Kapoor','555-554-6677','Spouse'],
-  ['Devansh','Gupta','Dev','2012-08-08','Child','Male','Single','Student','Iselin Middle School','English','Student','General Member','New','2024-09-01','Parent','Anjali Gupta','devansh.gupta@example.com','','555-661-2233','','Email','55 Spruce St','Iselin','NJ','08830','USA','Anjali Gupta','555-661-4455','Mother'],
-  ['Anjali','Gupta','','1985-05-19','Adult','Female','Married','Data Scientist','Verizon','English','Parent','Youth Coordinator','Active','2020-07-22','Friend','','anjali.gupta@example.com','','555-661-4455','','Email','55 Spruce St','Iselin','NJ','08830','USA','Rakesh Gupta','555-661-7788','Spouse'],
+  ['Aarav','Shah','Aaru','Adult','','Male','Member','Board Member','Active','2022-01-15','Friend','Priya Mehta','aarav.shah@example.com','aarav.work@example.com','555-201-3344','555-998-1122','Email','12 Maple Ave','Edison','NJ','08820','USA','Priya Shah','555-201-9988','Spouse','false'],
+  ['Priya','Mehta','','Adult','','Female','Parent','Sunday School Teacher','Active','2021-09-01','Temple event','','priya.mehta@example.com','','555-410-7788','','Phone','45 Oak Street','Princeton','NJ','08540','USA','Rohan Mehta','555-410-1010','Spouse','true'],
+  ['Rohan','Patel','Ron','Adult','','Male','Donor','General Member','Active','2019-03-20','Website','','rohan.patel@example.com','','555-665-1212','555-665-3434','SMS','88 Birch Lane','Iselin','NJ','08830','USA','Anita Patel','555-665-9090','Spouse','false'],
+  ['Anita','Joshi','','Youth','Rutgers University','Female','Volunteer','Volunteer Lead','Active','2023-06-10','Instagram','Priya Mehta','anita.joshi@example.com','','555-887-2211','','WhatsApp','22 Cedar Court','New Brunswick','NJ','08901','USA','Vikram Joshi','555-887-3322','Father','false'],
+  ['Vikram','Sharma','Vik','Adult','','Male','Member','President','Active','2010-05-05','Founding member','','vikram.sharma@example.com','','555-330-4455','','Email','9 Pine Drive','Parsippany','NJ','07054','USA','Meena Sharma','555-330-9911','Spouse','false'],
+  ['Meena','Sharma','','Adult','','Female','Member','General Member','Active','2010-05-05','Spouse','Vikram Sharma','meena.sharma@example.com','','555-330-4456','','Phone','9 Pine Drive','Parsippany','NJ','07054','USA','Vikram Sharma','555-330-4455','Spouse','false'],
+  ['Karan','Desai','','Teen','Edison High School','Male','Student','General Member','Active','2022-09-01','Parent','Nisha Desai','karan.desai@example.com','','555-220-5566','','Email','100 Elm Road','Edison','NJ','08817','USA','Nisha Desai','555-220-7788','Mother','true'],
+  ['Nisha','Desai','','Adult','','Female','Parent','Event Coordinator','Active','2018-04-12','Friend','','nisha.desai@example.com','','555-220-7788','','Email','100 Elm Road','Edison','NJ','08817','USA','Sameer Desai','555-220-9090','Spouse','true'],
+  ['Sameer','Kapoor','','Adult','','Male','Donor','Vice President','Active','2015-11-30','Community event','','sameer.kapoor@example.com','','555-554-6677','','Email','7 Willow Way','Morristown','NJ','07960','USA','Ritu Kapoor','555-554-8899','Spouse','false'],
+  ['Ritu','Kapoor','','Adult','','Female','Volunteer','Secretary','Active','2016-02-14','Spouse','Sameer Kapoor','ritu.kapoor@example.com','','555-554-8899','','SMS','7 Willow Way','Morristown','NJ','07960','USA','Sameer Kapoor','555-554-6677','Spouse','false'],
+  ['Devansh','Gupta','Dev','Teen','Iselin Middle School','Male','Student','General Member','New','2024-09-01','Parent','Anjali Gupta','devansh.gupta@example.com','','555-661-2233','','Email','55 Spruce St','Iselin','NJ','08830','USA','Anjali Gupta','555-661-4455','Mother','true'],
+  ['Anjali','Gupta','','Adult','','Female','Parent','Youth Coordinator','Active','2020-07-22','Friend','','anjali.gupta@example.com','','555-661-4455','','Email','55 Spruce St','Iselin','NJ','08830','USA','Rakesh Gupta','555-661-7788','Spouse','true'],
 ];
 
 function buildDummyRow(row: string[]) {
-  const headers = ['first_name','last_name','preferred_name','date_of_birth','age_group','gender','marital_status','occupation','employer_or_school','language_preference','member_type','organization_role','membership_status','join_date','how_heard_about_us','referred_by','primary_email','secondary_email','primary_phone','secondary_phone','preferred_contact_method','street_address','city','state','zip_code','country','emergency_contact_name','emergency_contact_phone','emergency_contact_relationship'];
+  const headers = ['first_name','last_name','preferred_name','age_group','school_name','gender','member_type','organization_role','membership_status','join_date','how_heard_about_us','referred_by','primary_email','secondary_email','primary_phone','secondary_phone','preferred_contact_method','street_address','city','state','zip_code','country','emergency_contact_name','emergency_contact_phone','emergency_contact_relationship','interested_in_gyanshala'];
   const obj: Record<string, any> = {};
-  headers.forEach((h, i) => { obj[h] = row[i] || null; });
+  headers.forEach((h, i) => {
+    if (h === 'interested_in_gyanshala') { obj[h] = row[i] === 'true'; return; }
+    obj[h] = row[i] || null;
+  });
   return obj;
 }
 

@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { X, Calendar } from 'lucide-react';
+import { X, Calendar, ExternalLink } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useSiteContent } from '@/contexts/SiteContentContext';
 import { useAuth } from '@/contexts/AuthContext';
@@ -76,6 +76,9 @@ export default function EventPopup() {
       }
     } else {
       toast.success(`RSVP confirmed for ${featuredEvent!.title}!`);
+      if (featuredEvent!.rsvpLink) {
+        window.open(featuredEvent!.rsvpLink, '_blank', 'noopener,noreferrer');
+      }
     }
     handleClose();
   };
@@ -92,8 +95,12 @@ export default function EventPopup() {
           event_id: event.id,
           event_title: event.title,
         }).then(({ error }) => {
-          if (!error) toast.success(`RSVP confirmed for ${event.title}!`);
-          else if (error.code === '23505') toast.info('You have already RSVP\'d to this event');
+          if (!error) {
+            toast.success(`RSVP confirmed for ${event.title}!`);
+            if (event.rsvpLink) window.open(event.rsvpLink, '_blank', 'noopener,noreferrer');
+          } else if (error.code === '23505') {
+            toast.info('You have already RSVP\'d to this event');
+          }
         });
         sessionStorage.removeItem('jvbna_pending_rsvp');
         if (params.get('rsvp')) window.history.replaceState({}, '', '/');
@@ -182,6 +189,20 @@ export default function EventPopup() {
                 Maybe Later
               </Button>
             </div>
+
+            {featuredEvent.photosLink && (
+              <a
+                href={featuredEvent.photosLink}
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={(e) => e.stopPropagation()}
+                className="mt-3"
+              >
+                <Button variant="outline" size="lg" className="w-full gap-2">
+                  View Photos <ExternalLink className="w-4 h-4" />
+                </Button>
+              </a>
+            )}
 
             {!isAuthenticated && (
               <p className="text-xs text-muted-foreground mt-4 text-center">

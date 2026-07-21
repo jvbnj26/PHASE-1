@@ -9,6 +9,11 @@ export interface BannerSlide {
   order: number;
 }
 
+export interface EventMediaItem {
+  url: string;
+  type: 'image' | 'video';
+}
+
 export interface Event {
   id: string;
   title: string;
@@ -18,9 +23,10 @@ export interface Event {
   description: string;
   imageUrl: string;
   videoUrl?: string;
+  media?: EventMediaItem[]; // up to 5 photos/videos shown as an auto-scrolling gallery
   type: 'upcoming' | 'ongoing' | 'past'; // manual fallback when no startDate
   rsvpLink?: string;
-  registrationLink?: string;
+  photosLink?: string; // external link (e.g. Google Photos album) — "View Photos" button
 }
 
 export interface Activity {
@@ -147,7 +153,7 @@ export const defaultEvents: Event[] = [
     imageUrl: '/placeholder.svg',
     videoUrl: '/videos/arham-event.mp4',
     type: 'upcoming',
-    registrationLink: '#',
+    photosLink: '#',
   },
   {
     id: '3',
