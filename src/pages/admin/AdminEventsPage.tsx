@@ -16,14 +16,33 @@ import {
 } from '@/components/ui/select';
 import { Plus, Trash2, Save, Image, Calendar, Bell, Zap, X } from 'lucide-react';
 import { classifyEvent } from '@/lib/utils';
-import { ImageUploadButton } from '@/components/admin/ImageUploadButton';
 import { Switch } from '@/components/ui/switch';
 import { useToast } from '@/hooks/use-toast';
 import { Event, EventMediaItem } from '@/data/siteContent';
+import eventBhikshuBhakti from '@/assets/event-bhikshu-bhakti.jpeg';
 
 const MAX_MEDIA_ITEMS = 5;
 const MAX_IMAGE_BYTES = 5 * 1024 * 1024;
 const MAX_VIDEO_BYTES = 15 * 1024 * 1024;
+
+const legacyImageMap: Record<string, string> = {
+  'event-bhikshu-bhakti': eventBhikshuBhakti,
+};
+
+function toIsoDate(d: Date): string {
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${y}-${m}-${day}`;
+}
+
+// Past events can't be dated after today; upcoming events can't be dated today or earlier
+// (today would classify as "ongoing"). Ongoing events have no restriction.
+function dateBoundsFor(type: 'upcoming' | 'ongoing' | 'past', today: Date): { min?: string; max?: string } {
+  if (type === 'past') return { max: toIsoDate(today) };
+  if (type === 'upcoming') return { min: toIsoDate(new Date(today.getFullYear(), today.getMonth(), today.getDate() + 1)) };
+  return {};
+}
 
 function readAsDataUrl(file: File): Promise<string> {
   return new Promise((resolve, reject) => {
@@ -32,6 +51,70 @@ function readAsDataUrl(file: File): Promise<string> {
     reader.onerror = () => reject(reader.error);
     reader.readAsDataURL(file);
   });
+}
+
+function EventThumbnailUpload({
+  imageUrl, title, onChange,
+}: { imageUrl: string; title: string; onChange: (url: string) => void }) {
+  const { toast } = useToast();
+  const inputRef = useRef<HTMLInputElement>(null);
+  const hasImage = Boolean(imageUrl) && imageUrl !== '/placeholder.svg';
+  const displaySrc = legacyImageMap[imageUrl] || imageUrl;
+
+  const handleFile = async (file: File) => {
+    if (!file.type.startsWith('image/')) {
+      toast({ title: 'Unsupported file', description: `${file.name} is not an image.`, variant: 'destructive' });
+      return;
+    }
+    if (file.size > MAX_IMAGE_BYTES) {
+      toast({
+        title: 'File too large',
+        description: `Images must be under ${MAX_IMAGE_BYTES / (1024 * 1024)}MB.`,
+        variant: 'destructive',
+      });
+      return;
+    }
+    onChange(await readAsDataUrl(file));
+  };
+
+  return (
+    <div className="flex-shrink-0">
+      <button
+        type="button"
+        onClick={() => inputRef.current?.click()}
+        className="group relative w-32 sm:w-40 aspect-[3/4] rounded-lg overflow-hidden bg-muted border-2 border-dashed border-border hover:border-primary transition-colors block"
+      >
+        {hasImage ? (
+          <>
+            <img src={displaySrc} alt={title} className="w-full h-full object-cover" />
+            <div className="absolute inset-0 bg-black/0 group-hover:bg-black/50 transition-colors flex flex-col items-center justify-center gap-1.5 opacity-0 group-hover:opacity-100">
+              <Image className="w-7 h-7 text-white" />
+              <span className="text-xs font-medium text-white">Change photo</span>
+            </div>
+          </>
+        ) : (
+          <div className="flex flex-col items-center justify-center h-full gap-2 text-muted-foreground group-hover:text-primary transition-colors">
+            <Image className="w-10 h-10" />
+            <span className="text-xs font-medium px-2 text-center">Upload thumbnail</span>
+          </div>
+        )}
+      </button>
+      <input
+        ref={inputRef}
+        type="file"
+        accept="image/*"
+        className="hidden"
+        onChange={(e) => {
+          const file = e.target.files?.[0];
+          e.target.value = '';
+          if (file) handleFile(file);
+        }}
+      />
+      <p className="text-xs text-muted-foreground mt-2 w-32 sm:w-40 text-center leading-snug">
+        Shown first (5s), then the gallery rotates
+      </p>
+    </div>
+  );
 }
 
 function EventMediaGallery({
@@ -75,7 +158,7 @@ function EventMediaGallery({
 
   return (
     <div className="space-y-2">
-      <Label>Event Photos & Videos <span className="text-muted-foreground font-normal">(up to {MAX_MEDIA_ITEMS} — shown as an auto-scrolling gallery)</span></Label>
+      <Label>Additional Gallery Photos & Videos <span className="text-muted-foreground font-normal">(up to {MAX_MEDIA_ITEMS} — auto-scroll after the thumbnail)</span></Label>
       <div className="flex flex-wrap gap-2">
         {media.map((item, i) => (
           <div key={i} className="relative w-20 h-20 rounded border overflow-hidden bg-muted">
@@ -156,7 +239,7 @@ export default function AdminEventsPage() {
       date: 'TBD',
       description: 'Event description...',
       imageUrl: '/placeholder.svg',
-      type: 'upcoming',
+      type: filter === 'all' ? 'upcoming' : filter,
     };
     setLocalEvents([...localEvents, newEvent]);
   };
@@ -280,14 +363,11 @@ export default function AdminEventsPage() {
           {filteredEvents.map((event) => (
             <div key={event.id} className="admin-card">
               <div className="flex items-start gap-6">
-                {/* Thumbnail */}
-                <div className="w-32 h-40 bg-muted rounded-lg overflow-hidden flex-shrink-0">
-                  <img
-                    src={event.imageUrl}
-                    alt={event.title}
-                    className="w-full h-full object-cover"
-                  />
-                </div>
+                <EventThumbnailUpload
+                  imageUrl={event.imageUrl}
+                  title={event.title}
+                  onChange={(url) => updateEvent(event.id, 'imageUrl', url)}
+                />
 
                 {/* Form Fields */}
                 <div className="flex-1 grid gap-4">
@@ -323,6 +403,7 @@ export default function AdminEventsPage() {
                         type="date"
                         value={event.startDate || ''}
                         onChange={(e) => updateEvent(event.id, 'startDate', e.target.value)}
+                        {...dateBoundsFor(classifyEvent(event, today), today)}
                       />
                     </div>
                     <div>
@@ -333,67 +414,47 @@ export default function AdminEventsPage() {
                         type="date"
                         value={event.endDate || ''}
                         onChange={(e) => updateEvent(event.id, 'endDate', e.target.value)}
+                        {...dateBoundsFor(classifyEvent(event, today), today)}
                       />
                     </div>
                   </div>
 
                   {/* Type: auto-computed when dates set, manual otherwise */}
-                  <div className="grid md:grid-cols-2 gap-4">
-                    <div>
-                      <Label>
-                        Type{' '}
-                        {event.startDate ? (
-                          <span className="inline-flex items-center gap-1 text-xs font-normal text-secondary ml-1">
-                            <Zap className="w-3 h-3" />
-                            Auto-computed from dates
-                          </span>
-                        ) : (
-                          <span className="text-muted-foreground font-normal text-xs ml-1">(manual — set dates above to auto-classify)</span>
-                        )}
-                      </Label>
+                  <div className="max-w-xs">
+                    <Label>
+                      Type{' '}
                       {event.startDate ? (
-                        <div className={`h-10 px-3 flex items-center rounded-md border text-sm font-medium ${
-                          classifyEvent(event) === 'upcoming' ? 'bg-blue-50 border-blue-200 text-blue-700' :
-                          classifyEvent(event) === 'ongoing'  ? 'bg-green-50 border-green-200 text-green-700' :
-                                                                'bg-muted border-border text-muted-foreground'
-                        }`}>
-                          {classifyEvent(event).charAt(0).toUpperCase() + classifyEvent(event).slice(1)}
-                        </div>
+                        <span className="inline-flex items-center gap-1 text-xs font-normal text-secondary ml-1">
+                          <Zap className="w-3 h-3" />
+                          Auto-computed from dates
+                        </span>
                       ) : (
-                        <Select
-                          value={event.type}
-                          onValueChange={(value) => updateEvent(event.id, 'type', value)}
-                        >
-                          <SelectTrigger>
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="upcoming">Upcoming</SelectItem>
-                            <SelectItem value="ongoing">Ongoing</SelectItem>
-                            <SelectItem value="past">Past</SelectItem>
-                          </SelectContent>
-                        </Select>
+                        <span className="text-muted-foreground font-normal text-xs ml-1">(manual — set dates above to auto-classify)</span>
                       )}
-                    </div>
-                    <div>
-                      <Label>Flyer Image</Label>
-                      <div className="flex gap-2">
-                        <Input
-                          value={event.imageUrl}
-                          onChange={(e) => updateEvent(event.id, 'imageUrl', e.target.value)}
-                          placeholder="Image URL or upload"
-                        />
-                        <ImageUploadButton
-                          iconOnly
-                          label="Upload flyer image"
-                          onUploaded={(url) => updateEvent(event.id, 'imageUrl', url)}
-                        />
+                    </Label>
+                    {event.startDate ? (
+                      <div className={`h-10 px-3 flex items-center rounded-md border text-sm font-medium ${
+                        classifyEvent(event) === 'upcoming' ? 'bg-blue-50 border-blue-200 text-blue-700' :
+                        classifyEvent(event) === 'ongoing'  ? 'bg-green-50 border-green-200 text-green-700' :
+                                                              'bg-muted border-border text-muted-foreground'
+                      }`}>
+                        {classifyEvent(event).charAt(0).toUpperCase() + classifyEvent(event).slice(1)}
                       </div>
-
-                      {event.imageUrl && (
-                        <img src={event.imageUrl} alt="" className="mt-2 h-20 rounded border object-cover" />
-                      )}
-                    </div>
+                    ) : (
+                      <Select
+                        value={event.type}
+                        onValueChange={(value) => updateEvent(event.id, 'type', value)}
+                      >
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="upcoming">Upcoming</SelectItem>
+                          <SelectItem value="ongoing">Ongoing</SelectItem>
+                          <SelectItem value="past">Past</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    )}
                   </div>
 
                   <div>

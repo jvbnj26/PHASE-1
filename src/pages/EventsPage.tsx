@@ -7,8 +7,10 @@ import { classifyEvent } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 import { useRsvps } from '@/hooks/useRsvps';
+import { useRecentPosts } from '@/hooks/usePosts';
 import eventBhikshuBhakti from '@/assets/event-bhikshu-bhakti.jpeg';
 import EventMediaCarousel, { eventMediaFor } from '@/components/EventMediaCarousel';
+import RecentPostsTicker from '@/components/RecentPostsTicker';
 
 type EventType = 'upcoming' | 'ongoing' | 'past';
 
@@ -17,6 +19,7 @@ export default function EventsPage() {
   const { events } = useSiteContent();
   const navigate = useNavigate();
   const { rsvpIds, loading: rsvpLoading, toggleRsvp, isAuthenticated } = useRsvps();
+  const { posts: recentPosts, loading: recentPostsLoading } = useRecentPosts(12);
 
   const eventType: EventType = (type as EventType) || 'upcoming';
 
@@ -61,25 +64,30 @@ export default function EventsPage() {
         </div>
       </section>
 
+      {/* Recent Posts ticker */}
+      <RecentPostsTicker posts={recentPosts} loading={recentPostsLoading} />
+
       {/* Events Navigation */}
       <section className="bg-white border-b">
         <div className="container-custom py-4">
-          <div className="flex gap-4 flex-wrap">
-            <Link to="/events/upcoming">
-              <Button variant={eventType === 'upcoming' ? 'default' : 'outline'} size="sm">
-                Upcoming
-              </Button>
-            </Link>
-            <Link to="/events/ongoing">
-              <Button variant={eventType === 'ongoing' ? 'default' : 'outline'} size="sm">
-                Ongoing
-              </Button>
-            </Link>
-            <Link to="/events/past">
-              <Button variant={eventType === 'past' ? 'default' : 'outline'} size="sm">
-                Past Events
-              </Button>
-            </Link>
+          <div className="inline-flex flex-wrap gap-1 bg-muted rounded-full p-1">
+            {([
+              { key: 'upcoming', label: 'Upcoming' },
+              { key: 'ongoing', label: 'Ongoing' },
+              { key: 'past', label: 'Past Events' },
+            ] as const).map(({ key, label }) => (
+              <Link key={key} to={`/events/${key}`}>
+                <span
+                  className={`inline-block px-4 py-2 rounded-full text-sm font-semibold transition-colors ${
+                    eventType === key
+                      ? 'bg-primary text-primary-foreground shadow-sm'
+                      : 'text-muted-foreground hover:text-foreground hover:bg-white/70'
+                  }`}
+                >
+                  {label}
+                </span>
+              </Link>
+            ))}
           </div>
         </div>
       </section>
@@ -117,7 +125,10 @@ export default function EventsPage() {
                 const hasRsvp = rsvpIds.has(event.id);
 
                 return (
-                  <div key={event.id} className="event-card">
+                  <div
+                    key={event.id}
+                    className="event-card w-full sm:w-[calc((100%-2rem)/2)] lg:w-[calc((100%-4rem)/3)]"
+                  >
                     <div className="aspect-[3/4] bg-muted overflow-hidden relative">
                       <EventMediaCarousel media={media} alt={event.title} />
                       {/* RSVP'd badge overlay */}

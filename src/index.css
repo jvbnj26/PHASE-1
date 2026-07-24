@@ -123,10 +123,10 @@
     @apply bg-muted/50;
   }
 
-  /* Flyer display grid */
+  /* Flyer display grid — wraps and centers so a partial last row (1-2 cards)
+     sits in the middle instead of hugging the left edge like a strict grid would. */
   .flyer-grid {
-    @apply grid gap-6;
-    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    @apply flex flex-wrap justify-center gap-8;
   }
 
   /* Admin panel styling */

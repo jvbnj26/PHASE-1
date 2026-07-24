@@ -69,10 +69,27 @@ export default function EventMediaCarousel({
   );
 }
 
+const PLACEHOLDER_IMAGE = '/placeholder.svg';
+
+// Thumbnail (imageUrl) always leads the gallery so it's guaranteed to be the
+// first frame shown; the rest of the gallery media follows and auto-rotates.
+// The generic placeholder is skipped as a leading frame when real media exists,
+// so older events without a dedicated thumbnail don't open on a blank square.
 export function eventMediaFor(event: { imageUrl: string; videoUrl?: string; media?: EventMediaItem[] }): EventMediaItem[] {
-  if (event.media && event.media.length > 0) return event.media;
   const items: EventMediaItem[] = [];
-  if (event.videoUrl) items.push({ url: event.videoUrl, type: 'video' });
-  if (event.imageUrl) items.push({ url: event.imageUrl, type: 'image' });
+  const seen = new Set<string>();
+  const push = (url: string | undefined, type: EventMediaItem['type']) => {
+    if (!url || seen.has(url)) return;
+    seen.add(url);
+    items.push({ url, type });
+  };
+
+  const hasOtherMedia = Boolean(event.videoUrl) || Boolean(event.media && event.media.length > 0);
+  if (!(event.imageUrl === PLACEHOLDER_IMAGE && hasOtherMedia)) {
+    push(event.imageUrl, 'image');
+  }
+  push(event.videoUrl, 'video');
+  (event.media || []).forEach((item) => push(item.url, item.type));
+
   return items;
 }

@@ -21,9 +21,9 @@ export interface Event {
   startDate?: string;    // ISO YYYY-MM-DD — when set, type is auto-computed from today
   endDate?: string;      // ISO YYYY-MM-DD — for multi-day events; defaults to startDate
   description: string;
-  imageUrl: string;
+  imageUrl: string;         // thumbnail — always shown first (5s) before the gallery auto-rotates
   videoUrl?: string;
-  media?: EventMediaItem[]; // up to 5 photos/videos shown as an auto-scrolling gallery
+  media?: EventMediaItem[]; // up to 5 additional photos/videos auto-scrolled after the thumbnail
   type: 'upcoming' | 'ongoing' | 'past'; // manual fallback when no startDate
   rsvpLink?: string;
   photosLink?: string; // external link (e.g. Google Photos album) — "View Photos" button

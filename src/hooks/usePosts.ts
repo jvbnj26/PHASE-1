@@ -40,6 +40,41 @@ export function usePosts() {
   return { posts, loading, refresh };
 }
 
+export type RecentPost = {
+  id: string;
+  slug: string;
+  title: string;
+  featured_image_url: string | null;
+  published_at: string | null;
+};
+
+/** Public-facing: latest published posts only, for sidebar/teaser panels. */
+export function useRecentPosts(limit = 6) {
+  const [posts, setPosts] = useState<RecentPost[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    let active = true;
+    (async () => {
+      const { data, error } = await supabase
+        .from('posts')
+        .select('id, slug, title, featured_image_url, published_at')
+        .eq('status', 'published')
+        .order('published_at', { ascending: false, nullsFirst: false })
+        .limit(limit);
+      if (active) {
+        if (!error && data) setPosts(data as RecentPost[]);
+        setLoading(false);
+      }
+    })();
+    return () => {
+      active = false;
+    };
+  }, [limit]);
+
+  return { posts, loading };
+}
+
 export function slugify(s: string) {
   return s
     .toLowerCase()

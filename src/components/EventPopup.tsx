@@ -55,9 +55,8 @@ export default function EventPopup() {
 
   const handleRSVP = async () => {
     if (!isAuthenticated || !user) {
-      sessionStorage.setItem(POPUP_STORAGE_KEY, 'true');
       sessionStorage.setItem('jvbna_pending_rsvp', featuredEvent!.id);
-      navigate('/signup');
+      navigate('/auth?tab=signin&redirect=%2F');
       return;
     }
 
