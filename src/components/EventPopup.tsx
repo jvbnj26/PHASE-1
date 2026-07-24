@@ -6,7 +6,7 @@ import { useSiteContent } from '@/contexts/SiteContentContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-import { pickFeaturedEvent } from '@/lib/utils';
+import { pickFeaturedEvent, classifyEvent } from '@/lib/utils';
 import eventAwakening from '@/assets/event-bhikshu-bhakti.jpeg';
 
 const imageMap: Record<string, string> = {
@@ -23,17 +23,24 @@ const badgeCopy: Record<'today' | 'upcoming' | 'past', string> = {
 
 export default function EventPopup() {
   const navigate = useNavigate();
-  const { events, popupConfig } = useSiteContent();
+  const { events, popupConfig, contentLoaded } = useSiteContent();
   const { user, isAuthenticated } = useAuth();
   const [isOpen, setIsOpen] = useState(false);
 
-  // Pick featured event based on admin config
+  // Pick featured event based on admin config. Wait for the real Supabase-backed
+  // content to load first — events/popupConfig start out as hardcoded fallback
+  // values that can disagree with live data (e.g. a fallback event dated in the
+  // past vs. a real event happening today), so picking before contentLoaded risks
+  // briefly (or, if the fetch errors, permanently) featuring the wrong event.
   let featuredEvent = undefined as typeof events[number] | undefined;
   let featuredStatus: 'today' | 'upcoming' | 'past' = 'upcoming';
-  if (popupConfig.enabled) {
+  if (contentLoaded && popupConfig.enabled) {
     if (popupConfig.mode === 'specific' && popupConfig.eventId) {
       featuredEvent = events.find(e => e.id === popupConfig.eventId);
-      if (featuredEvent) featuredStatus = featuredEvent.type;
+      if (featuredEvent) {
+        const classified = classifyEvent(featuredEvent);
+        featuredStatus = classified === 'ongoing' ? 'today' : classified;
+      }
     }
     if (!featuredEvent) {
       // Auto: whatever is happening today, else soonest upcoming, else most recently held
@@ -44,14 +51,14 @@ export default function EventPopup() {
   }
 
   useEffect(() => {
-    if (!featuredEvent) return;
+    if (!contentLoaded || !featuredEvent) return;
     const dismissedId = sessionStorage.getItem(POPUP_STORAGE_KEY);
     // Show if never dismissed, or dismissed for a *different* event (admin switched it)
     if (dismissedId !== featuredEvent.id) {
       const timer = setTimeout(() => setIsOpen(true), 800);
       return () => clearTimeout(timer);
     }
-  }, [featuredEvent]);
+  }, [contentLoaded, featuredEvent]);
 
   const handleClose = () => {
     setIsOpen(false);

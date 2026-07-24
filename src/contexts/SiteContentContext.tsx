@@ -82,6 +82,11 @@ interface SiteContentContextType {
 
   popupConfig: PopupConfig;
   setPopupConfig: (cfg: PopupConfig) => void;
+
+  // True once the initial Supabase load has settled (success or failure). Consumers
+  // that pick a single "best" item from a list (e.g. the homepage event popup) should
+  // wait for this before deciding — otherwise they may act on stale fallback data.
+  contentLoaded: boolean;
 }
 
 const SiteContentContext = createContext<SiteContentContextType | undefined>(undefined);
@@ -108,6 +113,7 @@ export function SiteContentProvider({ children }: { children: ReactNode }) {
   const [calendarUrl, setCalendarUrlState] = useState(defaultCalendarUrl);
   const [photosUrl, setPhotosUrlState] = useState(defaultPhotosUrl);
   const [popupConfig, setPopupConfigState] = useState<PopupConfig>(defaultPopupConfig);
+  const [contentLoaded, setContentLoaded] = useState(false);
 
   // Load all settings from Supabase on mount, overriding defaults with DB values
   useEffect(() => {
@@ -117,9 +123,10 @@ export function SiteContentProvider({ children }: { children: ReactNode }) {
       .then(({ data, error }) => {
         if (error) {
           console.warn('site_settings load error (using defaults):', error.message);
+          setContentLoaded(true);
           return;
         }
-        if (!data) return;
+        if (!data) { setContentLoaded(true); return; }
 
         const m = new Map(data.map((r) => [r.key, r.value]));
 
@@ -140,6 +147,7 @@ export function SiteContentProvider({ children }: { children: ReactNode }) {
         if (m.has('calendarUrl'))        setCalendarUrlState(m.get('calendarUrl') as string);
         if (m.has('photosUrl'))          setPhotosUrlState(m.get('photosUrl') as string);
         if (m.has('popupConfig'))        setPopupConfigState(m.get('popupConfig') as PopupConfig);
+        setContentLoaded(true);
       });
   }, []);
 
@@ -197,6 +205,7 @@ export function SiteContentProvider({ children }: { children: ReactNode }) {
         calendarUrl, setCalendarUrl,
         photosUrl, setPhotosUrl,
         popupConfig, setPopupConfig,
+        contentLoaded,
       }}
     >
       {children}
