@@ -152,24 +152,22 @@ export default function EventsPage() {
                       </p>
 
                       <div className="flex flex-wrap gap-2">
-                        {/* In-app RSVP (upcoming events only) */}
-                        {event.type === 'upcoming' && (
-                          <Button
-                            size="sm"
-                            variant={hasRsvp ? 'secondary' : 'default'}
-                            disabled={rsvpLoading}
-                            onClick={() => handleRsvp(event.id, event.title, event.rsvpLink)}
-                            className="gap-2"
-                          >
-                            {hasRsvp ? (
-                              <><CheckCircle2 className="w-4 h-4" /> RSVPed — Cancel</>
-                            ) : isAuthenticated ? (
-                              'RSVP'
-                            ) : (
-                              <><LogIn className="w-4 h-4" /> Sign In to RSVP</>
-                            )}
-                          </Button>
-                        )}
+                        {/* In-app RSVP — available regardless of upcoming/ongoing/past status */}
+                        <Button
+                          size="sm"
+                          variant={hasRsvp ? 'secondary' : 'default'}
+                          disabled={rsvpLoading}
+                          onClick={() => handleRsvp(event.id, event.title, event.rsvpLink)}
+                          className="gap-2"
+                        >
+                          {hasRsvp ? (
+                            <><CheckCircle2 className="w-4 h-4" /> RSVPed — Cancel</>
+                          ) : isAuthenticated ? (
+                            'RSVP'
+                          ) : (
+                            <><LogIn className="w-4 h-4" /> Sign In to RSVP</>
+                          )}
+                        </Button>
 
                         {/* External photos link (Google Photos album, etc.) */}
                         {event.photosLink && (

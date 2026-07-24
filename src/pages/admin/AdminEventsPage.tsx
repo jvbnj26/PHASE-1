@@ -302,7 +302,7 @@ export default function AdminEventsPage() {
                   >
                     <SelectTrigger><SelectValue /></SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="auto">Auto — soonest upcoming by date</SelectItem>
+                      <SelectItem value="auto">Auto — happening today, else soonest upcoming, else most recent</SelectItem>
                       <SelectItem value="specific">Pick a specific upcoming event</SelectItem>
                     </SelectContent>
                   </Select>
@@ -333,7 +333,9 @@ export default function AdminEventsPage() {
               </div>
             )}
             <p className="text-xs text-muted-foreground">
-              Tip: For accurate auto-sorting, use parseable dates like "Jan 25, 2026" or "2026-01-25".
+              Tip: Auto mode only considers events with a Start Date set below — it ignores the
+              free-text Display Date. Set Start Date (and End Date for multi-day events) on every
+              event you want eligible for auto-selection.
             </p>
           </div>
         </div>

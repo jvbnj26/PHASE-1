@@ -6,6 +6,7 @@ import { useSiteContent } from '@/contexts/SiteContentContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { pickFeaturedEvent } from '@/lib/utils';
 import eventAwakening from '@/assets/event-bhikshu-bhakti.jpeg';
 
 const imageMap: Record<string, string> = {
@@ -14,6 +15,12 @@ const imageMap: Record<string, string> = {
 
 const POPUP_STORAGE_KEY = 'jvbna_popup_dismissed_id';
 
+const badgeCopy: Record<'today' | 'upcoming' | 'past', string> = {
+  today: 'Happening Today',
+  upcoming: 'Upcoming Event',
+  past: 'Recently Held',
+};
+
 export default function EventPopup() {
   const navigate = useNavigate();
   const { events, popupConfig } = useSiteContent();
@@ -21,19 +28,18 @@ export default function EventPopup() {
   const [isOpen, setIsOpen] = useState(false);
 
   // Pick featured event based on admin config
-  const upcoming = events.filter(e => e.type === 'upcoming');
   let featuredEvent = undefined as typeof events[number] | undefined;
-  if (popupConfig.enabled && upcoming.length > 0) {
+  let featuredStatus: 'today' | 'upcoming' | 'past' = 'upcoming';
+  if (popupConfig.enabled) {
     if (popupConfig.mode === 'specific' && popupConfig.eventId) {
-      featuredEvent = upcoming.find(e => e.id === popupConfig.eventId);
+      featuredEvent = events.find(e => e.id === popupConfig.eventId);
+      if (featuredEvent) featuredStatus = featuredEvent.type;
     }
     if (!featuredEvent) {
-      // Auto: most recent upcoming by parseable date; fall back to first
-      const withDates = upcoming
-        .map(e => ({ e, t: Date.parse(e.date) }))
-        .filter(x => !isNaN(x.t))
-        .sort((a, b) => a.t - b.t);
-      featuredEvent = withDates[0]?.e ?? upcoming[0];
+      // Auto: whatever is happening today, else soonest upcoming, else most recently held
+      const picked = pickFeaturedEvent(events);
+      featuredEvent = picked?.event;
+      if (picked) featuredStatus = picked.status;
     }
   }
 
@@ -130,33 +136,22 @@ export default function EventPopup() {
         </button>
 
         <div className="grid md:grid-cols-2 gap-0">
-          {/* Event Image — object-contain so flyer text near the image edges (e.g. the
-              Bhikshu Bhakti flyer, 570x340) isn't cropped off by a square box the way
-              object-cover would. */}
+          {/* Event Image — thumbnail only (no video/gallery). object-contain so flyer text
+              near the image edges (e.g. the Bhikshu Bhakti flyer, 570x340) isn't cropped
+              off by a square box the way object-cover would. */}
           <div className="aspect-square md:aspect-auto bg-muted overflow-hidden">
-            {featuredEvent.videoUrl ? (
-              <video
-                src={featuredEvent.videoUrl}
-                autoPlay
-                loop
-                muted
-                playsInline
-                className="w-full h-full object-cover"
-              />
-            ) : (
-              <img
-                src={imageUrl}
-                alt={featuredEvent.title}
-                className="w-full h-full object-contain"
-              />
-            )}
+            <img
+              src={imageUrl}
+              alt={featuredEvent.title}
+              className="w-full h-full object-contain"
+            />
           </div>
 
           {/* Event Details */}
           <div className="p-6 md:p-8 flex flex-col justify-center">
             <div className="inline-flex items-center gap-2 text-primary text-xs font-semibold uppercase tracking-wider mb-3">
               <span className="w-2 h-2 rounded-full bg-primary animate-pulse" />
-              Upcoming Event
+              {badgeCopy[featuredStatus]}
             </div>
 
             <h2 className="font-serif text-2xl md:text-3xl font-bold text-foreground mb-3">
