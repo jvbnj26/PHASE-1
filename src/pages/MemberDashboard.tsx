@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
-import { Link, Navigate } from 'react-router-dom';
+import { Link, Navigate, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
-import { useSiteContent } from '@/contexts/SiteContentContext';
+import { useEvents } from '@/hooks/useEvents';
 import PublicLayout from '@/components/layout/PublicLayout';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -11,7 +11,9 @@ import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { supabase } from '@/integrations/supabase/client';
 import { useRsvps } from '@/hooks/useRsvps';
+import { useRsvpFormIndex } from '@/hooks/useRsvpFormIndex';
 import { toast } from 'sonner';
+import { classifyEvent } from '@/lib/utils';
 import {
   User, Calendar, CheckCircle2, X, Edit, Save, Loader2,
   Phone, Mail, MapPin, Shield, Bell, ExternalLink
@@ -19,8 +21,10 @@ import {
 
 export default function MemberDashboard() {
   const { user, isAuthenticated, loading: authLoading } = useAuth();
-  const { events } = useSiteContent();
+  const { events } = useEvents();
   const { rsvpIds, toggleRsvp, refresh: refreshRsvps } = useRsvps();
+  const { formIndex } = useRsvpFormIndex();
+  const navigate = useNavigate();
 
   const [profile, setProfile] = useState<any>(null);
   const [rsvps, setRsvps] = useState<any[]>([]);
@@ -30,7 +34,7 @@ export default function MemberDashboard() {
   const [editData, setEditData] = useState<any>({});
   const [saving, setSaving] = useState(false);
 
-  const upcomingEvents = events.filter((e) => e.type === 'upcoming');
+  const upcomingEvents = events.filter((e) => classifyEvent(e) === 'upcoming');
 
   const load = async () => {
     if (!user) return;
@@ -242,14 +246,26 @@ export default function MemberDashboard() {
                               </p>
                             </div>
                           </div>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => handleCancelRsvp(r.event_id, r.event_title)}
-                            className="text-muted-foreground hover:text-destructive gap-1 shrink-0"
-                          >
-                            <X className="w-4 h-4" /> Cancel
-                          </Button>
+                          <div className="flex items-center gap-1 shrink-0">
+                            {r.rsvp_form_id && (
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => navigate(`/events/${r.event_id}/rsvp`)}
+                                className="text-muted-foreground hover:text-primary gap-1"
+                              >
+                                <Edit className="w-4 h-4" /> Edit
+                              </Button>
+                            )}
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handleCancelRsvp(r.event_id, r.event_title)}
+                              className="text-muted-foreground hover:text-destructive gap-1"
+                            >
+                              <X className="w-4 h-4" /> Cancel
+                            </Button>
+                          </div>
                         </Card>
                       ))}
                     </div>
@@ -269,6 +285,7 @@ export default function MemberDashboard() {
                     <div className="space-y-3">
                       {upcomingEvents.map((event) => {
                         const hasRsvp = rsvpIds.has(event.id);
+                        const hasForm = formIndex.has(event.id);
                         return (
                           <Card key={event.id} className="p-4 flex items-center gap-4 flex-wrap">
                             <div className="flex-1 min-w-0">
@@ -289,12 +306,13 @@ export default function MemberDashboard() {
                               <Button
                                 size="sm"
                                 variant={hasRsvp ? 'outline' : 'default'}
-                                onClick={() => hasRsvp
-                                  ? handleCancelRsvp(event.id, event.title)
-                                  : handleRsvp(event.id, event.title, event.rsvpLink)
-                                }
+                                onClick={() => {
+                                  if (hasForm) { navigate(`/events/${event.id}/rsvp`); return; }
+                                  if (hasRsvp) { handleCancelRsvp(event.id, event.title); return; }
+                                  handleRsvp(event.id, event.title, event.rsvpLink);
+                                }}
                               >
-                                {hasRsvp ? 'Cancel RSVP' : 'RSVP'}
+                                {hasForm ? (hasRsvp ? 'View/Edit RSVP' : 'RSVP') : (hasRsvp ? 'Cancel RSVP' : 'RSVP')}
                               </Button>
                               {event.photosLink && (
                                 <a href={event.photosLink} target="_blank" rel="noopener noreferrer">

@@ -19,6 +19,8 @@ import VolunteerPage from "./pages/VolunteerPage";
 import DonatePage from "./pages/DonatePage";
 import ContactPage from "./pages/ContactPage";
 import AuthPage from "./pages/AuthPage";
+import ForgotPasswordPage from "./pages/ForgotPasswordPage";
+import ResetPasswordPage from "./pages/ResetPasswordPage";
 import NotFound from "./pages/NotFound";
 
 import SignupPage from "./pages/SignupPage";
@@ -26,6 +28,7 @@ import MemberDashboard from "./pages/MemberDashboard";
 import CustomPageView from "./pages/CustomPageView";
 import BlogPage from "./pages/BlogPage";
 import BlogPostPage from "./pages/BlogPostPage";
+import RsvpFormPage from "./pages/RsvpFormPage";
 
 // Admin Pages
 import AdminLoginPage from "./pages/admin/AdminLoginPage";
@@ -46,6 +49,7 @@ import AdminMemberDetailPage from "./pages/admin/AdminMemberDetailPage";
 import AdminPagesPage from "./pages/admin/AdminPagesPage";
 import AdminProgramsPage from "./pages/admin/AdminProgramsPage";
 import AdminBlogPage from "./pages/admin/AdminBlogPage";
+import AdminRsvpFormPage from "./pages/admin/AdminRsvpFormPage";
 import RequireAdmin from "./components/admin/RequireAdmin";
 
 const queryClient = new QueryClient();
@@ -65,6 +69,7 @@ const App = () => (
               <Route path="/about/leadership" element={<LeadershipPage />} />
               <Route path="/events" element={<EventsPage />} />
               <Route path="/events/:type" element={<EventsPage />} />
+              <Route path="/events/:id/rsvp" element={<RsvpFormPage />} />
               <Route path="/activities" element={<ActivitiesPage />} />
               <Route path="/calendar" element={<CalendarPage />} />
               <Route path="/photos" element={<PhotosPage />} />
@@ -75,6 +80,8 @@ const App = () => (
               <Route path="/contact" element={<ContactPage />} />
               <Route path="/auth" element={<AuthPage />} />
               <Route path="/login" element={<AuthPage />} />
+              <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+              <Route path="/reset-password" element={<ResetPasswordPage />} />
               <Route path="/signup" element={<SignupPage />} />
               <Route path="/member" element={<MemberDashboard />} />
               
@@ -92,6 +99,7 @@ const App = () => (
                 <Route path="/admin/home" element={<AdminHomePage />} />
                 <Route path="/admin/about" element={<AdminAboutPage />} />
                 <Route path="/admin/events" element={<AdminEventsPage />} />
+                <Route path="/admin/events/:id/rsvp-form" element={<AdminRsvpFormPage />} />
                 <Route path="/admin/activities" element={<AdminActivitiesPage />} />
                 <Route path="/admin/spiritual-guidance" element={<AdminSpiritualGuidancePage />} />
                 <Route path="/admin/volunteer" element={<AdminVolunteerPage />} />

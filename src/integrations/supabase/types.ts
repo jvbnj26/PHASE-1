@@ -236,6 +236,60 @@ export type Database = {
         }
         Relationships: []
       }
+      events: {
+        Row: {
+          created_at: string
+          date_text: string
+          description: string
+          end_date: string | null
+          id: string
+          image_url: string
+          legacy_id: string | null
+          media: Json
+          photos_link: string | null
+          rsvp_link: string | null
+          start_date: string | null
+          title: string
+          type: string
+          updated_at: string
+          video_url: string | null
+        }
+        Insert: {
+          created_at?: string
+          date_text?: string
+          description?: string
+          end_date?: string | null
+          id?: string
+          image_url?: string
+          legacy_id?: string | null
+          media?: Json
+          photos_link?: string | null
+          rsvp_link?: string | null
+          start_date?: string | null
+          title: string
+          type?: string
+          updated_at?: string
+          video_url?: string | null
+        }
+        Update: {
+          created_at?: string
+          date_text?: string
+          description?: string
+          end_date?: string | null
+          id?: string
+          image_url?: string
+          legacy_id?: string | null
+          media?: Json
+          photos_link?: string | null
+          rsvp_link?: string | null
+          start_date?: string | null
+          title?: string
+          type?: string
+          updated_at?: string
+          video_url?: string | null
+        }
+        Relationships: []
+      }
       event_preferences: {
         Row: {
           availability: string[] | null
@@ -520,29 +574,91 @@ export type Database = {
         }
         Relationships: []
       }
-      rsvps: {
+      rsvp_forms: {
         Row: {
           created_at: string
+          created_by: string | null
           event_id: string
-          event_title: string
           id: string
-          user_id: string
+          questions: Json
+          status: string
+          updated_at: string
         }
         Insert: {
           created_at?: string
+          created_by?: string | null
           event_id: string
-          event_title: string
           id?: string
-          user_id: string
+          questions?: Json
+          status?: string
+          updated_at?: string
         }
         Update: {
           created_at?: string
+          created_by?: string | null
           event_id?: string
+          id?: string
+          questions?: Json
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "rsvp_forms_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: true
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      rsvps: {
+        Row: {
+          answers: Json | null
+          created_at: string
+          event_id: string | null
+          event_title: string
+          id: string
+          rsvp_form_id: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          answers?: Json | null
+          created_at?: string
+          event_id?: string | null
+          event_title: string
+          id?: string
+          rsvp_form_id?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          answers?: Json | null
+          created_at?: string
+          event_id?: string | null
           event_title?: string
           id?: string
+          rsvp_form_id?: string | null
+          updated_at?: string
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "rsvps_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "rsvps_rsvp_form_id_fkey"
+            columns: ["rsvp_form_id"]
+            isOneToOne: false
+            referencedRelation: "rsvp_forms"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       site_settings: {
         Row: {

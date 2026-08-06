@@ -3,8 +3,10 @@ import { useNavigate } from 'react-router-dom';
 import { X, Calendar, ExternalLink } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useSiteContent } from '@/contexts/SiteContentContext';
+import { useEvents } from '@/hooks/useEvents';
 import { useAuth } from '@/contexts/AuthContext';
-import { supabase } from '@/integrations/supabase/client';
+import { useRsvps } from '@/hooks/useRsvps';
+import { useRsvpFormIndex } from '@/hooks/useRsvpFormIndex';
 import { toast } from 'sonner';
 import { pickFeaturedEvent, classifyEvent } from '@/lib/utils';
 import eventAwakening from '@/assets/event-bhikshu-bhakti.jpeg';
@@ -23,18 +25,20 @@ const badgeCopy: Record<'today' | 'upcoming' | 'past', string> = {
 
 export default function EventPopup() {
   const navigate = useNavigate();
-  const { events, popupConfig, contentLoaded } = useSiteContent();
+  const { popupConfig, contentLoaded } = useSiteContent();
+  const { events, loading: eventsLoading } = useEvents();
   const { user, isAuthenticated } = useAuth();
+  const { rsvp } = useRsvps();
+  const { formIndex } = useRsvpFormIndex();
   const [isOpen, setIsOpen] = useState(false);
 
-  // Pick featured event based on admin config. Wait for the real Supabase-backed
-  // content to load first — events/popupConfig start out as hardcoded fallback
-  // values that can disagree with live data (e.g. a fallback event dated in the
-  // past vs. a real event happening today), so picking before contentLoaded risks
-  // briefly (or, if the fetch errors, permanently) featuring the wrong event.
+  // Pick featured event based on admin config. Wait for popupConfig (from site_settings)
+  // and events (from the events table) to both finish loading before picking — otherwise
+  // this can briefly (or, if a fetch errors, permanently) feature the wrong event.
+  const eventsReady = contentLoaded && !eventsLoading;
   let featuredEvent = undefined as typeof events[number] | undefined;
   let featuredStatus: 'today' | 'upcoming' | 'past' = 'upcoming';
-  if (contentLoaded && popupConfig.enabled) {
+  if (eventsReady && popupConfig.enabled) {
     if (popupConfig.mode === 'specific' && popupConfig.eventId) {
       featuredEvent = events.find(e => e.id === popupConfig.eventId);
       if (featuredEvent) {
@@ -51,14 +55,14 @@ export default function EventPopup() {
   }
 
   useEffect(() => {
-    if (!contentLoaded || !featuredEvent) return;
+    if (!eventsReady || !featuredEvent) return;
     const dismissedId = sessionStorage.getItem(POPUP_STORAGE_KEY);
     // Show if never dismissed, or dismissed for a *different* event (admin switched it)
     if (dismissedId !== featuredEvent.id) {
       const timer = setTimeout(() => setIsOpen(true), 800);
       return () => clearTimeout(timer);
     }
-  }, [contentLoaded, featuredEvent]);
+  }, [eventsReady, featuredEvent]);
 
   const handleClose = () => {
     setIsOpen(false);
@@ -67,30 +71,34 @@ export default function EventPopup() {
 
 
   const handleRSVP = async () => {
+    const hasForm = formIndex.has(featuredEvent!.id);
+
     if (!isAuthenticated || !user) {
-      sessionStorage.setItem('jvbna_pending_rsvp', featuredEvent!.id);
-      navigate('/auth?tab=signin&redirect=%2F');
+      if (hasForm) {
+        navigate(`/auth?tab=signin&redirect=${encodeURIComponent(`/events/${featuredEvent!.id}/rsvp`)}`);
+      } else {
+        sessionStorage.setItem('jvbna_pending_rsvp', featuredEvent!.id);
+        navigate('/auth?tab=signin&redirect=%2F');
+      }
       return;
     }
 
-    // User is logged in - record RSVP
-    const { error } = await supabase.from('rsvps').insert({
-      user_id: user.id,
-      event_id: featuredEvent!.id,
-      event_title: featuredEvent!.title,
-    });
+    if (hasForm) {
+      navigate(`/events/${featuredEvent!.id}/rsvp`);
+      handleClose();
+      return;
+    }
 
-    if (error) {
-      if (error.code === '23505') {
-        toast.info('You have already RSVP\'d to this event');
-      } else {
-        toast.error('Could not record RSVP: ' + error.message);
-      }
-    } else {
+    const { ok, alreadyRsvped } = await rsvp(featuredEvent!.id, featuredEvent!.title);
+    if (ok) {
       toast.success(`RSVP confirmed for ${featuredEvent!.title}!`);
       if (featuredEvent!.rsvpLink) {
         window.open(featuredEvent!.rsvpLink, '_blank', 'noopener,noreferrer');
       }
+    } else if (alreadyRsvped) {
+      toast.info('You have already RSVP\'d to this event');
+    } else {
+      toast.error('Could not record RSVP. Please try again.');
     }
     handleClose();
   };
@@ -102,15 +110,11 @@ export default function EventPopup() {
     if (rsvpId && isAuthenticated && user) {
       const event = events.find(e => e.id === rsvpId);
       if (event) {
-        supabase.from('rsvps').insert({
-          user_id: user.id,
-          event_id: event.id,
-          event_title: event.title,
-        }).then(({ error }) => {
-          if (!error) {
+        rsvp(event.id, event.title).then(({ ok, alreadyRsvped }) => {
+          if (ok) {
             toast.success(`RSVP confirmed for ${event.title}!`);
             if (event.rsvpLink) window.open(event.rsvpLink, '_blank', 'noopener,noreferrer');
-          } else if (error.code === '23505') {
+          } else if (alreadyRsvped) {
             toast.info('You have already RSVP\'d to this event');
           }
         });

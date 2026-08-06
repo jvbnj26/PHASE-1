@@ -3,7 +3,6 @@ import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import {
   BannerSlide,
-  Event,
   Activity,
   BoardMember,
   ExecutiveCommitteeMember,
@@ -14,7 +13,6 @@ import {
   PopupConfig,
   defaultBannerSlides,
   defaultWelcomeText,
-  defaultEvents,
   defaultActivities,
   defaultBoardMembers,
   defaultExecutiveCommittee,
@@ -37,9 +35,6 @@ interface SiteContentContextType {
 
   welcomeText: { title: string; content: string };
   setWelcomeText: (text: { title: string; content: string }) => void;
-
-  events: Event[];
-  setEvents: (events: Event[]) => void;
 
   activities: Activity[];
   setActivities: (activities: Activity[]) => void;
@@ -94,7 +89,6 @@ const SiteContentContext = createContext<SiteContentContextType | undefined>(und
 export function SiteContentProvider({ children }: { children: ReactNode }) {
   const [bannerSlides, setBannerSlidesState] = useState<BannerSlide[]>(defaultBannerSlides);
   const [welcomeText, setWelcomeTextState] = useState(defaultWelcomeText);
-  const [events, setEventsState] = useState<Event[]>(defaultEvents);
   const [activities, setActivitiesState] = useState<Activity[]>(defaultActivities);
   const [boardMembers, setBoardMembersState] = useState<BoardMember[]>(defaultBoardMembers);
   const [executiveCommittee, setExecutiveCommitteeState] = useState<ExecutiveCommitteeMember[]>(defaultExecutiveCommittee);
@@ -132,7 +126,6 @@ export function SiteContentProvider({ children }: { children: ReactNode }) {
 
         if (m.has('bannerSlides'))       setBannerSlidesState(m.get('bannerSlides') as BannerSlide[]);
         if (m.has('welcomeText'))        setWelcomeTextState(m.get('welcomeText') as typeof defaultWelcomeText);
-        if (m.has('events'))             setEventsState(m.get('events') as Event[]);
         if (m.has('activities'))         setActivitiesState(m.get('activities') as Activity[]);
         if (m.has('boardMembers'))       setBoardMembersState(m.get('boardMembers') as BoardMember[]);
         if (m.has('executiveCommittee')) setExecutiveCommitteeState(m.get('executiveCommittee') as ExecutiveCommitteeMember[]);
@@ -163,7 +156,6 @@ export function SiteContentProvider({ children }: { children: ReactNode }) {
   // Each setter updates local state synchronously then persists to Supabase in the background.
   const setBannerSlides       = (v: BannerSlide[])                                             => { setBannerSlidesState(v);       persist('bannerSlides', v); };
   const setWelcomeText        = (v: typeof defaultWelcomeText)                                 => { setWelcomeTextState(v);        persist('welcomeText', v); };
-  const setEvents             = (v: Event[])                                                   => { setEventsState(v);             persist('events', v); };
   const setActivities         = (v: Activity[])                                                => { setActivitiesState(v);         persist('activities', v); };
   const setBoardMembers       = (v: BoardMember[])                                             => { setBoardMembersState(v);       persist('boardMembers', v); };
   const setExecutiveCommittee = (v: ExecutiveCommitteeMember[])                                => { setExecutiveCommitteeState(v); persist('executiveCommittee', v); };
@@ -190,7 +182,6 @@ export function SiteContentProvider({ children }: { children: ReactNode }) {
       value={{
         bannerSlides, setBannerSlides,
         welcomeText, setWelcomeText,
-        events, setEvents,
         activities, setActivities,
         boardMembers, setBoardMembers,
         executiveCommittee, setExecutiveCommittee,

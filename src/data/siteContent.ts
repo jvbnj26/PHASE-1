@@ -135,63 +135,6 @@ export const defaultWelcomeText = {
 In service to our community, the overarching aims of this center are to inculcate strong personal values and to encourage enlightened thinking that leads to promoting peace and spiritual uplift within all individuals and across the spectrum of humanity without any avaricious motives.`,
 };
 
-export const defaultEvents: Event[] = [
-  {
-    id: '1',
-    title: 'Bhikshu Bhakti',
-    date: 'September 20th, 2025',
-    startDate: '2025-09-20',
-    description: 'A spiritually enriching evening of devotion, discipline, and deep connection with the teachings of Bhikshu Swami.',
-    imageUrl: 'event-bhikshu-bhakti',
-    type: 'upcoming',
-    rsvpLink: '#',
-  },
-  {
-    id: '2',
-    title: 'JVBNA Gyanshala 2025-26',
-    date: 'Register by September 1st, 2025',
-    description: 'Under the Auspicious Presence & Guidance of Samani Samatva Pragyaji & Samani Abhay Pragyaji',
-    imageUrl: '/placeholder.svg',
-    videoUrl: '/videos/arham-event.mp4',
-    type: 'upcoming',
-    photosLink: '#',
-  },
-  {
-    id: '3',
-    title: 'Morning Prayer Session',
-    date: 'Daily',
-    description: 'Preksha Meditation & Adhyatmik Anushthan (Bhaktamar, Meditation & Sacred Mantras)',
-    imageUrl: '/placeholder.svg',
-    type: 'ongoing',
-  },
-  {
-    id: '4',
-    title: 'Evening Preksha Meditation Session',
-    date: 'Monday - Friday',
-    description: 'Get rid of all your stresses and Awaken your Inner Strength',
-    imageUrl: '/placeholder.svg',
-    type: 'ongoing',
-  },
-  {
-    id: '5',
-    title: 'Mahavir Jayanti & Swagat Samaroh',
-    date: 'April 5th, 2025',
-    startDate: '2025-04-05',
-    description: 'JVBNA NJ celebrated the Mahavir Jayanti and Welcome to Samani Samatva Pragyaji and Samani Arjav Pragyaji.',
-    imageUrl: '/placeholder.svg',
-    type: 'past',
-  },
-  {
-    id: '6',
-    title: 'Dharma Aradhana Session',
-    date: 'April 27th, 2025',
-    startDate: '2025-04-27',
-    description: 'The recent Agama Swadhyaya session held in person at JVBNA Iselin Center.',
-    imageUrl: '/placeholder.svg',
-    type: 'past',
-  },
-];
-
 export const defaultActivities: Activity[] = [
   {
     id: '1',

@@ -1,12 +1,13 @@
 import { useMemo } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import PublicLayout from '@/components/layout/PublicLayout';
-import { useSiteContent } from '@/contexts/SiteContentContext';
-import { Calendar, CheckCircle2, ExternalLink, LogIn } from 'lucide-react';
+import { useEvents } from '@/hooks/useEvents';
+import { Calendar, CheckCircle2, ExternalLink, LogIn, Loader2 } from 'lucide-react';
 import { classifyEvent } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 import { useRsvps } from '@/hooks/useRsvps';
+import { useRsvpFormIndex } from '@/hooks/useRsvpFormIndex';
 import { useRecentPosts } from '@/hooks/usePosts';
 import eventBhikshuBhakti from '@/assets/event-bhikshu-bhakti.jpeg';
 import EventMediaCarousel, { eventMediaFor } from '@/components/EventMediaCarousel';
@@ -16,9 +17,10 @@ type EventType = 'upcoming' | 'ongoing' | 'past';
 
 export default function EventsPage() {
   const { type } = useParams<{ type?: string }>();
-  const { events } = useSiteContent();
+  const { events, loading: eventsLoading } = useEvents();
   const navigate = useNavigate();
   const { rsvpIds, loading: rsvpLoading, toggleRsvp, isAuthenticated } = useRsvps();
+  const { formIndex } = useRsvpFormIndex();
   const { posts: recentPosts, loading: recentPostsLoading } = useRecentPosts(12);
 
   const eventType: EventType = (type as EventType) || 'upcoming';
@@ -37,6 +39,10 @@ export default function EventsPage() {
   const handleRsvp = async (eventId: string, eventTitle: string, rsvpLink?: string) => {
     if (!isAuthenticated) {
       navigate(`/auth?tab=signin&redirect=/events/upcoming`);
+      return;
+    }
+    if (formIndex.has(eventId)) {
+      navigate(`/events/${eventId}/rsvp`);
       return;
     }
     const wasRsvped = rsvpIds.has(eventId);
@@ -111,7 +117,11 @@ export default function EventsPage() {
       {/* Events Grid */}
       <section className="py-12 bg-section">
         <div className="container-custom">
-          {filteredEvents.length === 0 ? (
+          {eventsLoading ? (
+            <div className="flex items-center justify-center py-12">
+              <Loader2 className="w-6 h-6 animate-spin text-primary" />
+            </div>
+          ) : filteredEvents.length === 0 ? (
             <div className="text-center py-12">
               <p className="text-muted-foreground text-lg">No {eventType} events at this time.</p>
             </div>
@@ -123,6 +133,7 @@ export default function EventsPage() {
                   : event.imageUrl;
                 const media = eventMediaFor({ ...event, imageUrl });
                 const hasRsvp = rsvpIds.has(event.id);
+                const hasForm = formIndex.has(event.id);
 
                 return (
                   <div
@@ -161,7 +172,11 @@ export default function EventsPage() {
                           className="gap-2"
                         >
                           {hasRsvp ? (
-                            <><CheckCircle2 className="w-4 h-4" /> RSVPed — Cancel</>
+                            hasForm ? (
+                              <><CheckCircle2 className="w-4 h-4" /> View/Edit RSVP</>
+                            ) : (
+                              <><CheckCircle2 className="w-4 h-4" /> RSVPed — Cancel</>
+                            )
                           ) : isAuthenticated ? (
                             'RSVP'
                           ) : (

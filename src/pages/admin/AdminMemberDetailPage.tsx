@@ -35,6 +35,7 @@ export default function AdminMemberDetailPage() {
   const [commPrefs, setCommPrefs] = useState<any>(null);
   const [consents, setConsents] = useState<any[]>([]);
   const [rsvps, setRsvps] = useState<any[]>([]);
+  const [rsvpForms, setRsvpForms] = useState<Record<string, { id: string; label: string; type: string }[]>>({});
   const [notes, setNotes] = useState<any[]>([]);
   const [auditLogs, setAuditLogs] = useState<any[]>([]);
   const [newNote, setNewNote] = useState('');
@@ -66,6 +67,19 @@ export default function AdminMemberDetailPage() {
     setNotes(an.data || []);
     setAuditLogs(al.data || []);
     setRsvps(rv.data || []);
+
+    const formIds = [...new Set((rv.data || []).map((r: any) => r.rsvp_form_id).filter(Boolean))];
+    if (formIds.length > 0) {
+      const { data: forms } = await supabase.from('rsvp_forms').select('id, questions').in('id', formIds);
+      const byId: Record<string, { id: string; label: string; type: string }[]> = {};
+      for (const f of forms || []) {
+        byId[f.id] = (f.questions as any[]) || [];
+      }
+      setRsvpForms(byId);
+    } else {
+      setRsvpForms({});
+    }
+
     setLoading(false);
   };
 
@@ -221,20 +235,39 @@ export default function AdminMemberDetailPage() {
                   <p className="text-sm text-muted-foreground mb-4">
                     {rsvps.length} RSVP{rsvps.length !== 1 ? 's' : ''} total
                   </p>
-                  {rsvps.map((r) => (
-                    <div key={r.id} className="flex items-start gap-3 border rounded-lg p-3 text-sm">
-                      <CheckCircle2 className="w-4 h-4 text-secondary mt-0.5 shrink-0" />
-                      <div className="flex-1 min-w-0">
-                        <p className="font-medium text-foreground truncate">{r.event_title || r.event_id}</p>
-                        <div className="flex items-center gap-2 mt-0.5 text-xs text-muted-foreground">
-                          <Calendar className="w-3 h-3" />
-                          <span>RSVPed {formatDate(r.created_at).slice(0, 10)}</span>
-                          <span className="text-muted-foreground/50">·</span>
-                          <span className="font-mono text-[10px]">{r.event_id}</span>
+                  {rsvps.map((r) => {
+                    const questions = r.rsvp_form_id ? rsvpForms[r.rsvp_form_id] || [] : [];
+                    const answers = (r.answers as Record<string, string | string[]> | null) || null;
+                    return (
+                      <div key={r.id} className="flex items-start gap-3 border rounded-lg p-3 text-sm">
+                        <CheckCircle2 className="w-4 h-4 text-secondary mt-0.5 shrink-0" />
+                        <div className="flex-1 min-w-0">
+                          <p className="font-medium text-foreground truncate">{r.event_title || r.event_id}</p>
+                          <div className="flex items-center gap-2 mt-0.5 text-xs text-muted-foreground">
+                            <Calendar className="w-3 h-3" />
+                            <span>RSVPed {formatDate(r.created_at).slice(0, 10)}</span>
+                            <span className="text-muted-foreground/50">·</span>
+                            <span className="font-mono text-[10px]">{r.event_id}</span>
+                          </div>
+                          {answers && (
+                            <div className="mt-2 pt-2 border-t space-y-1">
+                              {Object.entries(answers).map(([questionId, value]) => {
+                                const q = questions.find((item) => item.id === questionId);
+                                const displayValue = Array.isArray(value) ? value.join(', ') : value;
+                                if (!displayValue) return null;
+                                return (
+                                  <p key={questionId} className="text-xs">
+                                    <span className="text-muted-foreground">{q?.label || questionId}:</span>{' '}
+                                    <span className="text-foreground">{displayValue}</span>
+                                  </p>
+                                );
+                              })}
+                            </div>
+                          )}
                         </div>
                       </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               )}
             </Card>

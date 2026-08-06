@@ -20,6 +20,22 @@ export function useRsvps() {
 
   useEffect(() => { load(); }, [load]);
 
+  // Insert-only variant (vs. toggleRsvp's insert-or-delete): used by callers that don't
+  // track rsvpIds themselves (e.g. the homepage popup) and just want "RSVP me, and tell
+  // me if I'd already RSVP'd" rather than a toggle.
+  const rsvp = useCallback(async (eventId: string, eventTitle: string): Promise<{ ok: boolean; alreadyRsvped: boolean }> => {
+    if (!user) return { ok: false, alreadyRsvped: false };
+    const { error } = await supabase
+      .from('rsvps')
+      .insert({ user_id: user.id, event_id: eventId, event_title: eventTitle });
+    if (!error) {
+      setRsvpIds((prev) => new Set([...prev, eventId]));
+      return { ok: true, alreadyRsvped: false };
+    }
+    if (error.code === '23505') return { ok: false, alreadyRsvped: true };
+    return { ok: false, alreadyRsvped: false };
+  }, [user]);
+
   const toggleRsvp = useCallback(async (eventId: string, eventTitle: string): Promise<boolean> => {
     if (!user) return false;
     if (rsvpIds.has(eventId)) {
@@ -39,5 +55,5 @@ export function useRsvps() {
     }
   }, [user, rsvpIds]);
 
-  return { rsvpIds, loading, toggleRsvp, isAuthenticated, refresh: load };
+  return { rsvpIds, loading, toggleRsvp, rsvp, isAuthenticated, refresh: load };
 }

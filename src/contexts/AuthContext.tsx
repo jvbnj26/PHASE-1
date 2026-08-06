@@ -13,6 +13,8 @@ interface AuthContextType {
   // Legacy admin login (kept for existing admin panel)
   login: (email: string, password: string) => Promise<boolean>;
   logout: () => Promise<void>;
+  sendPasswordReset: (email: string) => Promise<{ error: string | null }>;
+  updatePassword: (newPassword: string) => Promise<{ error: string | null }>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -122,6 +124,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setIsAdmin(false);
   };
 
+  const sendPasswordReset = async (email: string) => {
+    const { error } = await supabase.auth.resetPasswordForEmail(email.trim().toLowerCase(), {
+      redirectTo: `${window.location.origin}/reset-password`,
+    });
+    return { error: error?.message ?? null };
+  };
+
+  const updatePassword = async (newPassword: string) => {
+    const { error } = await supabase.auth.updateUser({ password: newPassword });
+    return { error: error?.message ?? null };
+  };
+
   const isAuthenticated = user !== null;
   const loading = authLoading || roleLoading;
 
@@ -136,6 +150,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       signIn,
       login,
       logout,
+      sendPasswordReset,
+      updatePassword,
     }}>
       {children}
     </AuthContext.Provider>
