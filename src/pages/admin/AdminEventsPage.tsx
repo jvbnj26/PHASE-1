@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { Navigate, Link } from 'react-router-dom';
+import { Navigate, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { useSiteContent } from '@/contexts/SiteContentContext';
 import { useEvents, eventToRow, eventFromRow } from '@/hooks/useEvents';
@@ -233,6 +233,7 @@ export default function AdminEventsPage() {
   const { popupConfig, setPopupConfig } = useSiteContent();
   const { events, loading: eventsLoading } = useEvents();
   const { toast } = useToast();
+  const navigate = useNavigate();
 
   const [localEvents, setLocalEvents] = useState<Event[]>([]);
   const [dirtyIds, setDirtyIds] = useState<Set<string>>(new Set());
@@ -319,6 +320,25 @@ export default function AdminEventsPage() {
   const updateEventMedia = (id: string, media: EventMediaItem[]) => {
     setLocalEvents(prev => prev.map(e => (e.id === id ? { ...e, media } : e)));
     markDirty(id);
+  };
+
+  // An event's RSVP method is either the plain link or a custom form, never both — the
+  // database enforces this too (rsvp_forms insert clears rsvp_link), so this is just the
+  // friendly, explicit version of that with a heads-up before anything gets cleared.
+  const openRsvpForm = async (event: Event, hasForm: boolean) => {
+    if (!hasForm && event.rsvpLink) {
+      const ok = window.confirm(
+        `"${event.title}" currently uses an external RSVP Link. Building a custom RSVP form will remove that link — an event can only use one RSVP method at a time. Continue?`,
+      );
+      if (!ok) return;
+      const { error } = await supabase.from('events').update({ rsvp_link: null }).eq('id', event.id);
+      if (error) {
+        toast({ title: 'Could not clear RSVP Link', description: error.message, variant: 'destructive' });
+        return;
+      }
+      setLocalEvents(prev => prev.map(e => (e.id === event.id ? { ...e, rsvpLink: undefined } : e)));
+    }
+    navigate(`/admin/events/${event.id}/rsvp-form`);
   };
 
   const saveEvent = async (id: string) => {
@@ -448,6 +468,7 @@ export default function AdminEventsPage() {
               const isDirty = dirtyIds.has(event.id);
               const isSaving = savingIds.has(event.id);
               const isDeleting = deletingIds.has(event.id);
+              const hasForm = formsByEvent.has(event.id);
               return (
                 <div key={event.id} className="admin-card">
                   <div className="flex items-start gap-6">
@@ -561,12 +582,23 @@ export default function AdminEventsPage() {
 
                       <div className="grid md:grid-cols-2 gap-4">
                         <div>
-                          <Label>RSVP Link (optional)</Label>
+                          <Label>
+                            RSVP Link (optional)
+                            {hasForm && (
+                              <span className="text-muted-foreground font-normal"> — disabled while a custom RSVP form is active</span>
+                            )}
+                          </Label>
                           <Input
                             value={event.rsvpLink || ''}
                             onChange={(e) => updateEvent(event.id, 'rsvpLink', e.target.value)}
                             placeholder="https://..."
+                            disabled={hasForm}
                           />
+                          {hasForm && (
+                            <p className="text-xs text-muted-foreground mt-1">
+                              An event can only use one RSVP method. Remove the RSVP form below to use a link instead.
+                            </p>
+                          )}
                         </div>
                         <div>
                           <Label>View Photos Link (optional)</Label>
@@ -579,14 +611,17 @@ export default function AdminEventsPage() {
                       </div>
 
                       <div className="flex items-center justify-between">
-                        <Link to={`/admin/events/${event.id}/rsvp-form`}>
-                          <Button variant="outline" size="sm" className="gap-2">
-                            <ClipboardList className="w-4 h-4" />
-                            {formsByEvent.has(event.id)
-                              ? `RSVP Form · ${formsByEvent.get(event.id)!.count} question${formsByEvent.get(event.id)!.count === 1 ? '' : 's'}${formsByEvent.get(event.id)!.status === 'draft' ? ' (draft)' : ''}`
-                              : 'Add RSVP Form'}
-                          </Button>
-                        </Link>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="gap-2"
+                          onClick={() => openRsvpForm(event, hasForm)}
+                        >
+                          <ClipboardList className="w-4 h-4" />
+                          {hasForm
+                            ? `RSVP Form · ${formsByEvent.get(event.id)!.count} question${formsByEvent.get(event.id)!.count === 1 ? '' : 's'}${formsByEvent.get(event.id)!.status === 'draft' ? ' (draft)' : ''}`
+                            : 'Add RSVP Form'}
+                        </Button>
                         <Button
                           size="sm"
                           onClick={() => saveEvent(event.id)}
