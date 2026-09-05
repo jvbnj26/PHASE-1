@@ -26,7 +26,14 @@ const navItems = [
       { name: 'Past Events', path: '/events/past' },
     ],
   },
-  { name: 'ACTIVITIES', path: '/activities' },
+  {
+    name: 'ACTIVITIES',
+    path: '/activities',
+    submenu: [
+      { name: 'All Activities', path: '/activities' },
+      { name: 'Gyanshala', path: '/activities/gyanshala' },
+    ],
+  },
   { name: 'BLOG', path: '/blog' },
   { name: 'CALENDAR', path: '/calendar' },
   { name: 'PHOTOS', path: '/photos' },

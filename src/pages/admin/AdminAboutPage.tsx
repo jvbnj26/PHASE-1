@@ -59,7 +59,7 @@ export default function AdminAboutPage() {
             </p>
           </div>
           {!isEditing ? (
-            <Button onClick={() => setIsEditing(true)} className="gap-2">
+            <Button onClick={() => { setEditForm(aboutContent); setIsEditing(true); }} className="gap-2">
               <Edit2 className="w-4 h-4" />
               Edit Content
             </Button>

@@ -21,15 +21,11 @@ import { classifyEvent } from '@/lib/utils';
 import { Switch } from '@/components/ui/switch';
 import { useToast } from '@/hooks/use-toast';
 import { Event, EventMediaItem } from '@/data/siteContent';
-import eventBhikshuBhakti from '@/assets/event-bhikshu-bhakti.jpeg';
+import { imageMap as legacyImageMap } from '@/lib/imageMap';
 
 const MAX_MEDIA_ITEMS = 5;
 const MAX_IMAGE_BYTES = 5 * 1024 * 1024;
 const MAX_VIDEO_BYTES = 15 * 1024 * 1024;
-
-const legacyImageMap: Record<string, string> = {
-  'event-bhikshu-bhakti': eventBhikshuBhakti,
-};
 
 function toIsoDate(d: Date): string {
   const y = d.getFullYear();

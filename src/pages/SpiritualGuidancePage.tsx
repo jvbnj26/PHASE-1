@@ -2,14 +2,7 @@ import PublicLayout from '@/components/layout/PublicLayout';
 import PageHero from '@/components/layout/PageHero';
 import { useSiteContent } from '@/contexts/SiteContentContext';
 import { Facebook, Youtube, Camera, Quote } from 'lucide-react';
-import samaniSamatvaPragya from '@/assets/samani-samatva-pragya.png';
-import samaniAbhayPragya from '@/assets/samani-abhay-pragya.png';
-
-const imageMap: Record<string, string> = {
-  'samani-samatva-pragya': samaniSamatvaPragya,
-  'samani-abhay-pragya': samaniAbhayPragya,
-};
-const getImageSrc = (url: string) => imageMap[url] || url;
+import { getImageSrc } from '@/lib/imageMap';
 
 export default function SpiritualGuidancePage() {
   const { spiritualMasters } = useSiteContent();

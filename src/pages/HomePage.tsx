@@ -5,21 +5,7 @@ import { useSiteContent } from '@/contexts/SiteContentContext';
 import PublicLayout from '@/components/layout/PublicLayout';
 import { Button } from '@/components/ui/button';
 import EventPopup from '@/components/EventPopup';
-
-import bannerMahapragya from '@/assets/banner-mahapragya.png';
-import samaniSamatvaPragya from '@/assets/samani-samatva-pragya.png';
-import samaniAbhayPragya from '@/assets/samani-abhay-pragya.png';
-
-// Map image keys to imported assets
-const imageMap: Record<string, string> = {
-  'banner-mahapragya': bannerMahapragya,
-  'samani-samatva-pragya': samaniSamatvaPragya,
-  'samani-abhay-pragya': samaniAbhayPragya,
-};
-
-const getImageSrc = (imageUrl: string) => {
-  return imageMap[imageUrl] || imageUrl;
-};
+import { getImageSrc } from '@/lib/imageMap';
 
 export default function HomePage() {
   const { bannerSlides, welcomeText, spiritualMasters, events2025, activities2025 } = useSiteContent();
@@ -63,6 +49,10 @@ export default function HomePage() {
               src={getImageSrc(slide.imageUrl)}
               alt={slide.title || 'JVBNA Banner'}
               className="w-full h-full object-cover"
+              onError={(e) => {
+                if (e.currentTarget.src.endsWith('/placeholder.svg')) return;
+                e.currentTarget.src = '/placeholder.svg';
+              }}
             />
           </div>
         ))}
@@ -120,6 +110,10 @@ export default function HomePage() {
                       src={getImageSrc(master.imageUrl)}
                       alt={master.name}
                       className="w-full h-full object-cover"
+                      onError={(e) => {
+                        if (e.currentTarget.src.endsWith('/placeholder.svg')) return;
+                        e.currentTarget.src = '/placeholder.svg';
+                      }}
                     />
                   </div>
                   <p className="font-medium text-foreground">{master.name}</p>

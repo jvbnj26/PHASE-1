@@ -12,6 +12,7 @@ import AboutPage from "./pages/AboutPage";
 import LeadershipPage from "./pages/LeadershipPage";
 import EventsPage from "./pages/EventsPage";
 import ActivitiesPage from "./pages/ActivitiesPage";
+import GyanshalaPage from "./pages/GyanshalaPage";
 import CalendarPage from "./pages/CalendarPage";
 import PhotosPage from "./pages/PhotosPage";
 import SpiritualGuidancePage from "./pages/SpiritualGuidancePage";
@@ -71,6 +72,7 @@ const App = () => (
               <Route path="/events/:type" element={<EventsPage />} />
               <Route path="/events/:id/rsvp" element={<RsvpFormPage />} />
               <Route path="/activities" element={<ActivitiesPage />} />
+              <Route path="/activities/gyanshala" element={<GyanshalaPage />} />
               <Route path="/calendar" element={<CalendarPage />} />
               <Route path="/photos" element={<PhotosPage />} />
               <Route path="/spiritual-guidance" element={<SpiritualGuidancePage />} />

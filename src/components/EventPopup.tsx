@@ -9,11 +9,7 @@ import { useRsvps } from '@/hooks/useRsvps';
 import { useRsvpFormIndex } from '@/hooks/useRsvpFormIndex';
 import { toast } from 'sonner';
 import { pickFeaturedEvent, classifyEvent } from '@/lib/utils';
-import eventAwakening from '@/assets/event-bhikshu-bhakti.jpeg';
-
-const imageMap: Record<string, string> = {
-  'event-bhikshu-bhakti': eventAwakening,
-};
+import { imageMap } from '@/lib/imageMap';
 
 const POPUP_STORAGE_KEY = 'jvbna_popup_dismissed_id';
 

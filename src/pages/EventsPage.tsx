@@ -9,7 +9,7 @@ import { toast } from 'sonner';
 import { useRsvps } from '@/hooks/useRsvps';
 import { useRsvpFormIndex } from '@/hooks/useRsvpFormIndex';
 import { useRecentPosts } from '@/hooks/usePosts';
-import eventBhikshuBhakti from '@/assets/event-bhikshu-bhakti.jpeg';
+import { getImageSrc } from '@/lib/imageMap';
 import EventMediaCarousel, { eventMediaFor } from '@/components/EventMediaCarousel';
 import RecentPostsTicker from '@/components/RecentPostsTicker';
 
@@ -128,9 +128,7 @@ export default function EventsPage() {
           ) : (
             <div className="flyer-grid">
               {filteredEvents.map((event) => {
-                const imageUrl = event.imageUrl === 'event-bhikshu-bhakti'
-                  ? eventBhikshuBhakti
-                  : event.imageUrl;
+                const imageUrl = getImageSrc(event.imageUrl);
                 const media = eventMediaFor({ ...event, imageUrl });
                 const hasRsvp = rsvpIds.has(event.id);
                 const hasForm = formIndex.has(event.id);

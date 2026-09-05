@@ -10,6 +10,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Plus, Trash2, GripVertical, Save } from 'lucide-react';
 import { ImageUploadButton } from '@/components/admin/ImageUploadButton';
 import { useToast } from '@/hooks/use-toast';
+import { getImageSrc } from '@/lib/imageMap';
 
 export default function AdminHomePage() {
   const { isAuthenticated } = useAuth();
@@ -148,7 +149,7 @@ export default function AdminHomePage() {
                         />
                       </div>
                       {banner.imageUrl && (
-                        <img src={banner.imageUrl} alt="" className="mt-2 h-20 rounded border object-cover" />
+                        <img src={getImageSrc(banner.imageUrl)} alt="" className="mt-2 h-20 rounded border object-cover" />
                       )}
                     </div>
                   </div>

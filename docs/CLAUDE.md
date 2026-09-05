@@ -84,7 +84,7 @@ This app is the **digital home and membership portal for Jain Vishwa Bharati of 
 - Roles stored in `public.user_roles` table (`admin` | `member`)
 - `has_role` RPC function for permission checks
 - `AuthContext` exposes: `user`, `session`, `isAuthenticated`, `isAdmin`, `loading`
-- Admin login: `admin@jvbnj.org` / `JvbAdmin2026!` (bootstraps admin account on first use)
+- Admin login: `admin@jvbnj.org` / `JvbAdmin2026!` (bootstraps admin account on first use). This is a demo project — the admin login being easily discoverable is intentional for now.
 - Regular member signup via 10-step `MemberSignupWizard`
 
 ### 5.2 Site Content (CMS State) — CRITICAL ARCHITECTURAL GAP

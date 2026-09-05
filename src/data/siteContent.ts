@@ -381,7 +381,11 @@ export const defaultActivities2025 = [
 
 export const defaultCalendarUrl = 'https://calendar.google.com/calendar/embed?src=your-calendar-id&ctz=America%2FNew_York';
 
-export const defaultPhotosUrl = 'https://photos.app.goo.gl/81VGMddRNfLDkAJR7';
+// NOTE: this must be the main JVBNA photo library, not a single event's album.
+// A past default here pointed at one event's ("2026 Blood Drive") album, which is
+// why the public /photos page only ever showed that one album — set the real
+// top-level Google Photos link via /admin/settings, which overrides this default.
+export const defaultPhotosUrl = 'https://photos.google.com/';
 
 export interface PopupConfig {
   enabled: boolean;
