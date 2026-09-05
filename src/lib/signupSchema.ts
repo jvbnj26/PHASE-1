@@ -73,7 +73,9 @@ export const formSchema = z
     member_type: z.enum(MEMBER_TYPES),
     organization_role: z.enum(ORGANIZATION_ROLES).default('General Member'),
     donor_category: z.enum(DONOR_CATEGORIES).optional(),
-    profile_picture_url: z.string().max(2_000_000).optional().or(z.literal('')),
+    // Base64 data URLs inflate ~4/3 over raw bytes, so this must clear the 2MB
+    // raw-byte limit enforced at upload time in MemberSignupWizard, not match it 1:1.
+    profile_picture_url: z.string().max(2_900_000).optional().or(z.literal('')),
     how_heard_about_us: z.string().max(200).optional(),
     referred_by: z.string().max(120).optional(),
 
@@ -143,7 +145,7 @@ export const defaultValues: SignupForm = {
   email: '', password: '', confirm_password: '',
   primary_phone: '', preferred_contact_method: 'Email',
   email_opt_in: true, sms_opt_in: false,
-  terms_accepted: true as any, privacy_accepted: true as any,
+  terms_accepted: false as unknown as true, privacy_accepted: false as unknown as true,
   first_name: '', last_name: '', preferred_name: '',
   age_group: 'Adult', school_name: '', gender: 'Prefer not to say',
   member_type: 'Member',
@@ -164,7 +166,7 @@ export const defaultValues: SignupForm = {
   donation_reminders: false, volunteer_requests: false,
   newsletter_frequency: 'Monthly', preferred_language_comm: 'English',
   whatsapp_group_interest: false, do_not_contact: false,
-  parent_guardian_consent: false, photo_video_consent: true as any,
+  parent_guardian_consent: false, photo_video_consent: false as unknown as true,
   sms_consent: false, email_consent: true,
-  data_accuracy_confirmation: true as any,
+  data_accuracy_confirmation: false as unknown as true,
 } as SignupForm;

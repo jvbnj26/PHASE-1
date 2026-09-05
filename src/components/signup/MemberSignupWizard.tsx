@@ -329,6 +329,12 @@ export default function MemberSignupWizard() {
       });
       if (mpErr) throw mpErr;
 
+      // Account + core profile are in by this point. The remaining inserts are
+      // best-effort — a failure here shouldn't be reported as full signup failure
+      // (the account is real and usable), but it must not be silently swallowed
+      // either, so every error is tracked and surfaced in one summary toast.
+      const partialFailures: string[] = [];
+
       if (showHouseholdStep) {
         const { data: hh, error: hhErr } = await supabase.from('households').insert({
           household_name: data.household_name || data.last_name,
@@ -337,48 +343,55 @@ export default function MemberSignupWizard() {
           city: data.city || null, state: data.state || null,
           zip_code: data.zip_code || null, country: data.country || null,
         }).select('id').single();
-        if (hhErr) throw hhErr;
-        const householdId = hh.id;
-        await supabase.from('household_members').insert({
-          household_id: householdId, user_id: userId,
-          relationship_to_household: data.relationship_to_household || null,
-          is_primary_contact: data.is_primary_household_contact,
-        });
-        if (data.children.length) {
-          await supabase.from('student_profiles').insert(
-            data.children.map((c) => ({
-              parent_user_id: userId, household_id: householdId,
-              first_name: c.first_name, last_name: c.last_name,
-              date_of_birth: c.date_of_birth || null,
-              school_grade: c.school_grade || null,
-              religious_class_grade: c.religious_class_grade || null,
-              allergies_medical_notes: c.allergies_medical_notes || null,
-              emergency_contact_name: c.emergency_contact_name || null,
-              emergency_contact_phone: c.emergency_contact_phone || null,
-              authorized_pickup_people: c.authorized_pickup_people || null,
-              photo_video_permission: c.photo_video_permission,
-              field_trip_permission: c.field_trip_permission,
-              parent_notes: c.parent_notes || null,
-            })),
-          );
+        if (hhErr) {
+          partialFailures.push('household');
+        } else {
+          const householdId = hh.id;
+          const { error: hmErr } = await supabase.from('household_members').insert({
+            household_id: householdId, user_id: userId,
+            relationship_to_household: data.relationship_to_household || null,
+            is_primary_contact: data.is_primary_household_contact,
+          });
+          if (hmErr) partialFailures.push('household membership');
+          if (data.children.length) {
+            const { error: spErr } = await supabase.from('student_profiles').insert(
+              data.children.map((c) => ({
+                parent_user_id: userId, household_id: householdId,
+                first_name: c.first_name, last_name: c.last_name,
+                date_of_birth: c.date_of_birth || null,
+                school_grade: c.school_grade || null,
+                religious_class_grade: c.religious_class_grade || null,
+                allergies_medical_notes: c.allergies_medical_notes || null,
+                emergency_contact_name: c.emergency_contact_name || null,
+                emergency_contact_phone: c.emergency_contact_phone || null,
+                authorized_pickup_people: c.authorized_pickup_people || null,
+                photo_video_permission: c.photo_video_permission,
+                field_trip_permission: c.field_trip_permission,
+                parent_notes: c.parent_notes || null,
+              })),
+            );
+            if (spErr) partialFailures.push('children');
+          }
         }
       }
 
-      await supabase.from('event_preferences').insert({
+      const { error: epErr } = await supabase.from('event_preferences').insert({
         user_id: userId,
         interested_event_types: data.interested_event_types,
         willing_to_volunteer: data.willing_to_volunteer,
         volunteer_areas: showVolunteerDetails ? data.volunteer_areas : [],
         availability: showVolunteerDetails ? data.availability : [],
       });
+      if (epErr) partialFailures.push('event preferences');
 
-      await supabase.from('donation_preferences').insert({
+      const { error: dpErr } = await supabase.from('donation_preferences').insert({
         user_id: userId,
         donor_category: data.donor_category || null,
         donation_receipt_email: data.donation_receipt_email || data.email,
       });
+      if (dpErr) partialFailures.push('giving preferences');
 
-      await supabase.from('communication_preferences').insert({
+      const { error: cpErr } = await supabase.from('communication_preferences').insert({
         user_id: userId,
         general_announcements: data.general_announcements,
         event_reminders: data.event_reminders,
@@ -389,8 +402,9 @@ export default function MemberSignupWizard() {
         whatsapp_group_interest: data.whatsapp_group_interest,
         do_not_contact: data.do_not_contact,
       });
+      if (cpErr) partialFailures.push('communication preferences');
 
-      await supabase.from('consents').insert({
+      const { error: consentErr } = await supabase.from('consents').insert({
         user_id: userId,
         parent_guardian_consent: data.parent_guardian_consent,
         photo_video_consent: data.photo_video_consent,
@@ -401,8 +415,17 @@ export default function MemberSignupWizard() {
         privacy_accepted_at: now,
         consent_source: 'signup_wizard',
       });
+      if (consentErr) partialFailures.push('consent records');
 
-      toast.success('Welcome! Your account has been created.');
+      if (partialFailures.length > 0) {
+        console.error('Signup partial failures:', partialFailures);
+        toast.warning(
+          `Your account was created, but we couldn't save: ${partialFailures.join(', ')}. Please update these from your profile or contact the office.`,
+          { duration: 8000 },
+        );
+      } else {
+        toast.success('Welcome! Your account has been created.');
+      }
       navigate('/');
     } catch (err: any) {
       console.error(err);

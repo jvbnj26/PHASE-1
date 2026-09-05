@@ -9,7 +9,7 @@ import { useRsvps } from '@/hooks/useRsvps';
 import { useRsvpFormIndex } from '@/hooks/useRsvpFormIndex';
 import { toast } from 'sonner';
 import { pickFeaturedEvent, classifyEvent } from '@/lib/utils';
-import { imageMap } from '@/lib/imageMap';
+import { getImageSrc } from '@/lib/imageMap';
 
 const POPUP_STORAGE_KEY = 'jvbna_popup_dismissed_id';
 
@@ -122,7 +122,7 @@ export default function EventPopup() {
 
   if (!isOpen || !featuredEvent) return null;
 
-  const imageUrl = imageMap[featuredEvent.imageUrl] || featuredEvent.imageUrl;
+  const imageUrl = getImageSrc(featuredEvent.imageUrl);
 
   return (
     <div
