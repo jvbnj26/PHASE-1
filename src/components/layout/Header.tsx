@@ -4,50 +4,10 @@ import { Menu, X, Phone, Mail, ChevronDown, LogIn, LogOut, UserCircle } from 'lu
 import { Button } from '@/components/ui/button';
 import jvbLogo from '@/assets/jvb-logo.png';
 import { useAuth } from '@/contexts/AuthContext';
+import { useSiteContent } from '@/contexts/SiteContentContext';
 import { useCustomPages } from '@/hooks/useCustomPages';
+import { BUILTIN_NAV_ITEMS, orderTopLevelPages, builtinPathToSegment } from '@/data/navigation';
 import { toast } from 'sonner';
-
-const navItems = [
-  { name: 'HOME', path: '/' },
-  {
-    name: 'ABOUT US',
-    path: '/about',
-    submenu: [
-      { name: 'About JVBNA', path: '/about' },
-      { name: 'Leadership', path: '/about/leadership' },
-    ],
-  },
-  {
-    name: 'EVENTS',
-    path: '/events',
-    submenu: [
-      { name: 'Upcoming Events', path: '/events/upcoming' },
-      { name: 'Ongoing Events', path: '/events/ongoing' },
-      { name: 'Past Events', path: '/events/past' },
-    ],
-  },
-  {
-    name: 'ACTIVITIES',
-    path: '/activities',
-    submenu: [
-      { name: 'All Activities', path: '/activities' },
-      { name: 'Gyanshala', path: '/activities/gyanshala' },
-    ],
-  },
-  { name: 'BLOG', path: '/blog' },
-  { name: 'CALENDAR', path: '/calendar' },
-  { name: 'PHOTOS', path: '/photos' },
-  { name: 'SPIRITUAL GUIDANCE', path: '/spiritual-guidance' },
-  {
-    name: 'GET INVOLVED',
-    path: '/get-involved',
-    submenu: [
-      { name: 'Volunteer', path: '/volunteer' },
-      { name: 'Donate', path: '/donate' },
-    ],
-  },
-  { name: 'CONTACT US', path: '/contact' },
-];
 
 export default function Header() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -56,24 +16,41 @@ export default function Header() {
   const navigate = useNavigate();
   const { user, isAuthenticated, logout } = useAuth();
   const { pages: customPages } = useCustomPages();
+  const { pageOrder } = useSiteContent();
 
   const isActive = (path: string) => location.pathname === path;
 
+  const publishedPages = customPages.filter((p) => p.status === 'published');
+
   const customNav = (() => {
-    const publishedPages = customPages.filter((p) => p.status === 'published');
     const top = publishedPages.filter((p) => !p.parent_slug);
     return top.map((p) => {
       const subs = publishedPages
         .filter((c) => c.parent_slug === p.slug)
         .map((c) => ({ name: c.title.toUpperCase(), path: `/p/${p.slug}/${c.slug}` }));
       return {
+        id: `custom:${p.id}`,
         name: p.title.toUpperCase(),
         path: `/p/${p.slug}`,
         submenu: subs.length ? subs : undefined,
       };
     });
   })();
-  const allNavItems = [...navItems, ...customNav];
+  // Built-in nav sections use their path as a stable id; custom pages use `custom:<id>` (set
+  // above) so a slug rename doesn't reset its position. pageOrder (Admin > Pages > Site
+  // Navigation Order) then interleaves the two — see src/data/navigation.ts.
+  // A custom page can also be created as a subpage of a built-in page (Admin > Pages, "Parent
+  // page" dropdown) — its parent_slug is then that page's segment (e.g. 'about'), and it needs
+  // to show up folded into that built-in item's own submenu, after any hardcoded entries.
+  const builtinNav = BUILTIN_NAV_ITEMS.map((item) => {
+    const segment = builtinPathToSegment(item.path);
+    const customSubs = publishedPages
+      .filter((p) => p.parent_slug === segment)
+      .map((p) => ({ name: p.title.toUpperCase(), path: `/p/${segment}/${p.slug}` }));
+    const submenu = customSubs.length ? [...(item.submenu ?? []), ...customSubs] : item.submenu;
+    return { ...item, id: item.path, submenu };
+  });
+  const allNavItems = orderTopLevelPages([...builtinNav, ...customNav], pageOrder);
 
   const handleLogout = async () => {
     await logout();

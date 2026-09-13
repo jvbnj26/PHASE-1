@@ -35,6 +35,7 @@ const sidebarItems = [
   { name: 'About Us', path: '/admin/about', icon: FileText },
   { name: 'Events', path: '/admin/events', icon: Calendar },
   { name: 'Activities', path: '/admin/activities', icon: Megaphone },
+  { name: 'Gyanshala', path: '/admin/gyanshala', icon: BookOpen },
   { name: 'Spiritual Guidance', path: '/admin/spiritual-guidance', icon: BookOpen },
   { name: 'Volunteer', path: '/admin/volunteer', icon: HandHeart },
   { name: 'Donations', path: '/admin/donations', icon: Heart },

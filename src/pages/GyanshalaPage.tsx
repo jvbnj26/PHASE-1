@@ -2,30 +2,20 @@ import PublicLayout from '@/components/layout/PublicLayout';
 import PageHero from '@/components/layout/PageHero';
 import { useSiteContent } from '@/contexts/SiteContentContext';
 import { Button } from '@/components/ui/button';
-import { BookOpen, Heart, Users, Calendar, Mail } from 'lucide-react';
+import { BookOpen, Heart, Users, Calendar, Mail, type LucideIcon } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
-const pillars = [
-  {
-    icon: BookOpen,
-    title: 'Jain Philosophy',
-    description: 'Age-appropriate lessons on Jain principles, stories, and scripture that build a lasting foundation of understanding.',
-  },
-  {
-    icon: Heart,
-    title: 'Science of Living',
-    description: 'Practical values — nonviolence, self-restraint, and compassion — taught through discussion and everyday practice.',
-  },
-  {
-    icon: Users,
-    title: 'Community & Culture',
-    description: 'Festivals, group activities, and mentorship that connect children to the JVBNA community and to each other.',
-  },
-];
+// Pillar copy is editable (Admin > Gyanshala), but the icon per position is fixed —
+// mirrors how About's programSections are structured (content is data, icon is code).
+const PILLAR_ICONS: LucideIcon[] = [BookOpen, Heart, Users];
 
 export default function GyanshalaPage() {
-  const { executiveCommittee } = useSiteContent();
+  const { executiveCommittee, gyanshalaContent } = useSiteContent();
   const coordinators = executiveCommittee.filter((m) => m.role.toLowerCase().includes('gyanshala'));
+  const pillars = gyanshalaContent.pillars.map((p, i) => ({
+    ...p,
+    icon: PILLAR_ICONS[i % PILLAR_ICONS.length],
+  }));
 
   return (
     <PublicLayout>
@@ -38,11 +28,9 @@ export default function GyanshalaPage() {
       <section className="py-14 bg-white">
         <div className="container-custom max-w-5xl">
           <div className="prose prose-lg max-w-none text-muted-foreground leading-relaxed mb-12">
-            <p>
-              Gyanshala meets regularly at the JVBNA Center, where children learn Jain philosophy, Preksha
-              Meditation fundamentals, and the values that guide a nonviolent, compassionate life — taught
-              in an age-appropriate, engaging way alongside their peers in the community.
-            </p>
+            {gyanshalaContent.intro.split('\n\n').map((para, idx) => (
+              <p key={idx}>{para}</p>
+            ))}
           </div>
 
           <div className="grid md:grid-cols-3 gap-6 mb-14">
@@ -75,9 +63,9 @@ export default function GyanshalaPage() {
             <div className="absolute -top-12 -right-12 w-48 h-48 rounded-full bg-white/10" />
             <div className="relative grid md:grid-cols-[1fr,auto] gap-6 items-center">
               <div>
-                <h3 className="font-serif text-2xl md:text-3xl font-bold mb-2">Enroll Your Child</h3>
+                <h3 className="font-serif text-2xl md:text-3xl font-bold mb-2">{gyanshalaContent.ctaTitle}</h3>
                 <p className="text-white/90">
-                  Sign up as a member and select Gyanshala during registration, or reach out to the office directly.
+                  {gyanshalaContent.ctaText}
                 </p>
               </div>
               <div className="flex flex-wrap gap-3">

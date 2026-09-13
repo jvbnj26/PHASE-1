@@ -2,26 +2,37 @@ import { useEffect, useState } from 'react';
 import { Link, Navigate, useNavigate } from 'react-router-dom';
 import AdminLayout from '@/components/admin/AdminLayout';
 import { useAuth } from '@/contexts/AuthContext';
+import { useSiteContent } from '@/contexts/SiteContentContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Trash2, Plus, ImagePlus, ArrowUp, ArrowDown, ExternalLink, Save, FileText, Lock, Send, Archive, RotateCcw, FileEdit } from 'lucide-react';
+import { Trash2, Plus, ImagePlus, ArrowUp, ArrowDown, ExternalLink, Save, FileText, Lock, Send, Archive, RotateCcw, FileEdit, ArrowUpDown } from 'lucide-react';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { supabase } from '@/integrations/supabase/client';
 import { useCustomPages, slugify, type PageBlock, type CustomPage, type PageStatus } from '@/hooks/useCustomPages';
+import { BUILTIN_NAV_ITEMS, orderTopLevelPages, builtinPathToSegment, RESERVED_PARENT_SLUGS } from '@/data/navigation';
 import RichTextEditor from '@/components/admin/RichTextEditor';
 import { toast } from 'sonner';
 
-// Built-in site pages — managed via their own editors
-const BUILTIN_PAGES = [
+// Built-in site pages — managed via their own editors.
+//
+// This list is the source of truth checked by src/App.pageRegistry.test.tsx: every hardcoded
+// public route in App.tsx must either live here (a "built-in" page with a dedicated admin
+// editor) or be created through the custom pages CMS below (stored in `custom_pages`, always
+// automatically listed & mutable). A route in neither place fails that test — that's the class
+// of bug that let the Gyanshala page ship hardcoded with no editor and no listing here.
+export const BUILTIN_PAGES = [
   { title: 'Home', path: '/', admin: '/admin/home' },
   { title: 'About Us', path: '/about', admin: '/admin/about' },
+  { title: 'Leadership', path: '/about/leadership', admin: '/admin/board' },
   { title: 'Events', path: '/events', admin: '/admin/events' },
   { title: 'Activities', path: '/activities', admin: '/admin/activities' },
+  { title: 'Gyanshala', path: '/activities/gyanshala', admin: '/admin/gyanshala' },
   { title: 'Calendar', path: '/calendar', admin: '/admin/settings' },
+  { title: 'Photos', path: '/photos', admin: '/admin/settings' },
   { title: 'Spiritual Guidance', path: '/spiritual-guidance', admin: '/admin/spiritual-guidance' },
   { title: 'Volunteer / Get Involved', path: '/volunteer', admin: '/admin/volunteer' },
   { title: 'Donate', path: '/donate', admin: '/admin/donations' },
@@ -49,6 +60,49 @@ function newBlock(): PageBlock {
   };
 }
 
+// Renders one parent's list of sub-pages with reorder arrows — shared by both a custom page's
+// own kids and a built-in page's kids (see the two call sites below).
+function SubpageList({
+  kids, selectedId, setSelectedId, movePage,
+}: {
+  kids: CustomPage[];
+  selectedId: string | null;
+  setSelectedId: (id: string) => void;
+  movePage: (list: CustomPage[], idx: number, dir: -1 | 1) => void;
+}) {
+  if (kids.length === 0) return null;
+  return (
+    <ul className="pl-4 border-l ml-2">
+      {kids.map((k, kidx) => (
+        <li key={k.id}>
+          <div className="flex items-center gap-1">
+            <button
+              onClick={() => setSelectedId(k.id)}
+              className={`flex-1 text-left px-2 py-1 rounded text-xs hover:bg-muted ${selectedId === k.id ? 'bg-muted font-medium' : ''}`}
+            >
+              ↳ {k.title}
+            </button>
+            <Button
+              size="icon" variant="ghost" className="h-5 w-5 shrink-0"
+              disabled={kidx === 0}
+              onClick={() => movePage(kids, kidx, -1)}
+            >
+              <ArrowUp className="w-3 h-3" />
+            </Button>
+            <Button
+              size="icon" variant="ghost" className="h-5 w-5 shrink-0"
+              disabled={kidx === kids.length - 1}
+              onClick={() => movePage(kids, kidx, 1)}
+            >
+              <ArrowDown className="w-3 h-3" />
+            </Button>
+          </div>
+        </li>
+      ))}
+    </ul>
+  );
+}
+
 const LAYOUT_OPTIONS: { value: PageBlock['layout']; label: string; hint: string }[] = [
   { value: 'text-image-right', label: 'Text + Image (image on right)', hint: 'Balanced — best for most sections' },
   { value: 'text-image-left', label: 'Text + Image (image on left)', hint: 'Alternate layout for variety' },
@@ -61,6 +115,7 @@ export default function AdminPagesPage() {
   const { isAuthenticated, loading: authLoading } = useAuth();
   const navigate = useNavigate();
   const { pages, refresh } = useCustomPages();
+  const { pageOrder, setPageOrder } = useSiteContent();
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [draft, setDraft] = useState<CustomPage | null>(null);
   const [statusFilter, setStatusFilter] = useState<PageStatus>('published');
@@ -83,6 +138,40 @@ export default function AdminPagesPage() {
   const topLevel = filteredPages.filter((p) => !p.parent_slug);
   const parentOptions = pages.filter((p) => !p.parent_slug);
 
+  // "Site Navigation Order" — every top-level page, built-in and custom, merged into one
+  // reorderable list. Only *published* top-level custom pages are included: drafts/archived
+  // pages have no nav position to control yet. Sub-pages/submenu items aren't part of this —
+  // they nest under whichever top-level item they belong to and keep their own ordering.
+  const navPages = [
+    ...BUILTIN_NAV_ITEMS.map((item) => ({
+      id: item.path,
+      title: item.name,
+      kind: 'builtin' as const,
+      publicPath: item.path,
+      adminPath: item.admin,
+    })),
+    ...pages
+      .filter((p) => p.status === 'published' && !p.parent_slug)
+      .map((p) => ({
+        id: `custom:${p.id}`,
+        title: p.title,
+        kind: 'custom' as const,
+        publicPath: `/p/${p.slug}`,
+        adminPath: null as string | null,
+        pageId: p.id,
+      })),
+  ];
+  const orderedNavPages = orderTopLevelPages(navPages, pageOrder);
+
+  async function moveNavPage(idx: number, dir: -1 | 1) {
+    const j = idx + dir;
+    if (j < 0 || j >= orderedNavPages.length) return;
+    const ids = orderedNavPages.map((p) => p.id);
+    [ids[idx], ids[j]] = [ids[j], ids[idx]];
+    setPageOrder(ids);
+    toast.success('Navigation order updated');
+  }
+
   const statusCounts = {
     published: pages.filter((p) => p.status === 'published').length,
     draft: pages.filter((p) => p.status === 'draft').length,
@@ -92,10 +181,25 @@ export default function AdminPagesPage() {
   async function handleCreate(asStatus: PageStatus) {
     if (!newTitle.trim()) return toast.error('Title required');
     const slug = slugify(newTitle);
-    const parent_slug = newParent === 'none' ? null : newParent;
+    // A built-in parent is selected as `builtin:<segment>` (see the Select below) — unwrap it
+    // to the plain segment (e.g. 'about'), which is what actually gets stored as parent_slug
+    // and what the /p/:parent/:slug route matches against.
+    const parent_slug = newParent === 'none'
+      ? null
+      : newParent.startsWith('builtin:')
+        ? newParent.slice('builtin:'.length)
+        : newParent;
+    // A top-level page can't take a slug reserved for a built-in page's own segment (e.g.
+    // "about") — that would make /p/:parent/:slug ambiguous between "a subpage of this custom
+    // page" and "a subpage of the built-in About page". Sub-pages have no such restriction.
+    if (parent_slug === null && RESERVED_PARENT_SLUGS.has(slug)) {
+      return toast.error(`"${newTitle.trim()}" is too close to a built-in page's URL — try a different title.`);
+    }
+    // New pages join the end of their sibling group (same parent_slug) by default.
+    const sort_order = pages.filter((p) => p.parent_slug === parent_slug).length;
     const { data, error } = await supabase
       .from('custom_pages')
-      .insert({ title: newTitle.trim(), slug, parent_slug, blocks: [newBlock()] as any, status: asStatus })
+      .insert({ title: newTitle.trim(), slug, parent_slug, blocks: [newBlock()] as any, status: asStatus, sort_order })
       .select()
       .single();
     if (error) return toast.error(error.message);
@@ -113,6 +217,22 @@ export default function AdminPagesPage() {
     if (error) return toast.error(error.message);
     toast.success('Page deleted');
     setSelectedId(null);
+    refresh();
+  }
+
+  // Swaps sort_order between two adjacent pages in the given (already-filtered) list — this
+  // is what controls both the order pages appear in this sidebar and the order they appear in
+  // the public nav dropdown (Header.tsx sorts custom pages by sort_order).
+  async function movePage(list: CustomPage[], idx: number, dir: -1 | 1) {
+    const j = idx + dir;
+    if (j < 0 || j >= list.length) return;
+    const a = list[idx];
+    const b = list[j];
+    const [{ error: e1 }, { error: e2 }] = await Promise.all([
+      supabase.from('custom_pages').update({ sort_order: b.sort_order }).eq('id', a.id),
+      supabase.from('custom_pages').update({ sort_order: a.sort_order }).eq('id', b.id),
+    ]);
+    if (e1 || e2) return toast.error((e1 || e2)!.message);
     refresh();
   }
 
@@ -181,6 +301,48 @@ export default function AdminPagesPage() {
           </p>
         </div>
 
+        {/* Site navigation order — every top-level page, built-in and custom, in one reorderable list */}
+        <Card className="p-6 mb-8">
+          <div className="flex items-center gap-2 mb-1">
+            <ArrowUpDown className="w-4 h-4 text-muted-foreground" />
+            <h2 className="font-serif text-lg font-bold">Site Navigation Order</h2>
+          </div>
+          <p className="text-xs text-muted-foreground mb-4">
+            Controls the order every page — built-in or custom — appears in the site's top navigation menu.
+            Sub-pages and submenu items keep their own order under whichever page they belong to.
+          </p>
+          <ul className="divide-y rounded-md border">
+            {orderedNavPages.map((p, idx) => (
+              <li key={p.id} className="flex items-center gap-3 px-3 py-2">
+                <span className="text-xs text-muted-foreground w-5 text-right tabular-nums">{idx + 1}</span>
+                <Badge variant={p.kind === 'builtin' ? 'outline' : 'secondary'} className="text-[10px] uppercase tracking-wide shrink-0">
+                  {p.kind === 'builtin' ? 'Built-in' : 'Custom'}
+                </Badge>
+                <span className="text-sm font-medium flex-1 truncate">{p.title}</span>
+                <code className="text-xs text-muted-foreground hidden sm:inline">{p.publicPath}</code>
+                <div className="flex gap-1 shrink-0">
+                  <a href={p.publicPath} target="_blank" rel="noreferrer">
+                    <Button size="icon" variant="ghost" className="h-7 w-7"><ExternalLink className="w-3.5 h-3.5" /></Button>
+                  </a>
+                  {p.kind === 'builtin' ? (
+                    <Link to={p.adminPath!}>
+                      <Button size="sm" variant="outline" className="h-7">Edit</Button>
+                    </Link>
+                  ) : (
+                    <Button size="sm" variant="outline" className="h-7" onClick={() => setSelectedId(p.pageId!)}>Edit</Button>
+                  )}
+                  <Button size="icon" variant="ghost" className="h-7 w-7" disabled={idx === 0} onClick={() => moveNavPage(idx, -1)}>
+                    <ArrowUp className="w-3.5 h-3.5" />
+                  </Button>
+                  <Button size="icon" variant="ghost" className="h-7 w-7" disabled={idx === orderedNavPages.length - 1} onClick={() => moveNavPage(idx, 1)}>
+                    <ArrowDown className="w-3.5 h-3.5" />
+                  </Button>
+                </div>
+              </li>
+            ))}
+          </ul>
+        </Card>
+
         {/* Built-in pages */}
         <Card className="p-6 mb-8">
           <div className="flex items-center gap-2 mb-4">
@@ -222,6 +384,11 @@ export default function AdminPagesPage() {
                   {parentOptions.map((p) => (
                     <SelectItem key={p.id} value={p.slug}>Subpage of: {p.title}</SelectItem>
                   ))}
+                  {BUILTIN_NAV_ITEMS.map((item) => (
+                    <SelectItem key={item.path} value={`builtin:${builtinPathToSegment(item.path)}`}>
+                      Subpage of: {item.name} (built-in)
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
               <div className="grid grid-cols-2 gap-2">
@@ -252,6 +419,12 @@ export default function AdminPagesPage() {
                   {statusFilter === 'published' && 'No published custom pages.'}
                 </p>
               )}
+              {(topLevel.some((p) => filteredPages.some((x) => x.parent_slug === p.slug)) ||
+                BUILTIN_NAV_ITEMS.some((item) => filteredPages.some((x) => x.parent_slug === builtinPathToSegment(item.path)))) && (
+                <p className="text-xs text-muted-foreground mb-2">
+                  Use the arrows to reorder sub-pages. Top-level order is set in "Site Navigation Order" above.
+                </p>
+              )}
               <ul className="space-y-1">
                 {topLevel.map((p) => {
                   const kids = filteredPages.filter((x) => x.parent_slug === p.slug);
@@ -263,20 +436,24 @@ export default function AdminPagesPage() {
                       >
                         {p.title}
                       </button>
-                      {kids.length > 0 && (
-                        <ul className="pl-4 border-l ml-2">
-                          {kids.map((k) => (
-                            <li key={k.id}>
-                              <button
-                                onClick={() => setSelectedId(k.id)}
-                                className={`w-full text-left px-2 py-1 rounded text-xs hover:bg-muted ${selectedId === k.id ? 'bg-muted font-medium' : ''}`}
-                              >
-                                ↳ {k.title}
-                              </button>
-                            </li>
-                          ))}
-                        </ul>
-                      )}
+                      <SubpageList kids={kids} selectedId={selectedId} setSelectedId={setSelectedId} movePage={movePage} />
+                    </li>
+                  );
+                })}
+                {/* Sub-pages nested under a built-in page (e.g. a subpage of "About Us") — the
+                    built-in page itself is edited via its own dedicated editor, listed below, so
+                    this row exists only to group and reorder any custom sub-pages under it. */}
+                {BUILTIN_NAV_ITEMS.map((item) => {
+                  const segment = builtinPathToSegment(item.path);
+                  const kids = filteredPages.filter((x) => x.parent_slug === segment);
+                  if (kids.length === 0) return null;
+                  return (
+                    <li key={`builtin:${segment}`}>
+                      <div className="flex items-center gap-1.5 px-2 py-1.5 text-sm text-muted-foreground">
+                        <Lock className="w-3 h-3" /> {item.name}
+                        <span className="text-[10px] uppercase tracking-wide">(built-in)</span>
+                      </div>
+                      <SubpageList kids={kids} selectedId={selectedId} setSelectedId={setSelectedId} movePage={movePage} />
                     </li>
                   );
                 })}

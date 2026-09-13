@@ -39,6 +39,7 @@ import AdminEventsPage from "./pages/admin/AdminEventsPage";
 import AdminBoardPage from "./pages/admin/AdminBoardPage";
 import AdminAboutPage from "./pages/admin/AdminAboutPage";
 import AdminActivitiesPage from "./pages/admin/AdminActivitiesPage";
+import AdminGyanshalaPage from "./pages/admin/AdminGyanshalaPage";
 import AdminSpiritualGuidancePage from "./pages/admin/AdminSpiritualGuidancePage";
 import AdminVolunteerPage from "./pages/admin/AdminVolunteerPage";
 import AdminDonationsPage from "./pages/admin/AdminDonationsPage";
@@ -64,7 +65,20 @@ const App = () => (
           <Sonner />
           <BrowserRouter>
             <Routes>
-              {/* Public Routes */}
+              {/*
+                Public Routes — every content page here must be editable/discoverable:
+                  1. Prefer creating pages through the custom pages CMS (Admin > Pages),
+                     which stores them in `custom_pages` and serves them from /p/:slug —
+                     no code change needed, and they're automatically listed & mutable.
+                  2. A page with a bespoke design/layout (like this one) is registered as a
+                     "built-in" page instead: content lives in `site_settings` via
+                     SiteContentContext, it gets a dedicated Admin*Page editor + route below,
+                     and it MUST be added to BUILTIN_PAGES in AdminPagesPage.tsx.
+                A route added to neither list is untested and unenforced — see
+                src/App.pageRegistry.test.tsx, which fails CI for exactly that case. This is
+                what happened to Gyanshala: it shipped as a hardcoded route with no editor and
+                no BUILTIN_PAGES entry, so it was live but invisible/unmutable in Admin > Pages.
+              */}
               <Route path="/" element={<HomePage />} />
               <Route path="/about" element={<AboutPage />} />
               <Route path="/about/leadership" element={<LeadershipPage />} />
@@ -103,6 +117,7 @@ const App = () => (
                 <Route path="/admin/events" element={<AdminEventsPage />} />
                 <Route path="/admin/events/:id/rsvp-form" element={<AdminRsvpFormPage />} />
                 <Route path="/admin/activities" element={<AdminActivitiesPage />} />
+                <Route path="/admin/gyanshala" element={<AdminGyanshalaPage />} />
                 <Route path="/admin/spiritual-guidance" element={<AdminSpiritualGuidancePage />} />
                 <Route path="/admin/volunteer" element={<AdminVolunteerPage />} />
                 <Route path="/admin/donations" element={<AdminDonationsPage />} />

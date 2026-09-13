@@ -325,6 +325,26 @@ Jain Vishwa Bharati of North America (JVBNA) is one of three satellite organizat
   ],
 };
 
+export const defaultGyanshalaContent = {
+  intro: `Gyanshala meets regularly at the JVBNA Center, where children learn Jain philosophy, Preksha Meditation fundamentals, and the values that guide a nonviolent, compassionate life — taught in an age-appropriate, engaging way alongside their peers in the community.`,
+  pillars: [
+    {
+      title: 'Jain Philosophy',
+      description: 'Age-appropriate lessons on Jain principles, stories, and scripture that build a lasting foundation of understanding.',
+    },
+    {
+      title: 'Science of Living',
+      description: 'Practical values — nonviolence, self-restraint, and compassion — taught through discussion and everyday practice.',
+    },
+    {
+      title: 'Community & Culture',
+      description: 'Festivals, group activities, and mentorship that connect children to the JVBNA community and to each other.',
+    },
+  ],
+  ctaTitle: 'Enroll Your Child',
+  ctaText: 'Sign up as a member and select Gyanshala during registration, or reach out to the office directly.',
+};
+
 export const defaultDonationContent = {
   intro: `JVBNA is a non profit and as such is run entirely on your contributions. Irrespective of any situation, we continue maintaining our both centers and continue spending money for it's day to day operations. To cover these costs (like daily maintenance, utilities, unexpected repairs, Samani ji related expenses), we do ask for donations ONLY once in a year (during Paryushan).
 
@@ -397,4 +417,22 @@ export const defaultPopupConfig: PopupConfig = {
   enabled: true,
   mode: 'auto',
 };
+
+// Controls the order of every top-level page in the public nav — both built-in pages (id =
+// their path, e.g. '/about') and custom pages (id = `custom:<page id>`). Edited from
+// Admin > Pages ("Site Navigation Order"); see src/data/navigation.ts for how it's applied.
+// This default reproduces today's hardcoded nav order exactly — reordering only changes
+// anything once an admin actually uses the new control.
+export const defaultPageOrder: string[] = [
+  '/',
+  '/about',
+  '/events',
+  '/activities',
+  '/blog',
+  '/calendar',
+  '/photos',
+  '/spiritual-guidance',
+  '/get-involved',
+  '/contact',
+];
 

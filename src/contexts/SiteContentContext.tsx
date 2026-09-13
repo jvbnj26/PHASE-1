@@ -21,12 +21,14 @@ import {
   defaultContactInfo,
   defaultSatelliteCenters,
   defaultAboutContent,
+  defaultGyanshalaContent,
   defaultDonationContent,
   defaultEvents2025,
   defaultActivities2025,
   defaultCalendarUrl,
   defaultPhotosUrl,
   defaultPopupConfig,
+  defaultPageOrder,
 } from '@/data/siteContent';
 
 interface SiteContentContextType {
@@ -60,6 +62,9 @@ interface SiteContentContextType {
   aboutContent: typeof defaultAboutContent;
   setAboutContent: (content: typeof defaultAboutContent) => void;
 
+  gyanshalaContent: typeof defaultGyanshalaContent;
+  setGyanshalaContent: (content: typeof defaultGyanshalaContent) => void;
+
   donationContent: typeof defaultDonationContent;
   setDonationContent: (content: typeof defaultDonationContent) => void;
 
@@ -77,6 +82,11 @@ interface SiteContentContextType {
 
   popupConfig: PopupConfig;
   setPopupConfig: (cfg: PopupConfig) => void;
+
+  // Top-level nav order — ids for both built-in pages (their path) and custom pages
+  // (`custom:<id>`). See src/data/navigation.ts.
+  pageOrder: string[];
+  setPageOrder: (order: string[]) => void;
 
   // True once the initial Supabase load has settled (success or failure). Consumers
   // that pick a single "best" item from a list (e.g. the homepage event popup) should
@@ -97,6 +107,7 @@ export function SiteContentProvider({ children }: { children: ReactNode }) {
   const [contactInfo, setContactInfoState] = useState<ContactInfo>(defaultContactInfo);
   const [satelliteCenters, setSatelliteCentersState] = useState<SatelliteCenter[]>(defaultSatelliteCenters);
   const [aboutContent, setAboutContentState] = useState(defaultAboutContent);
+  const [gyanshalaContent, setGyanshalaContentState] = useState(defaultGyanshalaContent);
   const [donationContent, setDonationContentState] = useState(defaultDonationContent);
   const [events2025, setEvents2025State] = useState<(string | { name: string; subItem: boolean })[]>(
     defaultEvents2025 as (string | { name: string; subItem: boolean })[]
@@ -107,6 +118,7 @@ export function SiteContentProvider({ children }: { children: ReactNode }) {
   const [calendarUrl, setCalendarUrlState] = useState(defaultCalendarUrl);
   const [photosUrl, setPhotosUrlState] = useState(defaultPhotosUrl);
   const [popupConfig, setPopupConfigState] = useState<PopupConfig>(defaultPopupConfig);
+  const [pageOrder, setPageOrderState] = useState<string[]>(defaultPageOrder);
   const [contentLoaded, setContentLoaded] = useState(false);
 
   // Load all settings from Supabase on mount, overriding defaults with DB values
@@ -134,12 +146,14 @@ export function SiteContentProvider({ children }: { children: ReactNode }) {
         if (m.has('contactInfo'))        setContactInfoState(m.get('contactInfo') as ContactInfo);
         if (m.has('satelliteCenters'))   setSatelliteCentersState(m.get('satelliteCenters') as SatelliteCenter[]);
         if (m.has('aboutContent'))       setAboutContentState(m.get('aboutContent') as typeof defaultAboutContent);
+        if (m.has('gyanshalaContent'))   setGyanshalaContentState(m.get('gyanshalaContent') as typeof defaultGyanshalaContent);
         if (m.has('donationContent'))    setDonationContentState(m.get('donationContent') as typeof defaultDonationContent);
         if (m.has('events2025'))         setEvents2025State(m.get('events2025') as (string | { name: string; subItem: boolean })[]);
         if (m.has('activities2025'))     setActivities2025State(m.get('activities2025') as (string | { name: string; subItem: boolean })[]);
         if (m.has('calendarUrl'))        setCalendarUrlState(m.get('calendarUrl') as string);
         if (m.has('photosUrl'))          setPhotosUrlState(m.get('photosUrl') as string);
         if (m.has('popupConfig'))        setPopupConfigState(m.get('popupConfig') as PopupConfig);
+        if (m.has('pageOrder'))          setPageOrderState(m.get('pageOrder') as string[]);
         setContentLoaded(true);
       });
   }, []);
@@ -164,6 +178,7 @@ export function SiteContentProvider({ children }: { children: ReactNode }) {
   const setContactInfo        = (v: ContactInfo)                                               => { setContactInfoState(v);        persist('contactInfo', v); };
   const setSatelliteCenters   = (v: SatelliteCenter[])                                        => { setSatelliteCentersState(v);   persist('satelliteCenters', v); };
   const setAboutContent       = (v: typeof defaultAboutContent)                               => { setAboutContentState(v);       persist('aboutContent', v); };
+  const setGyanshalaContent   = (v: typeof defaultGyanshalaContent)                           => { setGyanshalaContentState(v);   persist('gyanshalaContent', v); };
   const setDonationContent    = (v: typeof defaultDonationContent)                            => { setDonationContentState(v);    persist('donationContent', v); };
   const setEvents2025         = (v: (string | { name: string; subItem: boolean })[])          => { setEvents2025State(v);         persist('events2025', v); };
   const setActivities2025     = (v: (string | { name: string; subItem: boolean })[])          => { setActivities2025State(v);     persist('activities2025', v); };
@@ -176,6 +191,8 @@ export function SiteContentProvider({ children }: { children: ReactNode }) {
     // Reset dismissal so the updated popup is immediately visible again
     try { sessionStorage.removeItem('jvbna_popup_dismissed_id'); } catch {}
   };
+
+  const setPageOrder = (order: string[]) => { setPageOrderState(order); persist('pageOrder', order); };
 
   return (
     <SiteContentContext.Provider
@@ -190,12 +207,14 @@ export function SiteContentProvider({ children }: { children: ReactNode }) {
         contactInfo, setContactInfo,
         satelliteCenters, setSatelliteCenters,
         aboutContent, setAboutContent,
+        gyanshalaContent, setGyanshalaContent,
         donationContent, setDonationContent,
         events2025, setEvents2025,
         activities2025, setActivities2025,
         calendarUrl, setCalendarUrl,
         photosUrl, setPhotosUrl,
         popupConfig, setPopupConfig,
+        pageOrder, setPageOrder,
         contentLoaded,
       }}
     >

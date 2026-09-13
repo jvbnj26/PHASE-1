@@ -181,6 +181,7 @@ export type Database = {
           id: string
           parent_slug: string | null
           slug: string
+          sort_order: number
           status: string
           title: string
           updated_at: string
@@ -192,6 +193,7 @@ export type Database = {
           id?: string
           parent_slug?: string | null
           slug: string
+          sort_order?: number
           status?: string
           title: string
           updated_at?: string
@@ -203,6 +205,7 @@ export type Database = {
           id?: string
           parent_slug?: string | null
           slug?: string
+          sort_order?: number
           status?: string
           title?: string
           updated_at?: string

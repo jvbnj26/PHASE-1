@@ -19,6 +19,9 @@ export type CustomPage = {
   title: string;
   blocks: PageBlock[];
   status: PageStatus;
+  /** Position among siblings sharing the same parent_slug — lower shows first. Controls both
+   *  the order pages list in Admin > Pages and the order they appear in the public nav. */
+  sort_order: number;
   created_at: string;
   updated_at: string;
 };
@@ -33,6 +36,7 @@ export function useCustomPages() {
     const { data, error } = await supabase
       .from('custom_pages')
       .select('*')
+      .order('sort_order', { ascending: true })
       .order('created_at', { ascending: true });
     if (!error && data) {
       setPages(
@@ -40,6 +44,7 @@ export function useCustomPages() {
           ...d,
           status: (d.status as PageStatus) || 'published',
           blocks: Array.isArray(d.blocks) ? (d.blocks as PageBlock[]) : [],
+          sort_order: typeof d.sort_order === 'number' ? d.sort_order : 0,
         })),
       );
 

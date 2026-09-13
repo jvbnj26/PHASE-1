@@ -6,6 +6,7 @@ import PageHero from '@/components/layout/PageHero';
 import { supabase } from '@/integrations/supabase/client';
 import { CustomPage, PageBlock } from '@/hooks/useCustomPages';
 import { useAuth } from '@/contexts/AuthContext';
+import { resolveParentPagePath } from '@/data/navigation';
 import NotFound from './NotFound';
 
 function Block({ b }: { b: PageBlock }) {
@@ -84,7 +85,9 @@ export default function CustomPageView() {
       <PageHero title={page.title} />
       <section className="container-custom py-12">
         {page.parent_slug && (
-          <Link to={`/p/${page.parent_slug}`} className="text-sm text-secondary hover:underline">
+          // parent_slug is either another custom page's own slug (lives at /p/:slug) or a
+          // built-in page's reserved segment (e.g. 'about', which lives at /about, not /p/about)
+          <Link to={resolveParentPagePath(page.parent_slug)} className="text-sm text-secondary hover:underline">
             ← Back
           </Link>
         )}

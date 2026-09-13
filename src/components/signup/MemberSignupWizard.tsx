@@ -21,7 +21,7 @@ import {
 import donorCategoriesImg from '@/assets/donor-categories.png';
 
 const STEPS = [
-  'Account', 'About You', 'Contact', 'Household',
+  'Account', 'About You', 'Household', 'Contact',
   'Events', 'Giving', 'Communication', 'Consent', 'Review',
 ] as const;
 
@@ -141,18 +141,6 @@ export default function MemberSignupWizard() {
         has_household: true,
       },
       2: {
-        secondary_email: 'arjun.backup@example.com',
-        secondary_phone: '732-555-0101',
-        street_address: '45 Maple Street',
-        city: 'Iselin',
-        state: 'NJ',
-        zip_code: '08830',
-        country: 'USA',
-        emergency_contact_name: 'Priya Shah',
-        emergency_contact_phone: '732-555-0102',
-        emergency_contact_relationship: 'Spouse',
-      },
-      3: {
         household_name: 'Shah',
         spouse_partner_name: 'Priya Shah',
         relationship_to_household: 'Father',
@@ -169,6 +157,18 @@ export default function MemberSignupWizard() {
           parent_notes: '',
         }],
         interested_in_gyanshala: true,
+      },
+      3: {
+        secondary_email: 'arjun.backup@example.com',
+        secondary_phone: '732-555-0101',
+        street_address: '45 Maple Street',
+        city: 'Iselin',
+        state: 'NJ',
+        zip_code: '08830',
+        country: 'USA',
+        emergency_contact_name: 'Priya Shah',
+        emergency_contact_phone: '732-555-0102',
+        emergency_contact_relationship: 'Spouse',
       },
       4: {
         interested_event_types: ['Worship/service', 'Sunday school', 'Cultural events'],
@@ -213,8 +213,8 @@ export default function MemberSignupWizard() {
   const stepFields: Record<number, (keyof SignupForm)[]> = {
     0: ['email', 'password', 'confirm_password', 'preferred_contact_method', 'terms_accepted', 'privacy_accepted', 'primary_phone'],
     1: ['first_name', 'last_name', 'age_group', 'gender', 'member_type', 'organization_role'],
-    2: ['street_address', 'city', 'state', 'zip_code'],
-    3: [],
+    2: [],
+    3: ['street_address', 'city', 'state', 'zip_code'],
     4: [],
     5: [],
     6: [],
@@ -245,12 +245,12 @@ export default function MemberSignupWizard() {
     }
     // Skip household step when not applicable
     let n = step + 1;
-    if (n === 3 && !showHouseholdStep) n = 4;
+    if (n === 2 && !showHouseholdStep) n = 3;
     setStep(Math.min(n, STEPS.length - 1));
   };
   const back = () => {
     let n = step - 1;
-    if (n === 3 && !showHouseholdStep) n = 2;
+    if (n === 2 && !showHouseholdStep) n = 1;
     setStep(Math.max(n, 0));
   };
 
@@ -598,30 +598,7 @@ export default function MemberSignupWizard() {
           </>
         )}
 
-        {step === 2 && (
-          <>
-            <h2 className="text-2xl font-serif font-bold">Contact & address</h2>
-            <div className="grid sm:grid-cols-2 gap-4">
-              <Field label="Secondary email"><Input type="email" value={data.secondary_email} onChange={(e) => set('secondary_email', e.target.value)} /></Field>
-              <Field label="Secondary phone"><Input value={data.secondary_phone} onChange={(e) => set('secondary_phone', e.target.value)} /></Field>
-              <Field label="Street address" required error={errors.street_address}><Input value={data.street_address} onChange={(e) => set('street_address', e.target.value)} /></Field>
-              <Field label="City" required error={errors.city}><Input value={data.city} onChange={(e) => set('city', e.target.value)} /></Field>
-              <Field label="State" required error={errors.state}><Input value={data.state} onChange={(e) => set('state', e.target.value)} /></Field>
-              <Field label="ZIP code" required error={errors.zip_code}><Input value={data.zip_code} onChange={(e) => set('zip_code', e.target.value)} /></Field>
-              <Field label="Country"><Input value={data.country} onChange={(e) => set('country', e.target.value)} /></Field>
-            </div>
-            <div className="pt-2">
-              <h3 className="font-semibold text-sm mb-2">Emergency contact <span className="text-muted-foreground font-normal">(optional)</span></h3>
-              <div className="grid sm:grid-cols-3 gap-4">
-                <Field label="Name"><Input value={data.emergency_contact_name} onChange={(e) => set('emergency_contact_name', e.target.value)} /></Field>
-                <Field label="Phone"><Input value={data.emergency_contact_phone} onChange={(e) => set('emergency_contact_phone', e.target.value)} /></Field>
-                <Field label="Relationship"><Input value={data.emergency_contact_relationship} onChange={(e) => set('emergency_contact_relationship', e.target.value)} /></Field>
-              </div>
-            </div>
-          </>
-        )}
-
-        {step === 3 && showHouseholdStep && (
+        {step === 2 && showHouseholdStep && (
           <>
             <h2 className="text-2xl font-serif font-bold">Household & family</h2>
             <div className="grid sm:grid-cols-2 gap-4">
@@ -703,6 +680,29 @@ export default function MemberSignupWizard() {
                 <Checkbox checked={data.interested_in_gyanshala} onCheckedChange={(c) => set('interested_in_gyanshala', !!c)} />
                 Are you interested in Gyanshala?
               </label>
+            </div>
+          </>
+        )}
+
+        {step === 3 && (
+          <>
+            <h2 className="text-2xl font-serif font-bold">Contact & address</h2>
+            <div className="grid sm:grid-cols-2 gap-4">
+              <Field label="Secondary email"><Input type="email" value={data.secondary_email} onChange={(e) => set('secondary_email', e.target.value)} /></Field>
+              <Field label="Secondary phone"><Input value={data.secondary_phone} onChange={(e) => set('secondary_phone', e.target.value)} /></Field>
+              <Field label="Street address" required error={errors.street_address}><Input value={data.street_address} onChange={(e) => set('street_address', e.target.value)} /></Field>
+              <Field label="City" required error={errors.city}><Input value={data.city} onChange={(e) => set('city', e.target.value)} /></Field>
+              <Field label="State" required error={errors.state}><Input value={data.state} onChange={(e) => set('state', e.target.value)} /></Field>
+              <Field label="ZIP code" required error={errors.zip_code}><Input value={data.zip_code} onChange={(e) => set('zip_code', e.target.value)} /></Field>
+              <Field label="Country"><Input value={data.country} onChange={(e) => set('country', e.target.value)} /></Field>
+            </div>
+            <div className="pt-2">
+              <h3 className="font-semibold text-sm mb-2">Emergency contact <span className="text-muted-foreground font-normal">(optional)</span></h3>
+              <div className="grid sm:grid-cols-3 gap-4">
+                <Field label="Name"><Input value={data.emergency_contact_name} onChange={(e) => set('emergency_contact_name', e.target.value)} /></Field>
+                <Field label="Phone"><Input value={data.emergency_contact_phone} onChange={(e) => set('emergency_contact_phone', e.target.value)} /></Field>
+                <Field label="Relationship"><Input value={data.emergency_contact_relationship} onChange={(e) => set('emergency_contact_relationship', e.target.value)} /></Field>
+              </div>
             </div>
           </>
         )}
