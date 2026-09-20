@@ -68,3 +68,24 @@ export function pickFeaturedEvent<T extends { startDate?: string; endDate?: stri
   if (past) return { event: past.event, status: 'past' };
   return undefined;
 }
+
+/**
+ * Filters events to one tab (upcoming/ongoing/past) via classifyEvent, then orders them for
+ * display: soonest-first for upcoming/ongoing, most-recent-first for past. Undated events sort
+ * last within their tab. Shared by the homepage's Events card and the public Events page, so
+ * both show the exact same admin-configured events in the exact same order for a given tab.
+ */
+export function eventsForTab<T extends { type: 'upcoming' | 'ongoing' | 'past'; startDate?: string; endDate?: string }>(
+  events: T[],
+  tab: 'upcoming' | 'ongoing' | 'past',
+  today = new Date()
+): T[] {
+  return events
+    .filter((e) => classifyEvent(e, today) === tab)
+    .slice()
+    .sort((a, b) => {
+      const at = a.startDate ? isoToUTC(a.startDate) : Number.MAX_SAFE_INTEGER;
+      const bt = b.startDate ? isoToUTC(b.startDate) : Number.MAX_SAFE_INTEGER;
+      return tab === 'past' ? bt - at : at - bt;
+    });
+}

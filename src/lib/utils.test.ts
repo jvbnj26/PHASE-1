@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { classifyEvent, pickFeaturedEvent } from "./utils";
+import { classifyEvent, pickFeaturedEvent, eventsForTab } from "./utils";
 
 const today = new Date(2026, 6, 24); // 2026-07-24
 
@@ -61,5 +61,43 @@ describe("pickFeaturedEvent", () => {
   it("returns undefined when no event has a startDate", () => {
     const events = [{ id: "undated" }];
     expect(pickFeaturedEvent(events, today)).toBeUndefined();
+  });
+});
+
+describe("eventsForTab", () => {
+  const events = [
+    { id: "past1", type: "past" as const, startDate: "2026-06-01" },
+    { id: "past2-recent", type: "past" as const, startDate: "2026-07-10" },
+    { id: "upcoming-far", type: "upcoming" as const, startDate: "2026-09-01" },
+    { id: "upcoming-soon", type: "upcoming" as const, startDate: "2026-08-01" },
+    { id: "ongoing", type: "ongoing" as const }, // recurring, no startDate — manual type wins
+  ];
+
+  it("only returns events that classify into the requested tab", () => {
+    expect(eventsForTab(events, "upcoming", today).map((e) => e.id)).toEqual(["upcoming-soon", "upcoming-far"]);
+    expect(eventsForTab(events, "ongoing", today).map((e) => e.id)).toEqual(["ongoing"]);
+    expect(eventsForTab(events, "past", today).map((e) => e.id)).toEqual(["past2-recent", "past1"]);
+  });
+
+  it("orders upcoming soonest-first", () => {
+    const [first] = eventsForTab(events, "upcoming", today);
+    expect(first.id).toBe("upcoming-soon");
+  });
+
+  it("orders past most-recent-first", () => {
+    const [first] = eventsForTab(events, "past", today);
+    expect(first.id).toBe("past2-recent");
+  });
+
+  it("sorts undated events last within their tab", () => {
+    const undatedUpcoming = { id: "tba", type: "upcoming" as const };
+    const result = eventsForTab([...events, undatedUpcoming], "upcoming", today);
+    expect(result.at(-1)?.id).toBe("tba");
+  });
+
+  it("does not mutate the input array", () => {
+    const copy = [...events];
+    eventsForTab(events, "past", today);
+    expect(events).toEqual(copy);
   });
 });

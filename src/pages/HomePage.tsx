@@ -1,14 +1,16 @@
 import { useState, useEffect, useMemo } from 'react';
 import { Link } from 'react-router-dom';
-import { ChevronLeft, ChevronRight, ArrowRight } from 'lucide-react';
+import { ChevronLeft, ChevronRight, ArrowRight, Loader2, CalendarX } from 'lucide-react';
 import { useSiteContent } from '@/contexts/SiteContentContext';
+import { useEvents } from '@/hooks/useEvents';
+import { eventsForTab } from '@/lib/utils';
 import PublicLayout from '@/components/layout/PublicLayout';
 import { Button } from '@/components/ui/button';
 import EventPopup from '@/components/EventPopup';
 import { getImageSrc } from '@/lib/imageMap';
 
 export default function HomePage() {
-  const { bannerSlides, welcomeText, spiritualMasters, events2025, activities2025 } = useSiteContent();
+  const { bannerSlides, welcomeText, spiritualMasters, activities2025 } = useSiteContent();
   const [currentSlide, setCurrentSlide] = useState(0);
 
   // Auto-rotate slides every 5 seconds
@@ -125,7 +127,7 @@ export default function HomePage() {
       </section>
 
       {/* Events & Activities */}
-      <EventsAndActivities events={events2025} activities={activities2025} />
+      <EventsAndActivities activities={activities2025} />
 
 
       {/* Quick Links / CTA */}
@@ -160,45 +162,112 @@ export default function HomePage() {
   );
 }
 
-const MONTHS: Record<string, number> = {
-  jan: 0, feb: 1, mar: 2, apr: 3, may: 4, jun: 5,
-  jul: 6, aug: 7, sep: 8, oct: 9, nov: 10, dec: 11,
-};
-
 type RawItem = string | { name: string; subItem?: boolean };
 
-function parseEvent(raw: RawItem, year: number) {
-  const name = typeof raw === 'string' ? raw : raw.name;
-  // Match "Mon D" or "Mon D-D" or "Mon D – D" at start
-  const m = name.match(/^([A-Za-z]{3})\s+(\d{1,2})(?:\s*[-–]\s*(\d{1,2}))?\s*[–-]?\s*(.*)$/);
-  if (m && MONTHS[m[1].toLowerCase()] !== undefined) {
-    const month = MONTHS[m[1].toLowerCase()];
-    const day = parseInt(m[2], 10);
-    const endDay = m[3] ? parseInt(m[3], 10) : undefined;
-    const title = (m[4] || '').replace(/^[–-]\s*/, '').trim() || name;
-    return {
-      name,
-      title,
-      date: new Date(year, month, day),
-      monthLabel: m[1].slice(0, 3).toUpperCase(),
-      dayLabel: endDay ? `${day}-${endDay}` : `${day}`,
-      hasDate: true,
-    };
-  }
-  return { name, title: name, date: null as Date | null, monthLabel: '', dayLabel: '', hasDate: false };
+const MONTH_LABELS = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'];
+const EVENT_TABS = ['upcoming', 'ongoing', 'past'] as const;
+type EventTab = (typeof EVENT_TABS)[number];
+
+/**
+ * Homepage "Events" card — mirrors the public Events page exactly: same source (the `events`
+ * table via useEvents), same upcoming/ongoing/past classification (classifyEvent, date-driven —
+ * an event moves between tabs on its own as today's date changes, no admin action needed), same
+ * per-event data. Only the compact row layout differs, to fit this card.
+ */
+const TAB_LABELS: Record<EventTab, string> = { upcoming: 'Upcoming', ongoing: 'Ongoing', past: 'Past' };
+
+function HomeEventsCard() {
+  const { events, loading } = useEvents();
+  const [tab, setTab] = useState<EventTab>('upcoming');
+
+  const filtered = useMemo(() => eventsForTab(events, tab).slice(0, 8), [events, tab]);
+
+  return (
+    <div className="bg-white rounded-2xl shadow-lg border border-border overflow-hidden flex flex-col">
+      <div className="px-8 py-6 bg-gradient-to-r from-primary to-primary/80">
+        <p className="text-primary-foreground/80 text-sm uppercase tracking-wider font-semibold">{TAB_LABELS[tab]}</p>
+        <h3 className="font-serif text-3xl font-bold text-primary-foreground">Events</h3>
+      </div>
+
+      {/* Tab switcher — same pill style the public Events page uses for this exact choice */}
+      <div className="px-6 py-3 bg-section/60 border-b border-border">
+        <div className="inline-flex gap-1 bg-white rounded-full p-1 border border-border">
+          {EVENT_TABS.map((t) => (
+            <button
+              key={t}
+              type="button"
+              onClick={() => setTab(t)}
+              className={`px-4 py-1.5 rounded-full text-xs font-semibold uppercase tracking-wide transition-colors ${
+                tab === t ? 'bg-primary text-primary-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground'
+              }`}
+            >
+              {TAB_LABELS[t]}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <div className="flex-1 flex flex-col min-h-[280px]">
+        {loading ? (
+          <div className="flex-1 flex items-center justify-center">
+            <Loader2 className="w-5 h-5 animate-spin text-muted-foreground" />
+          </div>
+        ) : filtered.length === 0 ? (
+          <div className="flex-1 flex flex-col items-center justify-center gap-3 px-6 text-center">
+            <div className="w-14 h-14 rounded-full bg-muted flex items-center justify-center">
+              <CalendarX className="w-6 h-6 text-muted-foreground" />
+            </div>
+            <p className="text-muted-foreground text-sm">No {TAB_LABELS[tab].toLowerCase()} events right now — check back soon.</p>
+          </div>
+        ) : (
+          <ul className="divide-y divide-border">
+            {filtered.map((ev) => {
+              const d = ev.startDate ? new Date(`${ev.startDate}T00:00:00`) : null;
+              return (
+                <li key={ev.id}>
+                  <Link
+                    to={`/events/${tab}`}
+                    className="flex items-center gap-5 px-6 py-5 hover:bg-section transition-colors group"
+                  >
+                    <div className="shrink-0 relative w-16 h-16 rounded-xl overflow-hidden border border-border bg-muted">
+                      <img
+                        src={getImageSrc(ev.imageUrl)}
+                        alt={ev.title}
+                        className="w-full h-full object-cover"
+                      />
+                      <div className="absolute bottom-0 left-0 right-0 bg-black/60 backdrop-blur-sm flex flex-col items-center justify-center leading-none py-0.5">
+                        <span className="text-[9px] font-bold text-white uppercase tracking-wider">
+                          {d ? MONTH_LABELS[d.getMonth()] : 'TBA'}
+                        </span>
+                        {d && <span className="text-xs font-bold text-white">{d.getDate()}</span>}
+                      </div>
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-lg font-medium text-foreground group-hover:text-primary transition-colors line-clamp-2">
+                        {ev.title}
+                      </p>
+                    </div>
+                    <ArrowRight className="w-5 h-5 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity shrink-0" />
+                  </Link>
+                </li>
+              );
+            })}
+          </ul>
+        )}
+      </div>
+
+      <div className="px-6 py-5 border-t border-border">
+        <Link to={`/events/${tab}`}>
+          <Button variant="outline" className="w-full font-semibold text-base">
+            View All {TAB_LABELS[tab]} Events
+          </Button>
+        </Link>
+      </div>
+    </div>
+  );
 }
 
-function EventsAndActivities({ events, activities }: { events: RawItem[]; activities: RawItem[] }) {
-  const currentYear = new Date().getFullYear();
-
-  const upcomingEvents = useMemo(() => {
-    const parsed = events.map((e) => parseEvent(e, currentYear));
-    const dated = parsed.filter((p) => p.hasDate && p.date);
-    const undated = parsed.filter((p) => !p.hasDate);
-    const sorted = dated.sort((a, b) => (a.date as Date).getTime() - (b.date as Date).getTime());
-    return [...sorted, ...undated].slice(0, 8);
-  }, [events, currentYear]);
-
+function EventsAndActivities({ activities }: { activities: RawItem[] }) {
   const activityList = useMemo(() => {
     // Strip dated one-off items (like "Mar 2 – ...") — these belong under events
     return activities.filter((a) => {
@@ -211,51 +280,8 @@ function EventsAndActivities({ events, activities }: { events: RawItem[]; activi
     <section className="py-20 bg-gradient-to-b from-section to-white">
       <div className="container-custom">
         <div className="grid lg:grid-cols-2 gap-8">
-          {/* Events */}
-          <div className="bg-white rounded-2xl shadow-lg border border-border overflow-hidden flex flex-col">
-            <div className="px-8 py-6 bg-gradient-to-r from-primary to-primary/80 flex items-center justify-between">
-              <div>
-                <p className="text-primary-foreground/80 text-sm uppercase tracking-wider font-semibold">Upcoming</p>
-                <h3 className="font-serif text-3xl font-bold text-primary-foreground">Events {currentYear}</h3>
-              </div>
-            </div>
-
-            <ul className="divide-y divide-border flex-1">
-              {upcomingEvents.map((ev, idx) => (
-                <li key={idx}>
-                  <Link
-                    to="/events/upcoming"
-                    className="flex items-center gap-5 px-6 py-5 hover:bg-section transition-colors group"
-                  >
-                    {ev.hasDate ? (
-                      <div className="shrink-0 w-16 h-16 rounded-xl bg-primary/10 border border-primary/20 flex flex-col items-center justify-center leading-none">
-                        <span className="text-xs font-bold text-primary uppercase tracking-wider">{ev.monthLabel}</span>
-                        <span className="text-xl font-bold text-foreground mt-0.5">{ev.dayLabel}</span>
-                      </div>
-                    ) : (
-                      <div className="shrink-0 w-16 h-16 rounded-xl bg-muted border border-border flex items-center justify-center">
-                        <span className="text-xs font-bold text-muted-foreground uppercase tracking-wider">TBA</span>
-                      </div>
-                    )}
-                    <div className="flex-1 min-w-0">
-                      <p className="text-lg font-medium text-foreground group-hover:text-primary transition-colors line-clamp-2">
-                        {ev.title}
-                      </p>
-                    </div>
-                    <ArrowRight className="w-5 h-5 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity shrink-0" />
-                  </Link>
-                </li>
-              ))}
-            </ul>
-
-            <div className="px-6 py-5 border-t border-border">
-              <Link to="/events/upcoming">
-                <Button variant="outline" className="w-full font-semibold text-base">
-                  View All Events
-                </Button>
-              </Link>
-            </div>
-          </div>
+          {/* Events — dynamic, live from the same `events` table as Admin > Events / the public Events page */}
+          <HomeEventsCard />
 
           {/* Activities */}
           <div className="bg-white rounded-2xl shadow-lg border border-border overflow-hidden flex flex-col">

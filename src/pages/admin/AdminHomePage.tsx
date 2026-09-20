@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Navigate } from 'react-router-dom';
+import { Link, Navigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { useSiteContent } from '@/contexts/SiteContentContext';
 import AdminLayout from '@/components/admin/AdminLayout';
@@ -7,24 +7,22 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { Plus, Trash2, GripVertical, Save } from 'lucide-react';
+import { Plus, Trash2, GripVertical, Save, ArrowRight } from 'lucide-react';
 import { ImageUploadButton } from '@/components/admin/ImageUploadButton';
 import { useToast } from '@/hooks/use-toast';
 import { getImageSrc } from '@/lib/imageMap';
 
 export default function AdminHomePage() {
   const { isAuthenticated } = useAuth();
-  const { 
+  const {
     bannerSlides, setBannerSlides,
     welcomeText, setWelcomeText,
-    events2025, setEvents2025,
     activities2025, setActivities2025
   } = useSiteContent();
   const { toast } = useToast();
 
   const [localBanners, setLocalBanners] = useState(bannerSlides);
   const [localWelcome, setLocalWelcome] = useState(welcomeText);
-  const [localEvents, setLocalEvents] = useState(events2025.map(e => typeof e === 'string' ? e : e.name));
   const [localActivities, setLocalActivities] = useState(activities2025.map(a => typeof a === 'string' ? a : a.name));
 
   if (!isAuthenticated) {
@@ -44,14 +42,6 @@ export default function AdminHomePage() {
     toast({
       title: "Welcome Section Updated",
       description: "The welcome section has been saved successfully.",
-    });
-  };
-
-  const handleSaveEvents = () => {
-    setEvents2025(localEvents);
-    toast({
-      title: "Events 2025 Updated",
-      description: "The events list has been saved successfully.",
     });
   };
 
@@ -206,45 +196,24 @@ export default function AdminHomePage() {
           </Button>
         </section>
 
-        {/* Events 2025 */}
+        {/* Events — the homepage's Events card is now a live view of the real Events data
+            (same source as the public Events page), so there's nothing to hand-maintain here
+            anymore. Manage events, including which ones show as upcoming/ongoing/past, from
+            Admin > Events. */}
         <section className="admin-card mb-8">
-          <h2 className="font-serif text-xl font-bold text-foreground mb-6">Events 2025 List</h2>
-          
-          <div className="space-y-2">
-            {localEvents.map((event, index) => (
-              <div key={index} className="flex gap-2">
-                <Input
-                  value={event}
-                  onChange={(e) => {
-                    const updated = [...localEvents];
-                    updated[index] = e.target.value;
-                    setLocalEvents(updated);
-                  }}
-                />
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => setLocalEvents(localEvents.filter((_, i) => i !== index))}
-                  className="text-destructive hover:text-destructive"
-                >
-                  <Trash2 className="w-4 h-4" />
-                </Button>
-              </div>
-            ))}
-          </div>
-
-          <div className="flex gap-2 mt-4">
-            <Button
-              variant="outline"
-              onClick={() => setLocalEvents([...localEvents, 'New Event'])}
-            >
-              <Plus className="w-4 h-4 mr-2" />
-              Add Event
-            </Button>
-            <Button onClick={handleSaveEvents}>
-              <Save className="w-4 h-4 mr-2" />
-              Save Events
-            </Button>
+          <div className="flex items-center justify-between gap-4 flex-wrap">
+            <div>
+              <h2 className="font-serif text-xl font-bold text-foreground mb-1">Events</h2>
+              <p className="text-sm text-muted-foreground">
+                The homepage's Events card now updates automatically from Admin &gt; Events — add, edit, or
+                remove events there and the homepage (and its Upcoming / Ongoing / Past tabs) reflects it immediately.
+              </p>
+            </div>
+            <Link to="/admin/events">
+              <Button variant="outline" className="gap-2 shrink-0">
+                Go to Admin &gt; Events <ArrowRight className="w-4 h-4" />
+              </Button>
+            </Link>
           </div>
         </section>
 
