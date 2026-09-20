@@ -341,7 +341,6 @@ function EventsAndActivities({ activities }: { activities: RawItem[] }) {
         <div className="max-w-2xl mx-auto w-full bg-white rounded-2xl shadow-lg border border-border overflow-hidden flex flex-col">
           <div className="px-8 py-6 bg-gradient-to-r from-secondary to-secondary/80 flex items-center justify-between">
             <div>
-              <p className="text-secondary-foreground/80 text-sm uppercase tracking-wider font-semibold">Ongoing</p>
               <h3 className="font-serif text-3xl font-bold text-secondary-foreground">Activities</h3>
             </div>
           </div>
