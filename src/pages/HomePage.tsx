@@ -4,6 +4,7 @@ import { ChevronLeft, ChevronRight, ArrowRight, Loader2, CalendarX } from 'lucid
 import { useSiteContent } from '@/contexts/SiteContentContext';
 import { useEvents } from '@/hooks/useEvents';
 import { eventsForTab } from '@/lib/utils';
+import type { Event } from '@/data/siteContent';
 import PublicLayout from '@/components/layout/PublicLayout';
 import { Button } from '@/components/ui/button';
 import EventPopup from '@/components/EventPopup';
@@ -165,46 +166,128 @@ export default function HomePage() {
 type RawItem = string | { name: string; subItem?: boolean };
 
 const MONTH_LABELS = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'];
-const EVENT_TABS = ['upcoming', 'ongoing', 'past'] as const;
-type EventTab = (typeof EVENT_TABS)[number];
+
+/** Small date-badge overlay shown on event thumbnails ("SEP 20", or "TBA" if undated). */
+function DateBadge({ startDate }: { startDate?: string }) {
+  const d = startDate ? new Date(`${startDate}T00:00:00`) : null;
+  return (
+    <div className="absolute bottom-0 left-0 right-0 bg-black/60 backdrop-blur-sm flex flex-col items-center justify-center leading-none py-0.5">
+      <span className="text-[9px] font-bold text-white uppercase tracking-wider">
+        {d ? MONTH_LABELS[d.getMonth()] : 'TBA'}
+      </span>
+      {d && <span className="text-xs font-bold text-white">{d.getDate()}</span>}
+    </div>
+  );
+}
+
+/** Ongoing events get a spotlight banner — there's realistically at most one at a time,
+ *  and it's the single most actionable thing on the card ("happening right now"), so it
+ *  earns a bigger, image-forward treatment instead of just another list row. */
+function OngoingSpotlight({ event }: { event: Event }) {
+  return (
+    <Link
+      to="/events/ongoing"
+      className="relative block aspect-[2/1] mx-6 mt-6 rounded-xl overflow-hidden border border-border group"
+    >
+      <img
+        src={getImageSrc(event.imageUrl)}
+        alt={event.title}
+        className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+      />
+      <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/10 to-transparent" />
+      <div className="absolute top-3 left-3 flex items-center gap-1.5 bg-secondary text-white text-[11px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full shadow">
+        <span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" />
+        Happening Now
+      </div>
+      <div className="absolute bottom-0 left-0 right-0 p-4">
+        <p className="font-serif text-lg sm:text-xl font-bold text-white leading-tight line-clamp-2">{event.title}</p>
+        <p className="text-white/80 text-xs sm:text-sm mt-0.5">{event.date}</p>
+      </div>
+    </Link>
+  );
+}
+
+/** A single upcoming event row — there are only ever a handful of these, so every one
+ *  is shown in full rather than hidden behind a tab click. */
+function UpcomingRow({ event }: { event: Event }) {
+  return (
+    <li>
+      <Link
+        to="/events/upcoming"
+        className="flex items-center gap-5 px-6 py-5 hover:bg-section transition-colors group"
+      >
+        <div className="shrink-0 relative w-16 h-16 rounded-xl overflow-hidden border border-border bg-muted">
+          <img src={getImageSrc(event.imageUrl)} alt={event.title} className="w-full h-full object-cover" />
+          <DateBadge startDate={event.startDate} />
+        </div>
+        <div className="flex-1 min-w-0">
+          <p className="text-lg font-medium text-foreground group-hover:text-primary transition-colors line-clamp-2">
+            {event.title}
+          </p>
+        </div>
+        <ArrowRight className="w-5 h-5 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity shrink-0" />
+      </Link>
+    </li>
+  );
+}
+
+/** Past events on JVBNA can number in the dozens, so the homepage doesn't try to list
+ *  them — it teases the archive with a photo stack and sends interested users to the
+ *  full Past Events page instead of competing with Ongoing/Upcoming for space. */
+function PastEventsTeaser({ events }: { events: Event[] }) {
+  if (events.length === 0) return null;
+  const preview = events.slice(0, 4);
+
+  return (
+    <Link
+      to="/events/past"
+      className="mt-auto flex items-center justify-between gap-4 px-6 py-5 border-t border-border bg-section/40 hover:bg-section transition-colors group"
+    >
+      <div className="flex items-center gap-3 min-w-0">
+        <div className="flex -space-x-3 shrink-0">
+          {preview.map((ev, i) => (
+            <img
+              key={ev.id}
+              src={getImageSrc(ev.imageUrl)}
+              alt=""
+              style={{ zIndex: preview.length - i }}
+              className="w-10 h-10 rounded-full object-cover border-2 border-white shadow-sm"
+            />
+          ))}
+        </div>
+        <div className="min-w-0">
+          <p className="text-sm font-semibold text-foreground">
+            {events.length} Past Event{events.length === 1 ? '' : 's'}
+          </p>
+          <p className="text-xs text-muted-foreground">Browse photos &amp; recaps</p>
+        </div>
+      </div>
+      <ArrowRight className="w-5 h-5 text-muted-foreground group-hover:text-primary group-hover:translate-x-1 transition-all shrink-0" />
+    </Link>
+  );
+}
 
 /**
- * Homepage "Events" card — mirrors the public Events page exactly: same source (the `events`
- * table via useEvents), same upcoming/ongoing/past classification (classifyEvent, date-driven —
- * an event moves between tabs on its own as today's date changes, no admin action needed), same
- * per-event data. Only the compact row layout differs, to fit this card.
+ * Homepage "Events" card — live from the same `events` table (via useEvents) and the same
+ * upcoming/ongoing/past classification (classifyEvent, date-driven) as the public Events page.
+ *
+ * Laid out by realistic volume rather than as three equal tabs: ongoing is rare (0-1) and
+ * urgent, so it gets a spotlight banner; upcoming is small (1-3) so every event is listed in
+ * full; past can be dozens, so it's a single teaser strip linking out to the archive.
  */
-const TAB_LABELS: Record<EventTab, string> = { upcoming: 'Upcoming', ongoing: 'Ongoing', past: 'Past' };
-
 function HomeEventsCard() {
   const { events, loading } = useEvents();
-  const [tab, setTab] = useState<EventTab>('upcoming');
 
-  const filtered = useMemo(() => eventsForTab(events, tab).slice(0, 8), [events, tab]);
+  const ongoing = useMemo(() => eventsForTab(events, 'ongoing'), [events]);
+  const upcoming = useMemo(() => eventsForTab(events, 'upcoming').slice(0, 3), [events]);
+  const past = useMemo(() => eventsForTab(events, 'past'), [events]);
+  const hasCurrent = ongoing.length > 0 || upcoming.length > 0;
 
   return (
     <div className="bg-white rounded-2xl shadow-lg border border-border overflow-hidden flex flex-col">
       <div className="px-8 py-6 bg-gradient-to-r from-primary to-primary/80">
-        <p className="text-primary-foreground/80 text-sm uppercase tracking-wider font-semibold">{TAB_LABELS[tab]}</p>
+        <p className="text-primary-foreground/80 text-sm uppercase tracking-wider font-semibold">What's Happening</p>
         <h3 className="font-serif text-3xl font-bold text-primary-foreground">Events</h3>
-      </div>
-
-      {/* Tab switcher — same pill style the public Events page uses for this exact choice */}
-      <div className="px-6 py-3 bg-section/60 border-b border-border">
-        <div className="inline-flex gap-1 bg-white rounded-full p-1 border border-border">
-          {EVENT_TABS.map((t) => (
-            <button
-              key={t}
-              type="button"
-              onClick={() => setTab(t)}
-              className={`px-4 py-1.5 rounded-full text-xs font-semibold uppercase tracking-wide transition-colors ${
-                tab === t ? 'bg-primary text-primary-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground'
-              }`}
-            >
-              {TAB_LABELS[t]}
-            </button>
-          ))}
-        </div>
       </div>
 
       <div className="flex-1 flex flex-col min-h-[280px]">
@@ -212,57 +295,34 @@ function HomeEventsCard() {
           <div className="flex-1 flex items-center justify-center">
             <Loader2 className="w-5 h-5 animate-spin text-muted-foreground" />
           </div>
-        ) : filtered.length === 0 ? (
-          <div className="flex-1 flex flex-col items-center justify-center gap-3 px-6 text-center">
+        ) : !hasCurrent ? (
+          <div className="flex-1 flex flex-col items-center justify-center gap-3 px-6 text-center py-10">
             <div className="w-14 h-14 rounded-full bg-muted flex items-center justify-center">
               <CalendarX className="w-6 h-6 text-muted-foreground" />
             </div>
-            <p className="text-muted-foreground text-sm">No {TAB_LABELS[tab].toLowerCase()} events right now — check back soon.</p>
+            <p className="text-muted-foreground text-sm">No upcoming events right now — check back soon.</p>
           </div>
         ) : (
-          <ul className="divide-y divide-border">
-            {filtered.map((ev) => {
-              const d = ev.startDate ? new Date(`${ev.startDate}T00:00:00`) : null;
-              return (
-                <li key={ev.id}>
-                  <Link
-                    to={`/events/${tab}`}
-                    className="flex items-center gap-5 px-6 py-5 hover:bg-section transition-colors group"
-                  >
-                    <div className="shrink-0 relative w-16 h-16 rounded-xl overflow-hidden border border-border bg-muted">
-                      <img
-                        src={getImageSrc(ev.imageUrl)}
-                        alt={ev.title}
-                        className="w-full h-full object-cover"
-                      />
-                      <div className="absolute bottom-0 left-0 right-0 bg-black/60 backdrop-blur-sm flex flex-col items-center justify-center leading-none py-0.5">
-                        <span className="text-[9px] font-bold text-white uppercase tracking-wider">
-                          {d ? MONTH_LABELS[d.getMonth()] : 'TBA'}
-                        </span>
-                        {d && <span className="text-xs font-bold text-white">{d.getDate()}</span>}
-                      </div>
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-lg font-medium text-foreground group-hover:text-primary transition-colors line-clamp-2">
-                        {ev.title}
-                      </p>
-                    </div>
-                    <ArrowRight className="w-5 h-5 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity shrink-0" />
-                  </Link>
-                </li>
-              );
-            })}
-          </ul>
+          <>
+            {ongoing.map((ev) => (
+              <OngoingSpotlight key={ev.id} event={ev} />
+            ))}
+
+            {upcoming.length > 0 && (
+              <div className={ongoing.length > 0 ? 'mt-5' : 'mt-2'}>
+                <p className="px-6 pb-2 text-xs font-bold uppercase tracking-wider text-muted-foreground">Upcoming</p>
+                <ul className="divide-y divide-border">
+                  {upcoming.map((ev) => (
+                    <UpcomingRow key={ev.id} event={ev} />
+                  ))}
+                </ul>
+              </div>
+            )}
+          </>
         )}
       </div>
 
-      <div className="px-6 py-5 border-t border-border">
-        <Link to={`/events/${tab}`}>
-          <Button variant="outline" className="w-full font-semibold text-base">
-            View All {TAB_LABELS[tab]} Events
-          </Button>
-        </Link>
-      </div>
+      <PastEventsTeaser events={past} />
     </div>
   );
 }
