@@ -11,7 +11,7 @@ import EventPopup from '@/components/EventPopup';
 import { getImageSrc } from '@/lib/imageMap';
 
 export default function HomePage() {
-  const { bannerSlides, welcomeText, spiritualMasters, activities2025 } = useSiteContent();
+  const { bannerSlides, welcomeText, spiritualMasters } = useSiteContent();
   const [currentSlide, setCurrentSlide] = useState(0);
 
   // Auto-rotate slides every 5 seconds
@@ -128,7 +128,7 @@ export default function HomePage() {
       </section>
 
       {/* Events & Activities */}
-      <EventsAndActivities activities={activities2025} />
+      <EventsAndActivities />
 
 
       {/* Quick Links / CTA */}
@@ -162,8 +162,6 @@ export default function HomePage() {
     </PublicLayout>
   );
 }
-
-type RawItem = string | { name: string; subItem?: boolean };
 
 const MONTH_LABELS = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'];
 
@@ -321,57 +319,13 @@ function HomeEventsCard() {
   );
 }
 
-function EventsAndActivities({ activities }: { activities: RawItem[] }) {
-  const activityList = useMemo(() => {
-    // Strip dated one-off items (like "Mar 2 – ...") — these belong under events
-    return activities.filter((a) => {
-      const name = typeof a === 'string' ? a : a.name;
-      return !/^[A-Za-z]{3}\s+\d{1,2}/.test(name);
-    });
-  }, [activities]);
-
+function EventsAndActivities() {
   return (
     <section className="py-20 bg-gradient-to-b from-section to-white">
-      <div className="container-custom space-y-8">
+      <div className="container-custom">
         {/* Events — dynamic, live from the same `events` table as Admin > Events / the public
             Events page. Full-width so its Ongoing/Upcoming and Past panes both have room. */}
         <HomeEventsCard />
-
-        {/* Activities */}
-        <div className="max-w-2xl mx-auto w-full bg-white rounded-2xl shadow-lg border border-border overflow-hidden flex flex-col">
-          <div className="px-8 py-6 bg-gradient-to-r from-secondary to-secondary/80 flex items-center justify-between">
-            <div>
-              <h3 className="font-serif text-3xl font-bold text-secondary-foreground">Activities</h3>
-            </div>
-          </div>
-
-          <ul className="divide-y divide-border flex-1">
-            {activityList.slice(0, 8).map((a, idx) => {
-              const isSub = typeof a === 'object' && a.subItem;
-              const name = typeof a === 'string' ? a : a.name;
-              return (
-                <li key={idx} className={isSub ? 'bg-muted/30' : ''}>
-                  <Link
-                    to="/activities"
-                    className={`flex items-center gap-3 px-6 py-5 hover:bg-section transition-colors group ${isSub ? 'pl-12' : ''}`}
-                  >
-                    <span className="text-lg font-medium text-foreground group-hover:text-primary transition-colors line-clamp-2">
-                      {name}
-                    </span>
-                  </Link>
-                </li>
-              );
-            })}
-          </ul>
-
-          <div className="px-6 py-5 border-t border-border">
-            <Link to="/activities">
-              <Button variant="outline" className="w-full font-semibold text-base">
-                View All Activities
-              </Button>
-            </Link>
-          </div>
-        </div>
       </div>
     </section>
   );
