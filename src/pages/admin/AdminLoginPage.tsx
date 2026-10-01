@@ -39,20 +39,6 @@ export default function AdminLoginPage() {
     }
   };
 
-  const handleTestLogin = async () => {
-    setError('');
-    setIsLoading(true);
-    setEmail('admin@jvbnj.org');
-    setPassword('JvbAdmin2026!');
-    try {
-      const success = await login('admin@jvbnj.org', 'JvbAdmin2026!');
-      if (success) navigate('/admin/dashboard');
-      else setError('Test login failed');
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-secondary/20 to-primary/20 p-4">
       <div className="w-full max-w-md">
@@ -83,7 +69,7 @@ export default function AdminLoginPage() {
                 <Input
                   id="email"
                   type="email"
-                  placeholder="admin@jvbnj.org"
+                  placeholder="you@example.com"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   className="pl-10"
@@ -121,27 +107,7 @@ export default function AdminLoginPage() {
             >
               {isLoading ? 'Signing in...' : 'Sign In'}
             </Button>
-
-            <Button
-              type="button"
-              variant="outline"
-              className="w-full border-secondary text-secondary hover:bg-secondary hover:text-white"
-              size="lg"
-              disabled={isLoading}
-              onClick={handleTestLogin}
-            >
-              ⚡ Test Login (Auto-fill Admin)
-            </Button>
           </form>
-
-          {/* Demo Credentials */}
-          <div className="mt-6 p-4 rounded-lg bg-muted">
-            <p className="text-sm text-muted-foreground text-center">
-              <strong>Demo Credentials:</strong><br />
-              Email: admin@jvbnj.org<br />
-              Password: JvbAdmin2026!
-            </p>
-          </div>
 
           {/* Back to site link */}
           <div className="mt-6 text-center">

@@ -74,7 +74,7 @@ RSVP is available on **all** event types including past ones — this was a deli
 
 Dark-sidebar console at `/admin/*`, gated by `RequireAdmin` (checks `isAdmin` via `has_role` RPC, not just login state). Covers: Dashboard (members DB + quick links), Pages Manager, Home/About/Events/Activities/Spiritual Guidance/Volunteer/Donations/Contact/Board editors, Programs editor, Blog editor, Members database (search/filter/CSV import-export/seed/delete-all, 10-tab member detail with audit log), Settings (Calendar/Photos URLs, popup config). Media Library is still a placeholder/tips page, not a real asset browser.
 
-Admin credentials: `admin@jvbnj.org` / `JvbAdmin2026!` — bootstraps the real backend admin account on first login attempt. Discoverable admin access is intentional while this project is in demo.
+Admin account: `admin@jvbnj.org`. As of the production hardening pass, there's no in-app bootstrap or displayed password — the account's credentials live only in the gitignored `ADMIN_CREDENTIALS.md` at the repo root, and `handle_new_user()` no longer auto-grants the admin role by email (see migration `20261001044030_remove_admin_email_bootstrap.sql`).
 
 ---
 

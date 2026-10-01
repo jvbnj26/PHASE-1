@@ -2,6 +2,9 @@
 .env
 .env.*
 
+# Admin credentials — never commit, never push, never bundle into the build
+ADMIN_CREDENTIALS.md
+
 # Logs
 logs
 *.log

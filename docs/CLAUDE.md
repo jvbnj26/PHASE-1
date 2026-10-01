@@ -26,7 +26,7 @@ This app is the **digital home and membership portal for Jain Vishwa Bharati of 
 - Hosts the **Paryushan Mahaparva** (Jain holy period) and other significant annual events
 - Maintains two locations: Iselin NJ (mailing / administrative) and South Plainfield NJ (CPPM — Center for Peace and Preksha Meditation, 155 Front St)
 - Admin email: `info@jvbnj.org` | `samaniji@jvbnj.org`
-- Admin account in the app: `admin@jvbnj.org` / `JvbAdmin2026!`
+- Admin account in the app: `admin@jvbnj.org` (credentials are not hardcoded anywhere in the app or docs — see `ADMIN_CREDENTIALS.md`, gitignored, at the repo root)
 
 ---
 
@@ -84,7 +84,7 @@ This app is the **digital home and membership portal for Jain Vishwa Bharati of 
 - Roles stored in `public.user_roles` table (`admin` | `member`)
 - `has_role` RPC function for permission checks
 - `AuthContext` exposes: `user`, `session`, `isAuthenticated`, `isAdmin`, `loading`
-- Admin login: `admin@jvbnj.org` / `JvbAdmin2026!` (bootstraps admin account on first use). This is a demo project — the admin login being easily discoverable is intentional for now.
+- Admin login: plain email/password sign-in, no bootstrap or auto-fill. The site is in production now, so admin credentials are not displayed or hardcoded anywhere — see `ADMIN_CREDENTIALS.md` (gitignored) at the repo root.
 - Regular member signup via 10-step `MemberSignupWizard`
 
 ### 5.2 Site Content (CMS State) — CRITICAL ARCHITECTURAL GAP
@@ -337,7 +337,8 @@ Created via `/admin/pages`. Each page has:
 See `docs/ROADMAP.md` for the full prioritized list. Summary:
 
 ### Done
-- **Admin route security**: `RequireAdmin` layout component wraps all `/admin/*` routes. Only `isAdmin=true` users can access. Only `admin@jvbnj.org` / `JvbAdmin2026!` is the current admin account.
+- **Admin route security**: `RequireAdmin` layout component wraps all `/admin/*` routes. Only `isAdmin=true` users can access. `admin@jvbnj.org` is the current admin account; its password lives only in the gitignored `ADMIN_CREDENTIALS.md`.
+- **Production hardening**: removed the in-app "Test Login" button, the on-page demo-credentials display, and the `handle_new_user()` auto-admin-grant for `admin@jvbnj.org` (was a backdoor — anyone who knew that email could sign up and receive admin access). See migration `20261001044030_remove_admin_email_bootstrap.sql`.
 
 ### Phase 0 — Security (Immediate)
 - Harden RLS policies on member tables (admins need cross-user read access)

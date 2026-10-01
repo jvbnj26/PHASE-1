@@ -19,10 +19,6 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-// Test admin account. Admin access is still verified by the backend user_roles table.
-const ADMIN_EMAIL = 'admin@jvbnj.org';
-const ADMIN_PASSWORD = 'JvbAdmin2026!';
-
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
@@ -84,39 +80,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return { error: error?.message ?? null };
   };
 
-  // Admin login. The first test login creates the real backend admin account,
-  // then future logins use the authenticated session normally.
+  // Admin login — a plain sign-in; admin access itself is still gated by the
+  // backend user_roles table (see has_role/RequireAdmin), not by this function.
   const login = async (email: string, password: string): Promise<boolean> => {
-    const normalizedEmail = email.trim().toLowerCase();
-    const { error: signInError } = await supabase.auth.signInWithPassword({
-      email: normalizedEmail,
+    const { error } = await supabase.auth.signInWithPassword({
+      email: email.trim().toLowerCase(),
       password,
     });
-
-    if (!signInError) {
-      return true;
-    }
-
-    if (normalizedEmail === ADMIN_EMAIL && password === ADMIN_PASSWORD) {
-      const { data, error: signUpError } = await supabase.auth.signUp({
-        email: ADMIN_EMAIL,
-        password: ADMIN_PASSWORD,
-        options: {
-          data: { name: 'JVBNA Admin', phone: '' },
-          emailRedirectTo: `${window.location.origin}/admin/dashboard`,
-        },
-      });
-
-      if (!signUpError && data.session) return true;
-
-      const { error: retryError } = await supabase.auth.signInWithPassword({
-        email: ADMIN_EMAIL,
-        password: ADMIN_PASSWORD,
-      });
-      if (!retryError) return true;
-    }
-
-    return false;
+    return !error;
   };
 
   const logout = async () => {

@@ -48,25 +48,25 @@ AdminLoginPage
      ▼
 AuthContext.login()
      │
-     ├─→ supabase.auth.signInWithPassword()
-     │        │
-     │        ├─ success → session stored in Supabase JS client
-     │        │            onAuthStateChange fires
-     │        │            refreshAdminStatus() called
-     │        │                └─ has_role('admin') RPC → sets isAdmin
-     │        │
-     │        └─ fail (first time) → signUp(admin@jvbnj.org)
-     │                               then retry signIn
-     │
      ▼
-RequireAdmin (layout route in App.tsx)
+supabase.auth.signInWithPassword()
      │
-     ├─ loading? → render null (prevents flash redirect)
-     ├─ !isAuthenticated || !isAdmin → Navigate to /admin
-     └─ authorized → Outlet (render admin page)
+     ├─ fail → "Invalid email or password"
+     │
+     └─ success → session stored in Supabase JS client
+                  onAuthStateChange fires
+                  refreshAdminStatus() called
+                      └─ has_role('admin') RPC → sets isAdmin
+                          │
+                          ▼
+                  RequireAdmin (layout route in App.tsx)
+                      │
+                      ├─ loading? → render null (prevents flash redirect)
+                      ├─ !isAuthenticated || !isAdmin → Navigate to /admin
+                      └─ authorized → Outlet (render admin page)
 ```
 
-**Current admin credentials**: `admin@jvbnj.org` / `JvbAdmin2026!`
+**Admin account**: `admin@jvbnj.org` — credentials are no longer hardcoded or displayed anywhere in the app; they live only in the gitignored `ADMIN_CREDENTIALS.md` at the repo root. `handle_new_user()` no longer auto-grants the `admin` role by email (see migration `20261001044030_remove_admin_email_bootstrap.sql`) — role assignment is now purely a `user_roles` table row.
 **Role enforcement**: `user_roles` table + `has_role()` RPC + `RequireAdmin` route guard
 
 ---
