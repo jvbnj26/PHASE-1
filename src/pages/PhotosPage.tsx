@@ -1,6 +1,6 @@
 import PublicLayout from '@/components/layout/PublicLayout';
 import { useSiteContent } from '@/contexts/SiteContentContext';
-import { ExternalLink, Camera, Images } from 'lucide-react';
+import { ArrowUpRight, Camera, Images } from 'lucide-react';
 
 export default function PhotosPage() {
   const { photoAlbums } = useSiteContent();
@@ -40,37 +40,46 @@ export default function PhotosPage() {
           ) : (
             // Flex-wrap (not grid) so a partial last row is centered rather than left-aligned.
             <div className="flex flex-wrap justify-center gap-6">
-              {photoAlbums.map((album, idx) => (
+              {photoAlbums.map((album) => (
                 <a
                   key={album.id}
                   href={album.url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="group relative flex flex-col w-full sm:w-[calc(50%-12px)] lg:w-[calc(33.333%-16px)] bg-white rounded-2xl border border-border p-7 hover:shadow-xl hover:-translate-y-1 transition-all duration-300 overflow-hidden"
+                  aria-label={`Open the ${album.name} album (opens in a new tab)`}
+                  className="group flex flex-col w-full sm:w-[calc(50%-12px)] lg:w-[calc(33.333%-16px)] bg-white rounded-2xl border border-border overflow-hidden shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
                 >
-                  <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-br from-primary/10 to-transparent rounded-full -mr-12 -mt-12" />
-                  <div className="absolute top-5 right-5 font-serif text-4xl font-bold text-primary/20">
-                    {String(idx + 1).padStart(2, '0')}
+                  {/* Cover — fills most of the card; albums without an image get a branded placeholder of the same size */}
+                  <div className="relative aspect-[4/3] overflow-hidden bg-muted">
+                    {album.imageUrl ? (
+                      <img
+                        src={album.imageUrl}
+                        alt=""
+                        loading="lazy"
+                        className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                      />
+                    ) : (
+                      <div className="absolute inset-0 bg-gradient-to-br from-primary via-primary/85 to-primary/65 flex items-center justify-center">
+                        <div
+                          className="absolute inset-0 opacity-20"
+                          style={{ backgroundImage: 'radial-gradient(circle, white 1px, transparent 1px)', backgroundSize: '18px 18px' }}
+                        />
+                        <Images className="relative w-16 h-16 text-primary-foreground/90 group-hover:scale-110 transition-transform duration-500" />
+                      </div>
+                    )}
+                    <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors duration-300" />
                   </div>
 
-                  {album.imageUrl ? (
-                    <img
-                      src={album.imageUrl}
-                      alt=""
-                      loading="lazy"
-                      className="w-14 h-14 rounded-2xl object-cover mb-5 shadow-sm group-hover:scale-110 transition-transform"
-                    />
-                  ) : (
-                    <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-primary to-primary/70 text-primary-foreground flex items-center justify-center mb-5 group-hover:scale-110 transition-transform">
-                      <Images className="w-7 h-7" />
+                  {/* Title bar */}
+                  <div className="flex items-center justify-between gap-4 px-5 py-4">
+                    <div className="min-w-0">
+                      <h3 className="font-serif font-bold text-lg text-foreground leading-snug break-words">{album.name}</h3>
+                      <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mt-1">View album</p>
                     </div>
-                  )}
-
-                  <h3 className="font-serif font-bold text-xl text-foreground mb-6 pr-12 break-words">{album.name}</h3>
-
-                  <span className="mt-auto inline-flex items-center gap-2 text-secondary group-hover:text-primary font-semibold text-sm transition-colors">
-                    Open Album <ExternalLink className="w-4 h-4" />
-                  </span>
+                    <span className="shrink-0 w-10 h-10 rounded-full border border-primary/30 text-primary flex items-center justify-center group-hover:bg-primary group-hover:text-primary-foreground group-hover:border-primary transition-colors">
+                      <ArrowUpRight className="w-5 h-5" />
+                    </span>
+                  </div>
                 </a>
               ))}
             </div>

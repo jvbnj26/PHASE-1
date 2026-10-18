@@ -150,7 +150,7 @@ export default function AdminPhotosPage() {
           <div>
             <h1 className="text-3xl font-serif font-bold text-foreground">Photos</h1>
             <p className="text-muted-foreground mt-2">
-              Shared albums shown on the public Photos page, in this order. Add an optional image to replace an album's icon.
+              Shared albums shown on the public Photos page, in this order. Add an optional cover image for each album — landscape photos look best.
             </p>
           </div>
           <div className="flex gap-2">
