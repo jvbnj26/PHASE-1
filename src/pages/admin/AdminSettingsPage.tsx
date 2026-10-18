@@ -5,31 +5,27 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useSiteContent } from '@/contexts/SiteContentContext';
-import { Settings, Calendar, Save, ExternalLink, Image as ImageIcon } from 'lucide-react';
+import { Settings, Calendar, Save, ExternalLink } from 'lucide-react';
 import { toast } from 'sonner';
+import { toCalendarEmbedUrl } from '@/lib/calendarUrl';
 
 export default function AdminSettingsPage() {
-  const { calendarUrl, setCalendarUrl, photosUrl, setPhotosUrl } = useSiteContent();
+  const { calendarUrl, setCalendarUrl } = useSiteContent();
   const [calendarInput, setCalendarInput] = useState(calendarUrl);
-  const [photosInput, setPhotosInput] = useState(photosUrl);
   const [isSaving, setIsSaving] = useState(false);
-  const [isSavingPhotos, setIsSavingPhotos] = useState(false);
 
   const handleSaveCalendar = () => {
+    const embedUrl = toCalendarEmbedUrl(calendarInput);
+    if (!embedUrl) {
+      toast.error('That isn\'t a Google Calendar. Paste the calendar\'s email (e.g. socialmedia@jvbnj.org), its Calendar ID, or its embed code.');
+      return;
+    }
     setIsSaving(true);
-    setCalendarUrl(calendarInput);
+    setCalendarInput(embedUrl);
+    setCalendarUrl(embedUrl);
     setTimeout(() => {
       setIsSaving(false);
-      toast.success('Calendar URL saved');
-    }, 500);
-  };
-
-  const handleSavePhotos = () => {
-    setIsSavingPhotos(true);
-    setPhotosUrl(photosInput);
-    setTimeout(() => {
-      setIsSavingPhotos(false);
-      toast.success('Photos URL saved');
+      toast.success('Calendar saved');
     }, 500);
   };
 
@@ -53,76 +49,39 @@ export default function AdminSettingsPage() {
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="calendar-url">Google Calendar Embed URL</Label>
+              <Label htmlFor="calendar-url">Google Calendar</Label>
               <Input
                 id="calendar-url"
                 value={calendarInput}
                 onChange={(e) => setCalendarInput(e.target.value)}
-                placeholder="https://calendar.google.com/calendar/embed?src=..."
+                placeholder="socialmedia@jvbnj.org"
               />
               <p className="text-xs text-muted-foreground">
-                To get your calendar embed URL: Open Google Calendar → Settings → Select your calendar → 
-                "Integrate calendar" → Copy the "Embed code" and extract the src URL
+                Paste the calendar's email address, its Calendar ID, or its embed code — the website builds
+                the correct link automatically. The calendar must be set to public in Google Calendar.
               </p>
             </div>
             <Button onClick={handleSaveCalendar} disabled={isSaving} className="gap-2">
               <Save className="w-4 h-4" />
-              {isSaving ? 'Saving...' : 'Save Calendar URL'}
+              {isSaving ? 'Saving...' : 'Save Calendar'}
             </Button>
 
             <div className="bg-muted/50 rounded-lg p-4 mt-4">
-              <h4 className="font-semibold text-foreground mb-2">How to Get Google Calendar Embed URL</h4>
+              <h4 className="font-semibold text-foreground mb-2">How to Set Up the Calendar (signed in as socialmedia@jvbnj.org)</h4>
               <ol className="text-sm text-muted-foreground space-y-2 list-decimal list-inside">
                 <li>Go to <a href="https://calendar.google.com" target="_blank" rel="noopener noreferrer" className="text-secondary hover:text-primary">Google Calendar</a></li>
-                <li>Click the gear icon (⚙️) → Settings</li>
-                <li>On the left, click on your calendar name</li>
-                <li>Scroll down to "Integrate calendar"</li>
-                <li>Copy the "Embed code" (starts with &lt;iframe...)</li>
-                <li>Extract just the URL from src="..."</li>
+                <li>Click the gear icon (⚙️) → Settings, then click the calendar's name on the left</li>
+                <li>Under "Access permissions for events", tick "Make available to public" → "See all event details"</li>
+                <li>Scroll to "Integrate calendar" and copy the "Calendar ID" (or the "Embed code")</li>
+                <li>Paste it above and click Save Calendar</li>
               </ol>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Google Photos Integration */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <ImageIcon className="w-5 h-5 text-primary" />
-              Google Photos Integration
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="photos-url">Google Photos Shared Album URL</Label>
-              <Input
-                id="photos-url"
-                value={photosInput}
-                onChange={(e) => setPhotosInput(e.target.value)}
-                placeholder="https://photos.google.com/share/..."
-              />
-              <p className="text-xs text-muted-foreground">
-                Paste your Google Photos shared album link (e.g. <code className="bg-muted px-1 rounded">https://photos.app.goo.gl/...</code>). Visitors click "Open Photo Gallery" on the Photos page to browse it.
+              <p className="text-xs text-muted-foreground mt-3">
+                Events added or changed in this Google Calendar appear on the website automatically — no need to
+                save here again. Keep the calendar public, or visitors will see an empty calendar.
               </p>
             </div>
-            <Button onClick={handleSavePhotos} disabled={isSavingPhotos} className="gap-2">
-              <Save className="w-4 h-4" />
-              {isSavingPhotos ? 'Saving...' : 'Save Photos URL'}
-            </Button>
-
-            <div className="bg-muted/50 rounded-lg p-4 mt-4">
-              <h4 className="font-semibold text-foreground mb-2">How to Get a Google Photos Shared Album Link</h4>
-              <ol className="text-sm text-muted-foreground space-y-2 list-decimal list-inside">
-                <li>Go to <a href="https://photos.google.com" target="_blank" rel="noopener noreferrer" className="text-secondary hover:text-primary">Google Photos</a></li>
-                <li>Open (or create) the album you want to share</li>
-                <li>Click the Share icon → "Create link"</li>
-                <li>Copy the generated link and paste it above</li>
-              </ol>
-            </div>
           </CardContent>
         </Card>
-
-
 
         {/* Site Information */}
         <Card>

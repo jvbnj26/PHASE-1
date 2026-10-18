@@ -17,6 +17,7 @@ import {
   HandHeart,
   Layers,
   Newspaper,
+  Camera,
   Menu,
   X
 } from 'lucide-react';
@@ -43,6 +44,7 @@ const sidebarItems = [
   { name: 'Board & EC', path: '/admin/board', icon: Users },
 
   { name: 'Programs', path: '/admin/programs', icon: Layers },
+  { name: 'Photos', path: '/admin/photos', icon: Camera },
   { name: 'Media Library', path: '/admin/media', icon: Image },
   { name: 'Settings', path: '/admin/settings', icon: Settings },
 ];

@@ -32,7 +32,7 @@ export const BUILTIN_PAGES = [
   { title: 'Activities', path: '/activities', admin: '/admin/activities' },
   { title: 'Gyanshala', path: '/activities/gyanshala', admin: '/admin/gyanshala' },
   { title: 'Calendar', path: '/calendar', admin: '/admin/settings' },
-  { title: 'Photos', path: '/photos', admin: '/admin/settings' },
+  { title: 'Photos', path: '/photos', admin: '/admin/photos' },
   { title: 'Spiritual Guidance', path: '/spiritual-guidance', admin: '/admin/spiritual-guidance' },
   { title: 'Volunteer / Get Involved', path: '/volunteer', admin: '/admin/volunteer' },
   { title: 'Donate', path: '/donate', admin: '/admin/donations' },

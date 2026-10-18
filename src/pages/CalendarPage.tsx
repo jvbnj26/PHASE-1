@@ -1,8 +1,10 @@
 import PublicLayout from '@/components/layout/PublicLayout';
 import { useSiteContent } from '@/contexts/SiteContentContext';
+import { toCalendarEmbedUrl } from '@/lib/calendarUrl';
 
 export default function CalendarPage() {
   const { calendarUrl } = useSiteContent();
+  const embedUrl = toCalendarEmbedUrl(calendarUrl);
 
   return (
     <PublicLayout>
@@ -24,16 +26,22 @@ export default function CalendarPage() {
 
           {/* Google Calendar Embed */}
           <div className="aspect-video w-full max-w-5xl mx-auto rounded-lg overflow-hidden shadow-lg border">
-            <iframe
-              src={calendarUrl}
-              style={{ border: 0 }}
-              width="100%"
-              height="100%"
-              frameBorder="0"
-              scrolling="no"
-              title="JVBNA Calendar"
-              className="w-full h-full"
-            />
+            {embedUrl ? (
+              <iframe
+                src={embedUrl}
+                style={{ border: 0 }}
+                width="100%"
+                height="100%"
+                frameBorder="0"
+                scrolling="no"
+                title="JVBNA Calendar"
+                className="w-full h-full"
+              />
+            ) : (
+              <div className="w-full h-full flex items-center justify-center bg-section p-6 text-center text-muted-foreground">
+                The calendar is temporarily unavailable — please check back soon.
+              </div>
+            )}
           </div>
 
           <p className="text-sm text-muted-foreground mt-6 text-center">

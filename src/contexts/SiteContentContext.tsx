@@ -11,6 +11,7 @@ import {
   ContactInfo,
   SatelliteCenter,
   PopupConfig,
+  PhotoAlbum,
   defaultBannerSlides,
   defaultWelcomeText,
   defaultActivities,
@@ -26,7 +27,7 @@ import {
   defaultEvents2025,
   defaultActivities2025,
   defaultCalendarUrl,
-  defaultPhotosUrl,
+  defaultPhotoAlbums,
   defaultPopupConfig,
   defaultPageOrder,
 } from '@/data/siteContent';
@@ -77,8 +78,8 @@ interface SiteContentContextType {
   calendarUrl: string;
   setCalendarUrl: (url: string) => void;
 
-  photosUrl: string;
-  setPhotosUrl: (url: string) => void;
+  photoAlbums: PhotoAlbum[];
+  setPhotoAlbums: (albums: PhotoAlbum[]) => void;
 
   popupConfig: PopupConfig;
   setPopupConfig: (cfg: PopupConfig) => void;
@@ -116,7 +117,7 @@ export function SiteContentProvider({ children }: { children: ReactNode }) {
     defaultActivities2025 as (string | { name: string; subItem: boolean })[]
   );
   const [calendarUrl, setCalendarUrlState] = useState(defaultCalendarUrl);
-  const [photosUrl, setPhotosUrlState] = useState(defaultPhotosUrl);
+  const [photoAlbums, setPhotoAlbumsState] = useState<PhotoAlbum[]>(defaultPhotoAlbums);
   const [popupConfig, setPopupConfigState] = useState<PopupConfig>(defaultPopupConfig);
   const [pageOrder, setPageOrderState] = useState<string[]>(defaultPageOrder);
   const [contentLoaded, setContentLoaded] = useState(false);
@@ -151,7 +152,7 @@ export function SiteContentProvider({ children }: { children: ReactNode }) {
         if (m.has('events2025'))         setEvents2025State(m.get('events2025') as (string | { name: string; subItem: boolean })[]);
         if (m.has('activities2025'))     setActivities2025State(m.get('activities2025') as (string | { name: string; subItem: boolean })[]);
         if (m.has('calendarUrl'))        setCalendarUrlState(m.get('calendarUrl') as string);
-        if (m.has('photosUrl'))          setPhotosUrlState(m.get('photosUrl') as string);
+        if (m.has('photoAlbums'))        setPhotoAlbumsState(m.get('photoAlbums') as PhotoAlbum[]);
         if (m.has('popupConfig'))        setPopupConfigState(m.get('popupConfig') as PopupConfig);
         if (m.has('pageOrder'))          setPageOrderState(m.get('pageOrder') as string[]);
         setContentLoaded(true);
@@ -183,7 +184,7 @@ export function SiteContentProvider({ children }: { children: ReactNode }) {
   const setEvents2025         = (v: (string | { name: string; subItem: boolean })[])          => { setEvents2025State(v);         persist('events2025', v); };
   const setActivities2025     = (v: (string | { name: string; subItem: boolean })[])          => { setActivities2025State(v);     persist('activities2025', v); };
   const setCalendarUrl        = (v: string)                                                    => { setCalendarUrlState(v);        persist('calendarUrl', v); };
-  const setPhotosUrl          = (v: string)                                                    => { setPhotosUrlState(v);          persist('photosUrl', v); };
+  const setPhotoAlbums        = (v: PhotoAlbum[])                                              => { setPhotoAlbumsState(v);        persist('photoAlbums', v); };
 
   const setPopupConfig = (cfg: PopupConfig) => {
     setPopupConfigState(cfg);
@@ -212,7 +213,7 @@ export function SiteContentProvider({ children }: { children: ReactNode }) {
         events2025, setEvents2025,
         activities2025, setActivities2025,
         calendarUrl, setCalendarUrl,
-        photosUrl, setPhotosUrl,
+        photoAlbums, setPhotoAlbums,
         popupConfig, setPopupConfig,
         pageOrder, setPageOrder,
         contentLoaded,

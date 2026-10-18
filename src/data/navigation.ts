@@ -47,7 +47,7 @@ export const BUILTIN_NAV_ITEMS: NavItem[] = [
   },
   { name: 'BLOG', path: '/blog', admin: '/admin/blog' },
   { name: 'CALENDAR', path: '/calendar', admin: '/admin/settings' },
-  { name: 'PHOTOS', path: '/photos', admin: '/admin/settings' },
+  { name: 'PHOTOS', path: '/photos', admin: '/admin/photos' },
   { name: 'SPIRITUAL GUIDANCE', path: '/spiritual-guidance', admin: '/admin/spiritual-guidance' },
   {
     name: 'GET INVOLVED',

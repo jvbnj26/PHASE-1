@@ -46,6 +46,7 @@ import AdminDonationsPage from "./pages/admin/AdminDonationsPage";
 import AdminContactPage from "./pages/admin/AdminContactPage";
 import AdminMediaPage from "./pages/admin/AdminMediaPage";
 import AdminSettingsPage from "./pages/admin/AdminSettingsPage";
+import AdminPhotosPage from "./pages/admin/AdminPhotosPage";
 import AdminMembersPage from "./pages/admin/AdminMembersPage";
 import AdminMemberDetailPage from "./pages/admin/AdminMemberDetailPage";
 import AdminPagesPage from "./pages/admin/AdminPagesPage";
@@ -126,6 +127,7 @@ const App = () => (
                 <Route path="/admin/members" element={<Navigate to="/admin" replace />} />
                 <Route path="/admin/members/:id" element={<AdminMemberDetailPage />} />
                 <Route path="/admin/media" element={<AdminMediaPage />} />
+                <Route path="/admin/photos" element={<AdminPhotosPage />} />
                 <Route path="/admin/settings" element={<AdminSettingsPage />} />
                 <Route path="/admin/pages" element={<AdminPagesPage />} />
                 <Route path="/admin/programs" element={<AdminProgramsPage />} />
