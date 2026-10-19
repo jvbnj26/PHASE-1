@@ -2,6 +2,8 @@ import PublicLayout from '@/components/layout/PublicLayout';
 import PageHero from '@/components/layout/PageHero';
 import { useSiteContent } from '@/contexts/SiteContentContext';
 import { Heart, GraduationCap, Megaphone, ArrowRight, Facebook, Youtube, Camera } from 'lucide-react';
+import RichText from '@/components/RichText';
+import PageSections from '@/components/PageSections';
 
 const iconMap: { [key: string]: React.ReactNode } = {
   Heart: <Heart className="w-7 h-7" />,
@@ -37,7 +39,7 @@ export default function VolunteerPage() {
                   {iconMap[section.icon] || <Heart className="w-7 h-7" />}
                 </div>
                 <h3 className="font-serif text-xl font-bold text-foreground mb-3">{section.title}</h3>
-                <p className="text-muted-foreground leading-relaxed text-sm mb-5">{section.description}</p>
+                <RichText value={section.description} className="text-muted-foreground leading-relaxed text-sm mb-5" />
                 <a
                   href="/contact"
                   className="inline-flex items-center gap-1.5 text-secondary font-semibold text-sm hover:gap-2.5 transition-all"
@@ -87,6 +89,8 @@ export default function VolunteerPage() {
           </div>
         </div>
       </section>
+
+      <PageSections pageId="volunteer" />
     </PublicLayout>
   );
 }

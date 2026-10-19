@@ -444,3 +444,18 @@ export const defaultPageOrder: string[] = [
   '/contact',
 ];
 
+
+// Built-in pages that support "Additional Sections" (Admin > that page's editor). The key is the
+// id the sections are stored under in the `pageSections` site setting.
+export const SECTION_PAGES = {
+  home: 'Home',
+  about: 'About Us',
+  donate: 'Donations',
+  activities: 'Activities',
+  gyanshala: 'Gyanshala',
+  'spiritual-guidance': 'Spiritual Guidance',
+  volunteer: 'Volunteer',
+  contact: 'Contact Us',
+} as const;
+
+export type SectionPageId = keyof typeof SECTION_PAGES;

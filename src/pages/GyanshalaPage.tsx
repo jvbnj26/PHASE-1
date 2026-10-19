@@ -4,6 +4,8 @@ import { useSiteContent } from '@/contexts/SiteContentContext';
 import { Button } from '@/components/ui/button';
 import { BookOpen, Heart, Users, Calendar, Mail, type LucideIcon } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import RichText from '@/components/RichText';
+import PageSections from '@/components/PageSections';
 
 // Pillar copy is editable (Admin > Gyanshala), but the icon per position is fixed —
 // mirrors how About's programSections are structured (content is data, icon is code).
@@ -27,11 +29,10 @@ export default function GyanshalaPage() {
 
       <section className="py-14 bg-white">
         <div className="container-custom max-w-5xl">
-          <div className="prose prose-lg max-w-none text-muted-foreground leading-relaxed mb-12">
-            {gyanshalaContent.intro.split('\n\n').map((para, idx) => (
-              <p key={idx}>{para}</p>
-            ))}
-          </div>
+          <RichText
+            value={gyanshalaContent.intro}
+            className="text-lg text-muted-foreground leading-relaxed mb-12 [--rt-gap:1.5rem]"
+          />
 
           <div className="grid md:grid-cols-3 gap-6 mb-14">
             {pillars.map((p) => (
@@ -40,7 +41,7 @@ export default function GyanshalaPage() {
                   <p.icon className="w-6 h-6" />
                 </div>
                 <h3 className="font-serif font-bold text-lg text-foreground mb-2">{p.title}</h3>
-                <p className="text-muted-foreground text-sm leading-relaxed">{p.description}</p>
+                <RichText value={p.description} className="text-muted-foreground text-sm leading-relaxed" />
               </div>
             ))}
           </div>
@@ -64,9 +65,7 @@ export default function GyanshalaPage() {
             <div className="relative grid md:grid-cols-[1fr,auto] gap-6 items-center">
               <div>
                 <h3 className="font-serif text-2xl md:text-3xl font-bold mb-2">{gyanshalaContent.ctaTitle}</h3>
-                <p className="text-white/90">
-                  {gyanshalaContent.ctaText}
-                </p>
+                <RichText value={gyanshalaContent.ctaText} onDark className="text-white/90" />
               </div>
               <div className="flex flex-wrap gap-3">
                 <Link to="/signup">
@@ -90,6 +89,8 @@ export default function GyanshalaPage() {
           </div>
         </div>
       </section>
+
+      <PageSections pageId="gyanshala" />
     </PublicLayout>
   );
 }

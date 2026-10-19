@@ -2,6 +2,8 @@ import PublicLayout from '@/components/layout/PublicLayout';
 import PageHero from '@/components/layout/PageHero';
 import { useSiteContent } from '@/contexts/SiteContentContext';
 import { Sparkles, Heart, Brain, Target } from 'lucide-react';
+import RichText from '@/components/RichText';
+import PageSections from '@/components/PageSections';
 
 const programIcons = [Heart, Brain, Sparkles];
 
@@ -29,11 +31,10 @@ export default function AboutPage() {
                 </h2>
               </div>
             </div>
-            <div className="md:col-span-8 space-y-5 text-muted-foreground leading-relaxed text-[17px]">
-              {aboutContent.intro.split('\n\n').map((para, idx) => (
-                <p key={idx}>{para}</p>
-              ))}
-            </div>
+            <RichText
+              value={aboutContent.intro}
+              className="md:col-span-8 text-muted-foreground leading-relaxed text-[17px] [--rt-gap:1.25rem]"
+            />
           </div>
         </div>
       </section>
@@ -52,7 +53,7 @@ export default function AboutPage() {
                 <h3 className="font-serif text-2xl md:text-3xl font-bold text-foreground">Spreading the universal message</h3>
               </div>
             </div>
-            <p className="text-muted-foreground leading-relaxed text-lg pl-16">{aboutContent.mission}</p>
+            <RichText value={aboutContent.mission} className="text-muted-foreground leading-relaxed text-lg pl-16" />
           </div>
         </div>
       </section>
@@ -63,7 +64,7 @@ export default function AboutPage() {
           <div className="text-center max-w-2xl mx-auto mb-12">
             <p className="text-primary font-semibold text-sm uppercase tracking-wider mb-2">What We Do</p>
             <h2 className="font-serif text-3xl md:text-4xl font-bold text-foreground mb-4">Our Programs</h2>
-            <p className="text-muted-foreground">{aboutContent.programs}</p>
+            <RichText value={aboutContent.programs} className="text-muted-foreground" />
           </div>
 
           <div className="grid md:grid-cols-3 gap-6">
@@ -78,7 +79,7 @@ export default function AboutPage() {
                     <Icon className="w-7 h-7" />
                   </div>
                   <h4 className="font-serif font-bold text-xl text-foreground mb-3">{section.title}</h4>
-                  <p className="text-muted-foreground leading-relaxed text-sm">{section.content}</p>
+                  <RichText value={section.content} className="text-muted-foreground leading-relaxed text-sm" />
                 </div>
               );
             })}
@@ -101,6 +102,7 @@ export default function AboutPage() {
         </div>
       </section>
 
+      <PageSections pageId="about" />
     </PublicLayout>
   );
 }

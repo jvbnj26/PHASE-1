@@ -3,11 +3,14 @@ import AdminLayout from '@/components/admin/AdminLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { useSiteContent } from '@/contexts/SiteContentContext';
 import { FileText, Save, Edit2, Plus, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
+import RichTextEditor from '@/components/admin/RichTextEditor';
+import RichText from '@/components/RichText';
+import { toRichHtml } from '@/lib/richText';
+import PageSectionsCard from '@/components/admin/PageSectionsCard';
 
 export default function AdminAboutPage() {
   const { aboutContent, setAboutContent } = useSiteContent();
@@ -43,9 +46,11 @@ export default function AdminAboutPage() {
   };
 
   const handleProgramSectionChange = (index: number, field: 'title' | 'content', value: string) => {
-    const updated = [...editForm.programSections];
-    updated[index] = { ...updated[index], [field]: value };
-    setEditForm({ ...editForm, programSections: updated });
+    setEditForm((f) => {
+      const updated = [...f.programSections];
+      updated[index] = { ...updated[index], [field]: value };
+      return { ...f, programSections: updated };
+    });
   };
 
   return (
@@ -89,19 +94,13 @@ export default function AdminAboutPage() {
               {isEditing ? (
                 <div className="space-y-2">
                   <Label>Introduction Text</Label>
-                  <Textarea
-                    value={editForm.intro}
-                    onChange={(e) => setEditForm({ ...editForm, intro: e.target.value })}
-                    rows={10}
+                  <RichTextEditor
+                    value={toRichHtml(editForm.intro)}
+                    onChange={(html) => setEditForm((f) => ({ ...f, intro: html }))}
                   />
-                  <p className="text-xs text-muted-foreground">Use double line breaks to create paragraphs</p>
                 </div>
               ) : (
-                <div className="prose prose-sm text-muted-foreground max-w-none">
-                  {aboutContent.intro.split('\n\n').map((para, idx) => (
-                    <p key={idx}>{para}</p>
-                  ))}
-                </div>
+                <RichText value={aboutContent.intro} className="text-sm text-muted-foreground" />
               )}
             </CardContent>
           </Card>
@@ -115,14 +114,13 @@ export default function AdminAboutPage() {
               {isEditing ? (
                 <div className="space-y-2">
                   <Label>Mission</Label>
-                  <Textarea
-                    value={editForm.mission}
-                    onChange={(e) => setEditForm({ ...editForm, mission: e.target.value })}
-                    rows={4}
+                  <RichTextEditor
+                    value={toRichHtml(editForm.mission)}
+                    onChange={(html) => setEditForm((f) => ({ ...f, mission: html }))}
                   />
                 </div>
               ) : (
-                <p className="text-muted-foreground">{aboutContent.mission}</p>
+                <RichText value={aboutContent.mission} className="text-muted-foreground" />
               )}
             </CardContent>
           </Card>
@@ -136,14 +134,13 @@ export default function AdminAboutPage() {
               {isEditing ? (
                 <div className="space-y-2">
                   <Label>Programs Introduction Text</Label>
-                  <Textarea
-                    value={editForm.programs}
-                    onChange={(e) => setEditForm({ ...editForm, programs: e.target.value })}
-                    rows={2}
+                  <RichTextEditor
+                    value={toRichHtml(editForm.programs)}
+                    onChange={(html) => setEditForm((f) => ({ ...f, programs: html }))}
                   />
                 </div>
               ) : (
-                <p className="text-muted-foreground">{aboutContent.programs}</p>
+                <RichText value={aboutContent.programs} className="text-muted-foreground" />
               )}
             </CardContent>
           </Card>
@@ -183,17 +180,16 @@ export default function AdminAboutPage() {
                             <Trash2 className="w-4 h-4" />
                           </Button>
                         </div>
-                        <Textarea
-                          value={section.content}
-                          onChange={(e) => handleProgramSectionChange(idx, 'content', e.target.value)}
-                          rows={4}
+                        <RichTextEditor
+                          value={toRichHtml(section.content)}
+                          onChange={(html) => handleProgramSectionChange(idx, 'content', html)}
                           placeholder="Section content..."
                         />
                       </div>
                     ) : (
                       <>
                         <h4 className="font-semibold text-foreground mb-2">{section.title}</h4>
-                        <p className="text-sm text-muted-foreground">{section.content}</p>
+                        <RichText value={section.content} className="text-sm text-muted-foreground" />
                       </>
                     )}
                   </div>
@@ -202,6 +198,8 @@ export default function AdminAboutPage() {
             </CardContent>
           </Card>
         </div>
+
+        <PageSectionsCard pageId="about" />
       </div>
     </AdminLayout>
   );

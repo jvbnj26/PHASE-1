@@ -8,6 +8,8 @@ import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { CreditCard, Building2, Globe, CheckCircle, Heart, Shield, ArrowRight, LogIn } from 'lucide-react';
 import donorCategoriesImg from '@/assets/donor-categories.png';
+import RichText from '@/components/RichText';
+import PageSections from '@/components/PageSections';
 
 export default function DonatePage() {
   const { donationContent } = useSiteContent();
@@ -43,11 +45,10 @@ export default function DonatePage() {
                 </h2>
               </div>
             </div>
-            <div className="md:col-span-8 space-y-5 text-muted-foreground leading-relaxed text-[17px]">
-              {donationContent.intro.split('\n\n').map((para, idx) => (
-                <p key={idx}>{para}</p>
-              ))}
-            </div>
+            <RichText
+              value={donationContent.intro}
+              className="md:col-span-8 text-muted-foreground leading-relaxed text-[17px] [--rt-gap:1.25rem]"
+            />
           </div>
         </div>
       </section>
@@ -61,11 +62,7 @@ export default function DonatePage() {
             <h3 className="font-serif text-2xl md:text-3xl font-bold text-foreground mb-4">
               2024 Annual Fund Raising
             </h3>
-            <div className="text-muted-foreground space-y-2">
-              {donationContent.pledgeInfo.split('\n').map((line, idx) => (
-                <p key={idx}>{line}</p>
-              ))}
-            </div>
+            <RichText value={donationContent.pledgeInfo} splitLines className="text-muted-foreground [--rt-gap:0.5rem]" />
           </div>
         </div>
       </section>
@@ -155,7 +152,7 @@ export default function DonatePage() {
             </div>
             <div>
               <p className="font-semibold text-foreground mb-1">Tax Exemption</p>
-              <p className="text-muted-foreground text-sm leading-relaxed">{donationContent.taxInfo}</p>
+              <RichText value={donationContent.taxInfo} className="text-muted-foreground text-sm leading-relaxed" />
             </div>
           </div>
         </div>
@@ -208,6 +205,8 @@ export default function DonatePage() {
           </div>
         </div>
       </section>
+
+      <PageSections pageId="donate" />
     </PublicLayout>
   );
 }

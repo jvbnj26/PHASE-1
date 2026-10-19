@@ -3,13 +3,16 @@ import AdminLayout from '@/components/admin/AdminLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useSiteContent } from '@/contexts/SiteContentContext';
 import { HandHeart, Plus, Trash2, Save, X, Heart, GraduationCap, Megaphone } from 'lucide-react';
 import { VolunteerSection } from '@/data/siteContent';
 import { toast } from 'sonner';
+import RichTextEditor from '@/components/admin/RichTextEditor';
+import RichText from '@/components/RichText';
+import { toRichHtml } from '@/lib/richText';
+import PageSectionsCard from '@/components/admin/PageSectionsCard';
 
 const iconOptions = [
   { value: 'Heart', label: 'Heart', icon: Heart },
@@ -129,10 +132,9 @@ export default function AdminVolunteerPage() {
                     </div>
                     <div className="space-y-2">
                       <Label>Description</Label>
-                      <Textarea
-                        value={editForm.description}
-                        onChange={(e) => setEditForm({ ...editForm, description: e.target.value })}
-                        rows={4}
+                      <RichTextEditor
+                        value={toRichHtml(editForm.description)}
+                        onChange={(html) => setEditForm((f) => (f ? { ...f, description: html } : f))}
                       />
                     </div>
                     <div className="flex gap-2">
@@ -147,7 +149,7 @@ export default function AdminVolunteerPage() {
                   </>
                 ) : (
                   <>
-                    <p className="text-sm text-muted-foreground">{section.description}</p>
+                    <RichText value={section.description} className="text-sm text-muted-foreground" />
                     <div className="flex gap-2 pt-2">
                       <Button size="sm" variant="outline" onClick={() => handleEdit(section)} className="flex-1">
                         Edit
@@ -162,6 +164,8 @@ export default function AdminVolunteerPage() {
             </Card>
           ))}
         </div>
+
+        <PageSectionsCard pageId="volunteer" />
       </div>
     </AdminLayout>
   );

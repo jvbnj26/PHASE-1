@@ -3,13 +3,16 @@ import AdminLayout from '@/components/admin/AdminLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { useSiteContent } from '@/contexts/SiteContentContext';
 import { BookOpen, Plus, Trash2, Save, X, ImageIcon } from 'lucide-react';
 import { ImageUploadButton } from '@/components/admin/ImageUploadButton';
 import { SpiritualMaster } from '@/data/siteContent';
 import { toast } from 'sonner';
+import RichTextEditor from '@/components/admin/RichTextEditor';
+import RichText from '@/components/RichText';
+import { toRichHtml } from '@/lib/richText';
+import PageSectionsCard from '@/components/admin/PageSectionsCard';
 
 export default function AdminSpiritualGuidancePage() {
   const { spiritualMasters, setSpiritualMasters } = useSiteContent();
@@ -140,10 +143,9 @@ export default function AdminSpiritualGuidancePage() {
 
                     <div className="space-y-2">
                       <Label>Description</Label>
-                      <Textarea
-                        value={editForm.description}
-                        onChange={(e) => setEditForm({ ...editForm, description: e.target.value })}
-                        rows={4}
+                      <RichTextEditor
+                        value={toRichHtml(editForm.description)}
+                        onChange={(html) => setEditForm((f) => (f ? { ...f, description: html } : f))}
                       />
                     </div>
                   </>
@@ -156,13 +158,15 @@ export default function AdminSpiritualGuidancePage() {
                         className="w-full h-full object-cover"
                       />
                     </div>
-                    <p className="text-sm text-muted-foreground">{master.description}</p>
+                    <RichText value={master.description} className="text-sm text-muted-foreground" />
                   </>
                 )}
               </CardContent>
             </Card>
           ))}
         </div>
+
+        <PageSectionsCard pageId="spiritual-guidance" />
       </div>
     </AdminLayout>
   );

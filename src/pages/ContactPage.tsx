@@ -1,6 +1,8 @@
 import PublicLayout from '@/components/layout/PublicLayout';
 import { useSiteContent } from '@/contexts/SiteContentContext';
 import { MapPin, Phone, Mail, Clock, ExternalLink } from 'lucide-react';
+import RichText from '@/components/RichText';
+import PageSections from '@/components/PageSections';
 
 export default function ContactPage() {
   const { contactInfo, satelliteCenters } = useSiteContent();
@@ -59,9 +61,7 @@ export default function ContactPage() {
                     <Clock className="w-5 h-5 text-primary" />
                     Location:
                   </h4>
-                  <p className="text-muted-foreground text-sm leading-relaxed">
-                    {contactInfo.hours}
-                  </p>
+                  <RichText value={contactInfo.hours} className="text-muted-foreground text-sm leading-relaxed" />
                 </div>
               </div>
             </div>
@@ -183,6 +183,8 @@ export default function ContactPage() {
           </div>
         </div>
       </section>
+
+      <PageSections pageId="contact" />
     </PublicLayout>
   );
 }

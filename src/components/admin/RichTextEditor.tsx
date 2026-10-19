@@ -7,7 +7,7 @@ import Highlight from '@tiptap/extension-highlight';
 import Link from '@tiptap/extension-link';
 import TextAlign from '@tiptap/extension-text-align';
 import Placeholder from '@tiptap/extension-placeholder';
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
@@ -130,6 +130,16 @@ export default function RichTextEditor({
     },
     onUpdate: ({ editor }) => onChange(editor.getHTML()),
   });
+
+  // useEditor only reads `content` on mount. When the parent replaces the value (content
+  // finishing loading, Cancel resetting a form, a list item above this one being deleted),
+  // load it into the editor — but never while the change came from typing here.
+  const lastValue = useRef(value);
+  useEffect(() => {
+    if (!editor || value === lastValue.current) return;
+    lastValue.current = value;
+    if (value !== editor.getHTML()) editor.commands.setContent(value || '', { emitUpdate: false });
+  }, [editor, value]);
 
   if (!editor) return null;
 

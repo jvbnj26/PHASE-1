@@ -3,11 +3,14 @@ import AdminLayout from '@/components/admin/AdminLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { useSiteContent } from '@/contexts/SiteContentContext';
 import { BookOpen, Save, Edit2, Plus, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
+import RichTextEditor from '@/components/admin/RichTextEditor';
+import RichText from '@/components/RichText';
+import { toRichHtml } from '@/lib/richText';
+import PageSectionsCard from '@/components/admin/PageSectionsCard';
 
 export default function AdminGyanshalaPage() {
   const { gyanshalaContent, setGyanshalaContent } = useSiteContent();
@@ -40,9 +43,11 @@ export default function AdminGyanshalaPage() {
   };
 
   const handlePillarChange = (index: number, field: 'title' | 'description', value: string) => {
-    const updated = [...editForm.pillars];
-    updated[index] = { ...updated[index], [field]: value };
-    setEditForm({ ...editForm, pillars: updated });
+    setEditForm((f) => {
+      const updated = [...f.pillars];
+      updated[index] = { ...updated[index], [field]: value };
+      return { ...f, pillars: updated };
+    });
   };
 
   return (
@@ -87,19 +92,13 @@ export default function AdminGyanshalaPage() {
               {isEditing ? (
                 <div className="space-y-2">
                   <Label>Introduction Text</Label>
-                  <Textarea
-                    value={editForm.intro}
-                    onChange={(e) => setEditForm({ ...editForm, intro: e.target.value })}
-                    rows={6}
+                  <RichTextEditor
+                    value={toRichHtml(editForm.intro)}
+                    onChange={(html) => setEditForm((f) => ({ ...f, intro: html }))}
                   />
-                  <p className="text-xs text-muted-foreground">Use double line breaks to create paragraphs</p>
                 </div>
               ) : (
-                <div className="prose prose-sm text-muted-foreground max-w-none">
-                  {gyanshalaContent.intro.split('\n\n').map((para, idx) => (
-                    <p key={idx}>{para}</p>
-                  ))}
-                </div>
+                <RichText value={gyanshalaContent.intro} className="text-sm text-muted-foreground" />
               )}
             </CardContent>
           </Card>
@@ -139,17 +138,16 @@ export default function AdminGyanshalaPage() {
                             <Trash2 className="w-4 h-4" />
                           </Button>
                         </div>
-                        <Textarea
-                          value={pillar.description}
-                          onChange={(e) => handlePillarChange(idx, 'description', e.target.value)}
-                          rows={3}
+                        <RichTextEditor
+                          value={toRichHtml(pillar.description)}
+                          onChange={(html) => handlePillarChange(idx, 'description', html)}
                           placeholder="Pillar description..."
                         />
                       </div>
                     ) : (
                       <>
                         <h4 className="font-semibold text-foreground mb-2">{pillar.title}</h4>
-                        <p className="text-sm text-muted-foreground">{pillar.description}</p>
+                        <RichText value={pillar.description} className="text-sm text-muted-foreground" />
                       </>
                     )}
                   </div>
@@ -175,22 +173,23 @@ export default function AdminGyanshalaPage() {
                   </div>
                   <div className="space-y-2">
                     <Label>Text</Label>
-                    <Textarea
-                      value={editForm.ctaText}
-                      onChange={(e) => setEditForm({ ...editForm, ctaText: e.target.value })}
-                      rows={3}
+                    <RichTextEditor
+                      value={toRichHtml(editForm.ctaText)}
+                      onChange={(html) => setEditForm((f) => ({ ...f, ctaText: html }))}
                     />
                   </div>
                 </div>
               ) : (
                 <div>
                   <h4 className="font-semibold text-foreground mb-2">{gyanshalaContent.ctaTitle}</h4>
-                  <p className="text-sm text-muted-foreground">{gyanshalaContent.ctaText}</p>
+                  <RichText value={gyanshalaContent.ctaText} className="text-sm text-muted-foreground" />
                 </div>
               )}
             </CardContent>
           </Card>
         </div>
+
+        <PageSectionsCard pageId="gyanshala" />
       </div>
     </AdminLayout>
   );

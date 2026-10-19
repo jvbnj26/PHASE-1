@@ -8,13 +8,13 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Trash2, Plus, ImagePlus, ArrowUp, ArrowDown, ExternalLink, Save, FileText, Lock, Send, Archive, RotateCcw, FileEdit, ArrowUpDown } from 'lucide-react';
+import { Trash2, ArrowUp, ArrowDown, ExternalLink, Save, FileText, Lock, Send, Archive, RotateCcw, FileEdit, ArrowUpDown } from 'lucide-react';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { supabase } from '@/integrations/supabase/client';
-import { useCustomPages, slugify, type PageBlock, type CustomPage, type PageStatus } from '@/hooks/useCustomPages';
+import { useCustomPages, slugify, type CustomPage, type PageStatus } from '@/hooks/useCustomPages';
 import { BUILTIN_NAV_ITEMS, orderTopLevelPages, builtinPathToSegment, RESERVED_PARENT_SLUGS } from '@/data/navigation';
-import RichTextEditor from '@/components/admin/RichTextEditor';
+import PageBlocksEditor, { newBlock } from '@/components/admin/PageBlocksEditor';
 import { toast } from 'sonner';
 
 // Built-in site pages — managed via their own editors.
@@ -49,16 +49,6 @@ function fileToDataUrl(f: File): Promise<string> {
   });
 }
 
-// Single unified template: every block has an optional heading, body text, and image.
-// Layout choice controls how text + image are arranged — formatting handled for the user.
-function newBlock(): PageBlock {
-  return {
-    id: crypto.randomUUID(),
-    layout: 'text-image-right',
-    body: '',
-    imageUrl: '',
-  };
-}
 
 // Renders one parent's list of sub-pages with reorder arrows — shared by both a custom page's
 // own kids and a built-in page's kids (see the two call sites below).
@@ -103,13 +93,6 @@ function SubpageList({
   );
 }
 
-const LAYOUT_OPTIONS: { value: PageBlock['layout']; label: string; hint: string }[] = [
-  { value: 'text-image-right', label: 'Text + Image (image on right)', hint: 'Balanced — best for most sections' },
-  { value: 'text-image-left', label: 'Text + Image (image on left)', hint: 'Alternate layout for variety' },
-  { value: 'text', label: 'Text only', hint: 'Paragraphs without an image' },
-  { value: 'image', label: 'Image only', hint: 'Standalone image, contained width' },
-  { value: 'image-full', label: 'Full-width banner image', hint: 'Use for hero / flyer images' },
-];
 
 export default function AdminPagesPage() {
   const { isAuthenticated, loading: authLoading } = useAuth();
@@ -255,34 +238,6 @@ export default function AdminPagesPage() {
       setStatusFilter(overrideStatus);
     }
     refresh();
-  }
-
-  function updateBlock(idx: number, patch: Partial<PageBlock>) {
-    if (!draft) return;
-    const blocks = [...draft.blocks];
-    blocks[idx] = { ...blocks[idx], ...patch };
-    setDraft({ ...draft, blocks });
-  }
-  function moveBlock(idx: number, dir: -1 | 1) {
-    if (!draft) return;
-    const j = idx + dir;
-    if (j < 0 || j >= draft.blocks.length) return;
-    const blocks = [...draft.blocks];
-    [blocks[idx], blocks[j]] = [blocks[j], blocks[idx]];
-    setDraft({ ...draft, blocks });
-  }
-  function removeBlock(idx: number) {
-    if (!draft) return;
-    setDraft({ ...draft, blocks: draft.blocks.filter((_, i) => i !== idx) });
-  }
-  function addBlock() {
-    if (!draft) return;
-    setDraft({ ...draft, blocks: [...draft.blocks, newBlock()] });
-  }
-  async function handleImage(idx: number, file: File | undefined) {
-    if (!file) return;
-    const url = await fileToDataUrl(file);
-    updateBlock(idx, { imageUrl: url });
   }
 
   const publicHref = draft
@@ -520,67 +475,12 @@ export default function AdminPagesPage() {
                 </div>
 
 
-                <div className="border-t pt-4 space-y-4">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <h3 className="font-semibold">Content sections</h3>
-                      <p className="text-xs text-muted-foreground">Each section uses the same template: heading + text + optional image. Pick a layout — spacing & styling are automatic.</p>
-                    </div>
-                    <Button size="sm" variant="secondary" onClick={addBlock}><Plus className="w-4 h-4" /> Add section</Button>
-                  </div>
-
-                  {draft.blocks.length === 0 && (
-                    <p className="text-sm text-muted-foreground text-center py-6">No sections yet — add one to get started.</p>
-                  )}
-
-                  {draft.blocks.map((b, idx) => (
-                    <Card key={b.id} className="p-4 space-y-3 bg-muted/40">
-                      <div className="flex items-center justify-between gap-2 flex-wrap">
-                        <Select value={b.layout} onValueChange={(v) => updateBlock(idx, { layout: v as PageBlock['layout'] })}>
-                          <SelectTrigger className="w-full sm:w-[300px]"><SelectValue /></SelectTrigger>
-                          <SelectContent>
-                            {LAYOUT_OPTIONS.map((l) => (
-                              <SelectItem key={l.value} value={l.value}>
-                                <div>
-                                  <div>{l.label}</div>
-                                  <div className="text-xs text-muted-foreground">{l.hint}</div>
-                                </div>
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                        <div className="flex gap-1">
-                          <Button size="icon" variant="ghost" onClick={() => moveBlock(idx, -1)}><ArrowUp className="w-4 h-4" /></Button>
-                          <Button size="icon" variant="ghost" onClick={() => moveBlock(idx, 1)}><ArrowDown className="w-4 h-4" /></Button>
-                          <Button size="icon" variant="ghost" onClick={() => removeBlock(idx)}><Trash2 className="w-4 h-4 text-destructive" /></Button>
-                        </div>
-                      </div>
-
-                      {b.layout !== 'image' && b.layout !== 'image-full' && (
-                        <RichTextEditor
-                          value={b.body || ''}
-                          onChange={(html) => updateBlock(idx, { body: html })}
-                          placeholder="Write this section's content — pick a heading style from the dropdown, or just start typing..."
-                        />
-                      )}
-
-                      {b.layout !== 'text' && (
-                        <div className="space-y-2">
-                          <div className="flex items-center gap-2">
-                            <label className="inline-flex items-center gap-2 px-3 py-2 rounded-md border cursor-pointer hover:bg-background text-sm">
-                              <ImagePlus className="w-4 h-4" />
-                              {b.imageUrl ? 'Replace image' : 'Upload image'}
-                              <input type="file" accept="image/*" className="hidden" onChange={(e) => handleImage(idx, e.target.files?.[0])} />
-                            </label>
-                            {b.imageUrl && <Button size="sm" variant="ghost" onClick={() => updateBlock(idx, { imageUrl: '' })}>Remove</Button>}
-                          </div>
-                          {b.imageUrl && (
-                            <img src={b.imageUrl} alt="" className="max-h-48 rounded border" />
-                          )}
-                        </div>
-                      )}
-                    </Card>
-                  ))}
+                <div className="border-t pt-4">
+                  <PageBlocksEditor
+                    blocks={draft.blocks}
+                    onChange={(blocks) => setDraft((d) => (d ? { ...d, blocks } : d))}
+                    onUploadImage={fileToDataUrl}
+                  />
                 </div>
               </Card>
             )}

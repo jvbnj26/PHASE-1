@@ -9,6 +9,10 @@ import { useSiteContent } from '@/contexts/SiteContentContext';
 import { Megaphone, Plus, Trash2, GripVertical, Save, X } from 'lucide-react';
 import { Activity } from '@/data/siteContent';
 import { toast } from 'sonner';
+import RichTextEditor from '@/components/admin/RichTextEditor';
+import RichText from '@/components/RichText';
+import { toRichHtml } from '@/lib/richText';
+import PageSectionsCard from '@/components/admin/PageSectionsCard';
 
 export default function AdminActivitiesPage() {
   const { activities, setActivities } = useSiteContent();
@@ -125,10 +129,9 @@ export default function AdminActivitiesPage() {
                 <CardContent className="space-y-4">
                   <div className="space-y-2">
                     <Label>Description</Label>
-                    <Textarea
-                      value={editForm.description}
-                      onChange={(e) => setEditForm({ ...editForm, description: e.target.value })}
-                      rows={3}
+                    <RichTextEditor
+                      value={toRichHtml(editForm.description)}
+                      onChange={(html) => setEditForm((f) => (f ? { ...f, description: html } : f))}
                     />
                   </div>
                   <div className="space-y-2">
@@ -162,7 +165,7 @@ export default function AdminActivitiesPage() {
               )}
               {editingId !== activity.id && (
                 <CardContent>
-                  <p className="text-muted-foreground text-sm">{activity.description}</p>
+                  <RichText value={activity.description} className="text-muted-foreground text-sm" />
                   {activity.items.length > 0 && (
                     <ul className="list-disc list-inside text-sm text-muted-foreground mt-2 ml-2">
                       {activity.items.map((item, idx) => (
@@ -178,6 +181,8 @@ export default function AdminActivitiesPage() {
             </Card>
           ))}
         </div>
+
+        <PageSectionsCard pageId="activities" />
       </div>
     </AdminLayout>
   );

@@ -9,6 +9,8 @@ import PublicLayout from '@/components/layout/PublicLayout';
 import { Button } from '@/components/ui/button';
 import EventPopup from '@/components/EventPopup';
 import { getImageSrc } from '@/lib/imageMap';
+import RichText from '@/components/RichText';
+import PageSections from '@/components/PageSections';
 
 export default function HomePage() {
   const { bannerSlides, welcomeText, spiritualMasters } = useSiteContent();
@@ -97,11 +99,10 @@ export default function HomePage() {
               <h2 className="font-serif text-3xl md:text-4xl font-bold text-foreground mb-6">
                 {welcomeText.title}
               </h2>
-              <div className="prose prose-lg text-muted-foreground leading-relaxed">
-                {welcomeText.content.split('\n\n').map((paragraph, index) => (
-                  <p key={index} className="mb-4">{paragraph}</p>
-                ))}
-              </div>
+              <RichText
+                value={welcomeText.content}
+                className="text-lg text-muted-foreground leading-relaxed mb-4 [--rt-gap:1.5rem]"
+              />
             </div>
 
             {/* Spiritual Masters */}
@@ -159,6 +160,8 @@ export default function HomePage() {
           </div>
         </div>
       </section>
+
+      <PageSections pageId="home" />
     </PublicLayout>
   );
 }

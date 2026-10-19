@@ -2,11 +2,14 @@ import { useState } from 'react';
 import AdminLayout from '@/components/admin/AdminLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { useSiteContent } from '@/contexts/SiteContentContext';
 import { Heart, Save, Edit2 } from 'lucide-react';
 import { toast } from 'sonner';
+import RichTextEditor from '@/components/admin/RichTextEditor';
+import RichText from '@/components/RichText';
+import { toRichHtml } from '@/lib/richText';
+import PageSectionsCard from '@/components/admin/PageSectionsCard';
 
 export default function AdminDonationsPage() {
   const { donationContent, setDonationContent } = useSiteContent();
@@ -35,7 +38,7 @@ export default function AdminDonationsPage() {
             </p>
           </div>
           {!isEditing ? (
-            <Button onClick={() => setIsEditing(true)} className="gap-2">
+            <Button onClick={() => { setEditForm(donationContent); setIsEditing(true); }} className="gap-2">
               <Edit2 className="w-4 h-4" />
               Edit Content
             </Button>
@@ -65,19 +68,13 @@ export default function AdminDonationsPage() {
               {isEditing ? (
                 <div className="space-y-2">
                   <Label>Introduction (shown at top of page)</Label>
-                  <Textarea
-                    value={editForm.intro}
-                    onChange={(e) => setEditForm({ ...editForm, intro: e.target.value })}
-                    rows={6}
+                  <RichTextEditor
+                    value={toRichHtml(editForm.intro)}
+                    onChange={(html) => setEditForm((f) => ({ ...f, intro: html }))}
                   />
-                  <p className="text-xs text-muted-foreground">Use double line breaks to create paragraphs</p>
                 </div>
               ) : (
-                <div className="prose prose-sm text-muted-foreground">
-                  {donationContent.intro.split('\n\n').map((para, idx) => (
-                    <p key={idx}>{para}</p>
-                  ))}
-                </div>
+                <RichText value={donationContent.intro} className="text-sm text-muted-foreground" />
               )}
             </CardContent>
           </Card>
@@ -91,14 +88,13 @@ export default function AdminDonationsPage() {
               {isEditing ? (
                 <div className="space-y-2">
                   <Label>Pledge Information</Label>
-                  <Textarea
-                    value={editForm.pledgeInfo}
-                    onChange={(e) => setEditForm({ ...editForm, pledgeInfo: e.target.value })}
-                    rows={4}
+                  <RichTextEditor
+                    value={toRichHtml(editForm.pledgeInfo, { splitLines: true })}
+                    onChange={(html) => setEditForm((f) => ({ ...f, pledgeInfo: html }))}
                   />
                 </div>
               ) : (
-                <p className="text-muted-foreground">{donationContent.pledgeInfo}</p>
+                <RichText value={donationContent.pledgeInfo} splitLines className="text-muted-foreground [--rt-gap:0.5rem]" />
               )}
             </CardContent>
           </Card>
@@ -112,14 +108,13 @@ export default function AdminDonationsPage() {
               {isEditing ? (
                 <div className="space-y-2">
                   <Label>Tax Information</Label>
-                  <Textarea
-                    value={editForm.taxInfo}
-                    onChange={(e) => setEditForm({ ...editForm, taxInfo: e.target.value })}
-                    rows={2}
+                  <RichTextEditor
+                    value={toRichHtml(editForm.taxInfo)}
+                    onChange={(html) => setEditForm((f) => ({ ...f, taxInfo: html }))}
                   />
                 </div>
               ) : (
-                <p className="text-muted-foreground">{donationContent.taxInfo}</p>
+                <RichText value={donationContent.taxInfo} className="text-muted-foreground" />
               )}
             </CardContent>
           </Card>
@@ -147,6 +142,8 @@ export default function AdminDonationsPage() {
             </CardContent>
           </Card>
         </div>
+
+        <PageSectionsCard pageId="donate" />
       </div>
     </AdminLayout>
   );

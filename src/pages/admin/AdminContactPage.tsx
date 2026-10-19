@@ -3,12 +3,14 @@ import AdminLayout from '@/components/admin/AdminLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { useSiteContent } from '@/contexts/SiteContentContext';
 import { MapPin, Save, Edit2, Plus, Trash2, Building2, Globe } from 'lucide-react';
 import { SatelliteCenter } from '@/data/siteContent';
 import { toast } from 'sonner';
+import RichTextEditor from '@/components/admin/RichTextEditor';
+import { toRichHtml } from '@/lib/richText';
+import PageSectionsCard from '@/components/admin/PageSectionsCard';
 
 export default function AdminContactPage() {
   const { contactInfo, setContactInfo, satelliteCenters, setSatelliteCenters } = useSiteContent();
@@ -83,7 +85,7 @@ export default function AdminContactPage() {
                 Samaniji & Mailing Address
               </CardTitle>
               {!isEditingMain ? (
-                <Button size="sm" variant="outline" onClick={() => setIsEditingMain(true)}>
+                <Button size="sm" variant="outline" onClick={() => { setMainForm(contactInfo); setIsEditingMain(true); }}>
                   <Edit2 className="w-4 h-4 mr-2" />
                   Edit
                 </Button>
@@ -180,10 +182,9 @@ export default function AdminContactPage() {
                 <div className="space-y-4">
                   <div className="space-y-2">
                     <Label>Hours / Location Info</Label>
-                    <Textarea
-                      value={mainForm.hours}
-                      onChange={(e) => setMainForm({ ...mainForm, hours: e.target.value })}
-                      rows={4}
+                    <RichTextEditor
+                      value={toRichHtml(mainForm.hours)}
+                      onChange={(html) => setMainForm((f) => ({ ...f, hours: html }))}
                     />
                   </div>
                   <div className="space-y-2">
@@ -362,6 +363,8 @@ export default function AdminContactPage() {
             </div>
           </CardContent>
         </Card>
+
+        <PageSectionsCard pageId="contact" />
       </div>
     </AdminLayout>
   );

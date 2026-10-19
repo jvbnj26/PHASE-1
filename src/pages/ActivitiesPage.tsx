@@ -2,6 +2,8 @@ import PublicLayout from '@/components/layout/PublicLayout';
 import PageHero from '@/components/layout/PageHero';
 import { useSiteContent } from '@/contexts/SiteContentContext';
 import { ExternalLink, Calendar, Youtube, BookOpen, CheckCircle2 } from 'lucide-react';
+import RichText from '@/components/RichText';
+import PageSections from '@/components/PageSections';
 
 export default function ActivitiesPage() {
   const { activities } = useSiteContent();
@@ -67,7 +69,7 @@ export default function ActivitiesPage() {
                 </div>
 
                 <h3 className="font-serif font-bold text-xl text-foreground mb-2 pr-12">{activity.title}</h3>
-                <p className="text-muted-foreground mb-4 leading-relaxed">{activity.description}</p>
+                <RichText value={activity.description} className="text-muted-foreground mb-4 leading-relaxed" />
 
                 {activity.items.length > 0 && (
                   <ul className="space-y-2 mb-4">
@@ -131,6 +133,8 @@ export default function ActivitiesPage() {
           </div>
         </div>
       </section>
+
+      <PageSections pageId="activities" />
     </PublicLayout>
   );
 }

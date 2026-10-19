@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Link, Navigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { useSiteContent } from '@/contexts/SiteContentContext';
@@ -6,11 +6,13 @@ import AdminLayout from '@/components/admin/AdminLayout';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
 import { Plus, Trash2, GripVertical, Save, ArrowRight } from 'lucide-react';
 import { ImageUploadButton } from '@/components/admin/ImageUploadButton';
 import { useToast } from '@/hooks/use-toast';
 import { getImageSrc } from '@/lib/imageMap';
+import RichTextEditor from '@/components/admin/RichTextEditor';
+import { toRichHtml } from '@/lib/richText';
+import PageSectionsCard from '@/components/admin/PageSectionsCard';
 
 export default function AdminHomePage() {
   const { isAuthenticated } = useAuth();
@@ -23,6 +25,8 @@ export default function AdminHomePage() {
 
   const [localBanners, setLocalBanners] = useState(bannerSlides);
   const [localWelcome, setLocalWelcome] = useState(welcomeText);
+  // Saved content arrives from the database after this page mounts — show it, not the defaults.
+  useEffect(() => setLocalWelcome(welcomeText), [welcomeText]);
   const [localActivities, setLocalActivities] = useState(activities2025.map(a => typeof a === 'string' ? a : a.name));
 
   if (!isAuthenticated) {
@@ -178,15 +182,11 @@ export default function AdminHomePage() {
             </div>
             <div>
               <Label>Content</Label>
-              <Textarea
-                value={localWelcome.content}
-                onChange={(e) => setLocalWelcome({ ...localWelcome, content: e.target.value })}
-                rows={8}
+              <RichTextEditor
+                value={toRichHtml(localWelcome.content)}
+                onChange={(html) => setLocalWelcome((w) => ({ ...w, content: html }))}
                 placeholder="Welcome text content..."
               />
-              <p className="text-xs text-muted-foreground mt-1">
-                Use blank lines to separate paragraphs
-              </p>
             </div>
           </div>
 
@@ -218,7 +218,7 @@ export default function AdminHomePage() {
         </section>
 
         {/* Activities 2025 */}
-        <section className="admin-card">
+        <section className="admin-card mb-8">
           <h2 className="font-serif text-xl font-bold text-foreground mb-6">Activities 2025 List</h2>
           
           <div className="space-y-2">
@@ -258,6 +258,8 @@ export default function AdminHomePage() {
             </Button>
           </div>
         </section>
+
+        <PageSectionsCard pageId="home" />
       </div>
     </AdminLayout>
   );

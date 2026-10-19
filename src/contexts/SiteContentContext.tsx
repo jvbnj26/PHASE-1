@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useEffect, useCallback, ReactNode } from 'react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
+import type { PageBlock } from '@/hooks/useCustomPages';
 import {
   BannerSlide,
   Activity,
@@ -89,6 +90,11 @@ interface SiteContentContextType {
   pageOrder: string[];
   setPageOrder: (order: string[]) => void;
 
+  // Extra sections (built with the same section editor as custom pages) shown at the bottom of
+  // built-in pages, keyed by page id — see SECTION_PAGES in src/data/siteContent.ts.
+  pageSections: Record<string, PageBlock[]>;
+  setPageSections: (pageId: string, blocks: PageBlock[]) => void;
+
   // True once the initial Supabase load has settled (success or failure). Consumers
   // that pick a single "best" item from a list (e.g. the homepage event popup) should
   // wait for this before deciding — otherwise they may act on stale fallback data.
@@ -120,6 +126,7 @@ export function SiteContentProvider({ children }: { children: ReactNode }) {
   const [photoAlbums, setPhotoAlbumsState] = useState<PhotoAlbum[]>(defaultPhotoAlbums);
   const [popupConfig, setPopupConfigState] = useState<PopupConfig>(defaultPopupConfig);
   const [pageOrder, setPageOrderState] = useState<string[]>(defaultPageOrder);
+  const [pageSections, setPageSectionsState] = useState<Record<string, PageBlock[]>>({});
   const [contentLoaded, setContentLoaded] = useState(false);
 
   // Load all settings from Supabase on mount, overriding defaults with DB values
@@ -155,6 +162,7 @@ export function SiteContentProvider({ children }: { children: ReactNode }) {
         if (m.has('photoAlbums'))        setPhotoAlbumsState(m.get('photoAlbums') as PhotoAlbum[]);
         if (m.has('popupConfig'))        setPopupConfigState(m.get('popupConfig') as PopupConfig);
         if (m.has('pageOrder'))          setPageOrderState(m.get('pageOrder') as string[]);
+        if (m.has('pageSections'))       setPageSectionsState(m.get('pageSections') as Record<string, PageBlock[]>);
         setContentLoaded(true);
       });
   }, []);
@@ -195,6 +203,12 @@ export function SiteContentProvider({ children }: { children: ReactNode }) {
 
   const setPageOrder = (order: string[]) => { setPageOrderState(order); persist('pageOrder', order); };
 
+  const setPageSections = (pageId: string, blocks: PageBlock[]) => {
+    const next = { ...pageSections, [pageId]: blocks };
+    setPageSectionsState(next);
+    persist('pageSections', next);
+  };
+
   return (
     <SiteContentContext.Provider
       value={{
@@ -216,6 +230,7 @@ export function SiteContentProvider({ children }: { children: ReactNode }) {
         photoAlbums, setPhotoAlbums,
         popupConfig, setPopupConfig,
         pageOrder, setPageOrder,
+        pageSections, setPageSections,
         contentLoaded,
       }}
     >

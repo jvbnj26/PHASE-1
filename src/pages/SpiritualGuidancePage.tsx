@@ -3,6 +3,9 @@ import PageHero from '@/components/layout/PageHero';
 import { useSiteContent } from '@/contexts/SiteContentContext';
 import { Facebook, Youtube, Camera, Quote } from 'lucide-react';
 import { getImageSrc } from '@/lib/imageMap';
+import RichText from '@/components/RichText';
+import { isRichTextEmpty } from '@/lib/richText';
+import PageSections from '@/components/PageSections';
 
 export default function SpiritualGuidancePage() {
   const { spiritualMasters } = useSiteContent();
@@ -57,9 +60,9 @@ export default function SpiritualGuidancePage() {
                     <div className="w-12 h-1 bg-primary rounded-full mt-2" />
                   </div>
                 </div>
-                {master.description && (
+                {!isRichTextEmpty(master.description) && (
                   <div className="p-6">
-                    <p className="text-muted-foreground leading-relaxed text-sm">{master.description}</p>
+                    <RichText value={master.description} className="text-muted-foreground leading-relaxed text-sm" />
                   </div>
                 )}
               </div>
@@ -102,6 +105,8 @@ export default function SpiritualGuidancePage() {
           </div>
         </div>
       </section>
+
+      <PageSections pageId="spiritual-guidance" />
     </PublicLayout>
   );
 }
