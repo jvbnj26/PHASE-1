@@ -8,6 +8,7 @@ import { useSiteContent } from '@/contexts/SiteContentContext';
 import { useCustomPages } from '@/hooks/useCustomPages';
 import { BUILTIN_NAV_ITEMS, orderTopLevelPages, builtinPathToSegment } from '@/data/navigation';
 import { toast } from 'sonner';
+import { usePageText } from '@/hooks/usePageText';
 
 export default function Header() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -17,6 +18,7 @@ export default function Header() {
   const { user, isAuthenticated, logout } = useAuth();
   const { pages: customPages } = useCustomPages();
   const { pageOrder } = useSiteContent();
+  const { t, has } = usePageText('site');
 
   const isActive = (path: string) => location.pathname === path;
 
@@ -67,12 +69,16 @@ export default function Header() {
           <Link to="/" className="flex items-center gap-3">
             <img src={jvbLogo} alt="JVBNA Logo" className="w-14 h-14 object-contain" />
             <div>
-              <h1 className="text-primary font-serif text-xl font-bold leading-tight">
-                JAIN VISHWA BHARATI
-              </h1>
-              <p className="text-secondary text-sm font-medium">
-                Center for Peace and Preksha Meditation
-              </p>
+              {has('siteName') && (
+                <h1 className="text-primary font-serif text-xl font-bold leading-tight">
+                  {t('siteName')}
+                </h1>
+              )}
+              {has('tagline') && (
+                <p className="text-secondary text-sm font-medium">
+                  {t('tagline')}
+                </p>
+              )}
             </div>
           </Link>
 

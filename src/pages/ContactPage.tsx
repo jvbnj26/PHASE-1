@@ -2,29 +2,33 @@ import PublicLayout from '@/components/layout/PublicLayout';
 import { useSiteContent } from '@/contexts/SiteContentContext';
 import { MapPin, Phone, Mail, Clock, ExternalLink } from 'lucide-react';
 import RichText from '@/components/RichText';
-import PageSections from '@/components/PageSections';
+import OrderedSections from '@/components/OrderedSections';
+import PageHeader from '@/components/layout/PageHeader';
+import { usePageText } from '@/hooks/usePageText';
+import { mapEmbedSrc } from '@/lib/pageContent';
 
 export default function ContactPage() {
   const { contactInfo, satelliteCenters } = useSiteContent();
+  const { t, has } = usePageText('contact');
 
-  return (
-    <PublicLayout>
-      {/* Page Header */}
-      <section className="bg-primary py-8">
-        <div className="container-custom">
-          <h1 className="font-serif text-3xl md:text-4xl font-bold text-primary-foreground">
-            CONTACT US
-          </h1>
-        </div>
-      </section>
+  // Phone label with a trailing space, or nothing when the admin removed it.
+  const phone = has('phoneLabel') ? `${t('phoneLabel')} ` : '';
+  const mailingMapSrc = mapEmbedSrc(t('mailingMap'));
+  const eventsMapSrc = mapEmbedSrc(t('eventsMap'));
 
-      <section className="py-12 bg-white">
+  // These sections share one white background, so each only adds space above itself; the
+  // wrapper adds the bottom padding after whichever section ends up last.
+  const sections = {
+    mailing: (
+      <section className="pt-12 bg-white">
         <div className="container-custom max-w-5xl">
           {/* Samaniji & Mailing Address */}
-          <div className="mb-12">
-            <h2 className="font-serif text-xl font-bold text-foreground mb-6">
-              Samaniji & Mailing Address:
-            </h2>
+          <div>
+            {has('mailingHeading') && (
+              <h2 className="font-serif text-xl font-bold text-foreground mb-6">
+                {t('mailingHeading')}
+              </h2>
+            )}
             <div className="bg-section rounded-xl p-6">
               <div className="grid md:grid-cols-2 gap-6">
                 <div>
@@ -57,37 +61,48 @@ export default function ContactPage() {
                   </div>
                 </div>
                 <div>
-                  <h4 className="font-semibold text-foreground mb-3 flex items-center gap-2">
-                    <Clock className="w-5 h-5 text-primary" />
-                    Location:
-                  </h4>
+                  {has('locationLabel') && (
+                    <h4 className="font-semibold text-foreground mb-3 flex items-center gap-2">
+                      <Clock className="w-5 h-5 text-primary" />
+                      {t('locationLabel')}
+                    </h4>
+                  )}
                   <RichText value={contactInfo.hours} className="text-muted-foreground text-sm leading-relaxed" />
                 </div>
               </div>
             </div>
           </div>
-
-          {/* Google Maps - Iselin */}
-          <div className="mb-12">
-            <div className="aspect-video max-w-2xl rounded-lg overflow-hidden shadow-md">
-              <iframe
-                src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3031.1234567890123!2d-74.32!3d40.57!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0%3A0x0!2zNDDCsDM0JzE2LjgiTiA3NMKwMTknMTIuMCJX!5e0!3m2!1sen!2sus!4v1234567890"
-                width="100%"
-                height="100%"
-                style={{ border: 0 }}
-                allowFullScreen
-                loading="lazy"
-                referrerPolicy="no-referrer-when-downgrade"
-                title="JVBNA Iselin Location"
-              />
-            </div>
+        </div>
+      </section>
+    ),
+    mailingMap: mailingMapSrc && (
+      <section className="pt-12 bg-white">
+        <div className="container-custom max-w-5xl">
+          <div className="aspect-video max-w-2xl rounded-lg overflow-hidden shadow-md">
+            <iframe
+              src={mailingMapSrc}
+              width="100%"
+              height="100%"
+              style={{ border: 0 }}
+              allowFullScreen
+              loading="lazy"
+              referrerPolicy="no-referrer-when-downgrade"
+              title="JVBNA Iselin Location"
+            />
           </div>
-
+        </div>
+      </section>
+    ),
+    events: (
+      <section className="pt-12 bg-white">
+        <div className="container-custom max-w-5xl">
           {/* JVBNA Events Address */}
-          <div className="mb-12">
-            <h2 className="font-serif text-xl font-bold text-foreground mb-6">
-              JVBNA Events Address:
-            </h2>
+          <div>
+            {has('eventsHeading') && (
+              <h2 className="font-serif text-xl font-bold text-foreground mb-6">
+                {t('eventsHeading')}
+              </h2>
+            )}
             <div className="bg-section rounded-xl p-6">
               <h3 className="font-semibold text-foreground mb-3">{contactInfo.eventsAddress.name}</h3>
               <p className="text-muted-foreground">
@@ -96,37 +111,46 @@ export default function ContactPage() {
               </p>
             </div>
           </div>
-
-          {/* Google Maps - South Plainfield */}
-          <div className="mb-12">
-            <div className="aspect-video max-w-2xl rounded-lg overflow-hidden shadow-md">
-              <iframe
-                src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3031.1234567890123!2d-74.42!3d40.57!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0%3A0x0!2zNDDCsDM0JzE2LjgiTiA3NMKwMjUnMTIuMCJX!5e0!3m2!1sen!2sus!4v1234567890"
-                width="100%"
-                height="100%"
-                style={{ border: 0 }}
-                allowFullScreen
-                loading="lazy"
-                referrerPolicy="no-referrer-when-downgrade"
-                title="JVBNA South Plainfield Location"
-              />
-            </div>
+        </div>
+      </section>
+    ),
+    eventsMap: eventsMapSrc && (
+      <section className="pt-12 bg-white">
+        <div className="container-custom max-w-5xl">
+          <div className="aspect-video max-w-2xl rounded-lg overflow-hidden shadow-md">
+            <iframe
+              src={eventsMapSrc}
+              width="100%"
+              height="100%"
+              style={{ border: 0 }}
+              allowFullScreen
+              loading="lazy"
+              referrerPolicy="no-referrer-when-downgrade"
+              title="JVBNA South Plainfield Location"
+            />
           </div>
-
+        </div>
+      </section>
+    ),
+    centers: (
+      <section className="pt-12 bg-white">
+        <div className="container-custom max-w-5xl">
           {/* Parent Organization & Satellite Centers */}
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
             {/* Parent Organization */}
             <div className="bg-section rounded-xl p-6">
-              <h3 className="font-serif text-lg font-bold text-foreground mb-4">
-                Parent Organization
-              </h3>
-              <p className="font-medium text-foreground">Ladnun, India</p>
+              {has('parentHeading') && (
+                <h3 className="font-serif text-lg font-bold text-foreground mb-4">
+                  {t('parentHeading')}
+                </h3>
+              )}
+              {has('parentLocation') && <p className="font-medium text-foreground">{t('parentLocation')}</p>}
               <p className="text-muted-foreground text-sm mt-2">
                 {satelliteCenters[0]?.name}<br />
                 {satelliteCenters[0]?.street}
               </p>
               <p className="text-muted-foreground text-sm mt-2">
-                Ph: {satelliteCenters[0]?.phone}
+                {phone}{satelliteCenters[0]?.phone}
               </p>
               <p className="mt-2">
                 {satelliteCenters[0]?.email.map((email, idx) => (
@@ -147,9 +171,11 @@ export default function ContactPage() {
 
             {/* Satellite Centers */}
             <div className="md:col-span-2 lg:col-span-2">
-              <h3 className="font-serif text-lg font-bold text-foreground mb-4">
-                Satellite Centers in the USA:
-              </h3>
+              {has('satellitesHeading') && (
+                <h3 className="font-serif text-lg font-bold text-foreground mb-4">
+                  {t('satellitesHeading')}
+                </h3>
+              )}
               <div className="grid sm:grid-cols-2 gap-6">
                 {satelliteCenters.slice(1).map((center) => (
                   <div key={center.id} className="bg-section rounded-xl p-6">
@@ -159,7 +185,7 @@ export default function ContactPage() {
                       {center.street}
                     </p>
                     <p className="text-muted-foreground text-sm mt-2">
-                      Ph: {center.phone}
+                      {phone}{center.phone}
                     </p>
                     <p className="mt-2">
                       {center.email.map((email, idx) => (
@@ -183,8 +209,13 @@ export default function ContactPage() {
           </div>
         </div>
       </section>
+    ),
+  };
 
-      <PageSections pageId="contact" />
+  return (
+    <PublicLayout>
+      <PageHeader title={t('pageTitle')} image={t('heroImage')} />
+      <OrderedSections pageId="contact" sections={sections} className="[&>section:last-child]:pb-12" />
     </PublicLayout>
   );
 }

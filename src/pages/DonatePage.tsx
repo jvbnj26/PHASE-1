@@ -9,12 +9,16 @@ import { Button } from '@/components/ui/button';
 import { Heart, Shield, ArrowRight, LogIn } from 'lucide-react';
 import donorCategoriesImg from '@/assets/donor-categories.png';
 import RichText from '@/components/RichText';
-import PageSections from '@/components/PageSections';
+import OrderedSections from '@/components/OrderedSections';
+import SmartLink from '@/components/SmartLink';
+import { usePageText } from '@/hooks/usePageText';
 import DonationMethodCard from '@/components/DonationMethodCard';
+import { STANDALONE_IMAGE_WIDTH, toImageSize } from '@/lib/imageSize';
 
 export default function DonatePage() {
   const { donationContent } = useSiteContent();
   const { isAuthenticated, user } = useAuth();
+  const { t, has } = usePageText('donate');
   const [donorCategory, setDonorCategory] = useState<string | null>(null);
 
   useEffect(() => {
@@ -23,15 +27,8 @@ export default function DonatePage() {
       .then(({ data }) => setDonorCategory(data?.donor_category ?? null));
   }, [user]);
 
-  return (
-    <PublicLayout>
-      <PageHero
-        eyebrow="Support Our Mission"
-        title="Donations"
-        subtitle="Your generous contribution helps us maintain our centers, support Samanijis, and spread the message of peace and nonviolence."
-      />
-
-      {/* Intro */}
+  const sections = {
+    intro: (
       <section className="py-16 bg-white">
         <div className="container-custom max-w-5xl">
           <div className="grid md:grid-cols-12 gap-8 items-start">
@@ -40,10 +37,12 @@ export default function DonatePage() {
                 <div className="w-12 h-12 rounded-xl bg-primary/10 text-primary flex items-center justify-center mb-4">
                   <Heart className="w-6 h-6" />
                 </div>
-                <p className="text-primary font-semibold text-sm uppercase tracking-wider mb-2">Why Donate</p>
-                <h2 className="font-serif text-2xl md:text-3xl font-bold text-foreground leading-tight">
-                  JVBNA & Donations
-                </h2>
+                {has('introEyebrow') && <p className="text-primary font-semibold text-sm uppercase tracking-wider mb-2">{t('introEyebrow')}</p>}
+                {has('introHeading') && (
+                  <h2 className="font-serif text-2xl md:text-3xl font-bold text-foreground leading-tight">
+                    {t('introHeading')}
+                  </h2>
+                )}
               </div>
             </div>
             <RichText
@@ -53,33 +52,32 @@ export default function DonatePage() {
           </div>
         </div>
       </section>
-
-      {/* Pledge banner */}
+    ),
+    pledge: (
       <section className="py-10 bg-gradient-to-br from-section to-muted/30">
         <div className="container-custom max-w-5xl">
           <div className="bg-white rounded-2xl border border-border p-8 md:p-10 relative overflow-hidden">
             <div className="absolute top-0 right-0 w-40 h-40 bg-gradient-to-br from-primary/10 to-transparent rounded-full -mr-20 -mt-20" />
-            <p className="text-primary font-semibold text-sm uppercase tracking-wider mb-2">Annual Pledge</p>
-            <h3 className="font-serif text-2xl md:text-3xl font-bold text-foreground mb-4">
-              2024 Annual Fund Raising
-            </h3>
+            {has('pledgeEyebrow') && <p className="text-primary font-semibold text-sm uppercase tracking-wider mb-2">{t('pledgeEyebrow')}</p>}
+            {has('pledgeHeading') && (
+              <h3 className="font-serif text-2xl md:text-3xl font-bold text-foreground mb-4">
+                {t('pledgeHeading')}
+              </h3>
+            )}
             <RichText value={donationContent.pledgeInfo} splitLines className="text-muted-foreground [--rt-gap:0.5rem]" />
           </div>
         </div>
       </section>
-
-      {/* Donor categories */}
+    ),
+    categories: (
       <section className="py-16 bg-gradient-to-br from-section to-muted/30">
         <div className="container-custom max-w-4xl">
           <div className="text-center max-w-2xl mx-auto mb-10">
-            <p className="text-primary font-semibold text-sm uppercase tracking-wider mb-2">Contribution Tiers</p>
-            <h2 className="font-serif text-3xl md:text-4xl font-bold text-foreground mb-3">Donor Categories</h2>
-            <p className="text-muted-foreground">
-              Choose a contribution category during signup and it's already on file — just add your
-              payment info here when you're ready to give.
-            </p>
+            {has('categoriesEyebrow') && <p className="text-primary font-semibold text-sm uppercase tracking-wider mb-2">{t('categoriesEyebrow')}</p>}
+            {has('categoriesHeading') && <h2 className="font-serif text-3xl md:text-4xl font-bold text-foreground mb-3">{t('categoriesHeading')}</h2>}
+            <RichText value={t('categoriesText')} className="text-muted-foreground" />
           </div>
-          <div className="bg-white rounded-2xl border border-border p-4 md:p-6">
+          <div className={`bg-white rounded-2xl border border-border p-4 md:p-6 ${STANDALONE_IMAGE_WIDTH[toImageSize(t('categoriesImageSize'), 'full')]}`}>
             <img
               src={donationContent.donorCategoriesImage || donorCategoriesImg}
               alt="Donor contribution categories, amounts, and benefits"
@@ -88,16 +86,14 @@ export default function DonatePage() {
           </div>
         </div>
       </section>
-
-      {/* How to Donate */}
-      <section className="py-16 bg-white">
+    ),
+    methods: (
+      <section id="how-to-donate" className="py-16 bg-white scroll-mt-4">
         <div className="container-custom max-w-6xl">
           <div className="text-center max-w-2xl mx-auto mb-12">
-            <p className="text-primary font-semibold text-sm uppercase tracking-wider mb-2">Choose Your Method</p>
-            <h2 className="font-serif text-3xl md:text-4xl font-bold text-foreground mb-3">How to Donate</h2>
-            <p className="text-muted-foreground">
-              Pledge your donation, or directly donate using any of the methods below.
-            </p>
+            {has('methodsEyebrow') && <p className="text-primary font-semibold text-sm uppercase tracking-wider mb-2">{t('methodsEyebrow')}</p>}
+            {has('methodsHeading') && <h2 className="font-serif text-3xl md:text-4xl font-bold text-foreground mb-3">{t('methodsHeading')}</h2>}
+            <RichText value={t('methodsText')} className="text-muted-foreground" />
           </div>
 
           {/* Flex-wrap (not grid) so any number of cards stays centered. */}
@@ -114,8 +110,8 @@ export default function DonatePage() {
           </div>
         </div>
       </section>
-
-      {/* Tax notice */}
+    ),
+    tax: (
       <section className="py-10 bg-white">
         <div className="container-custom max-w-5xl">
           <div className="flex items-start gap-4 bg-secondary/5 border border-secondary/20 rounded-2xl p-6">
@@ -123,14 +119,14 @@ export default function DonatePage() {
               <Shield className="w-6 h-6" />
             </div>
             <div>
-              <p className="font-semibold text-foreground mb-1">Tax Exemption</p>
+              {has('taxHeading') && <p className="font-semibold text-foreground mb-1">{t('taxHeading')}</p>}
               <RichText value={donationContent.taxInfo} className="text-muted-foreground text-sm leading-relaxed" />
             </div>
           </div>
         </div>
       </section>
-
-      {/* CTA */}
+    ),
+    cta: (
       <section className="py-16 bg-gradient-to-br from-section to-muted/30">
         <div className="container-custom max-w-5xl">
           <div className="bg-gradient-to-r from-primary to-secondary rounded-2xl p-10 md:p-12 text-white text-center relative overflow-hidden">
@@ -138,47 +134,58 @@ export default function DonatePage() {
             <div className="absolute -bottom-24 -left-12 w-48 h-48 rounded-full bg-white/5" />
             <div className="relative">
               <Heart className="w-12 h-12 mx-auto mb-4" />
-              <h3 className="font-serif text-3xl md:text-4xl font-bold mb-3">Make a Difference Today</h3>
-              <p className="text-white/90 mb-6 max-w-xl mx-auto">
-                Every contribution, large or small, helps sustain our mission of peace, nonviolence, and spiritual upliftment.
-              </p>
+              {has('ctaHeading') && <h3 className="font-serif text-3xl md:text-4xl font-bold mb-3">{t('ctaHeading')}</h3>}
+              <RichText value={t('ctaText')} onDark className="text-white/90 mb-6 max-w-xl mx-auto" />
               {isAuthenticated ? (
                 <div className="space-y-3">
                   {donorCategory && (
                     <p className="text-white/90 text-sm">
-                      You signed up as: <span className="font-semibold">{donorCategory}</span>
+                      {has('ctaSignedUpAs') && <>{t('ctaSignedUpAs')} </>}<span className="font-semibold">{donorCategory}</span>
                     </p>
                   )}
-                  <Button size="lg" className="bg-white text-primary hover:bg-white/90 font-semibold">
-                    Donate Now <ArrowRight className="w-4 h-4 ml-1" />
-                  </Button>
+                  {has('ctaButton') && (
+                    <SmartLink to={t('ctaButtonLink')}>
+                      <Button size="lg" className="bg-white text-primary hover:bg-white/90 font-semibold">
+                        {t('ctaButton')} <ArrowRight className="w-4 h-4 ml-1" />
+                      </Button>
+                    </SmartLink>
+                  )}
                 </div>
               ) : (
                 <div className="space-y-3">
-                  <p className="text-white/80 text-sm">Please sign in to donate.</p>
-                  <Link to="/auth?tab=signin&redirect=/donate">
-                    <Button size="lg" className="bg-white text-primary hover:bg-white/90 font-semibold">
-                      <LogIn className="w-4 h-4 mr-2" />
-                      Sign In to Donate
-                    </Button>
-                  </Link>
-                  <p className="text-white/60 text-xs">
-                    New member?{' '}
-                    <Link to="/signup" className="underline text-white/80 hover:text-white">
-                      Start your membership application.
+                  {has('ctaSignInPrompt') && <p className="text-white/80 text-sm">{t('ctaSignInPrompt')}</p>}
+                  {has('ctaSignInButton') && (
+                    <Link to="/auth?tab=signin&redirect=/donate">
+                      <Button size="lg" className="bg-white text-primary hover:bg-white/90 font-semibold">
+                        <LogIn className="w-4 h-4 mr-2" />
+                        {t('ctaSignInButton')}
+                      </Button>
                     </Link>
-                  </p>
+                  )}
+                  {(has('ctaNewMember') || has('ctaNewMemberLink')) && (
+                    <p className="text-white/60 text-xs">
+                      {has('ctaNewMember') && <>{t('ctaNewMember')}{' '}</>}
+                      {has('ctaNewMemberLink') && (
+                        <Link to="/signup" className="underline text-white/80 hover:text-white">
+                          {t('ctaNewMemberLink')}
+                        </Link>
+                      )}
+                    </p>
+                  )}
                 </div>
               )}
-              <p className="mt-8 text-white/80 text-sm">
-                Questions? Reach out to <span className="font-semibold text-white">Vinodh Anchaliya</span> · WhatsApp +1 732 619 5500
-              </p>
+              <RichText value={t('ctaContact')} onDark className="mt-8 text-white/80 text-sm [&_strong]:text-white" />
             </div>
           </div>
         </div>
       </section>
+    ),
+  };
 
-      <PageSections pageId="donate" />
+  return (
+    <PublicLayout>
+      <PageHero eyebrow={t('heroEyebrow')} title={t('heroTitle')} subtitle={t('heroSubtitle')} image={t('heroImage')} />
+      <OrderedSections pageId="donate" sections={sections} />
     </PublicLayout>
   );
 }

@@ -9,6 +9,8 @@ import type { PageBlock } from '@/hooks/useCustomPages';
 import PageBlocksEditor from '@/components/admin/PageBlocksEditor';
 import { uploadSiteImage } from '@/lib/siteImages';
 
+export const PAGE_SECTIONS_CARD_ID = 'page-sections-card';
+
 const uploadSectionImage = (file: File) => uploadSiteImage(file, 'page-sections');
 
 /** "Additional Sections" editor for a built-in page — same section builder as Admin > Pages. */
@@ -40,7 +42,7 @@ export default function PageSectionsCard({ pageId }: { pageId: SectionPageId }) 
   };
 
   return (
-    <Card>
+    <Card id={PAGE_SECTIONS_CARD_ID} className="scroll-mt-6">
       <CardHeader>
         <div className="flex items-center justify-between gap-3 flex-wrap">
           <div>
@@ -49,7 +51,7 @@ export default function PageSectionsCard({ pageId }: { pageId: SectionPageId }) 
               Additional Sections
             </CardTitle>
             <p className="text-sm text-muted-foreground mt-1">
-              Add your own sections to the bottom of the {SECTION_PAGES[pageId]} page — text, images, or both.
+              Add your own sections to the {SECTION_PAGES[pageId]} page — text, images, or both. New sections go at the bottom; move them anywhere with Section Order &amp; Visibility above.
             </p>
           </div>
           <div className="flex gap-2">

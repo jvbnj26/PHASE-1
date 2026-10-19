@@ -10,6 +10,9 @@ import { normalizeAlbums, validatePhotoAlbums } from '@/lib/photoAlbums';
 import { uploadSiteImage } from '@/lib/siteImages';
 import { Camera, Plus, Trash2, ArrowUp, ArrowDown, Save, ExternalLink, Images, Loader2, X } from 'lucide-react';
 import { toast } from 'sonner';
+import { PageTextCard } from '@/components/admin/PageTextFields';
+import PageLayoutCard from '@/components/admin/PageLayoutCard';
+import PageSectionsCard from '@/components/admin/PageSectionsCard';
 
 function AlbumImageUpload({ imageUrl, onChange }: { imageUrl?: string; onChange: (url: string) => void }) {
   const inputRef = useRef<HTMLInputElement>(null);
@@ -144,6 +147,10 @@ export default function AdminPhotosPage() {
           </div>
         </div>
 
+        <PageLayoutCard pageId="photos" />
+        <PageTextCard page="photos" section="hero" description="The colored title bar at the top of the page." />
+        <PageTextCard page="photos" section="gallery" title="Gallery Text" />
+
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
@@ -227,6 +234,8 @@ export default function AdminPhotosPage() {
             </div>
           </CardContent>
         </Card>
+
+        <PageSectionsCard pageId="photos" />
       </div>
     </AdminLayout>
   );

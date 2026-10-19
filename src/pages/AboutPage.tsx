@@ -3,32 +3,29 @@ import PageHero from '@/components/layout/PageHero';
 import { useSiteContent } from '@/contexts/SiteContentContext';
 import { Sparkles, Heart, Brain, Target } from 'lucide-react';
 import RichText from '@/components/RichText';
-import PageSections from '@/components/PageSections';
+import OrderedSections from '@/components/OrderedSections';
+import SmartLink from '@/components/SmartLink';
+import { usePageText } from '@/hooks/usePageText';
 
 const programIcons = [Heart, Brain, Sparkles];
 
 export default function AboutPage() {
   const { aboutContent } = useSiteContent();
+  const { t, has } = usePageText('about');
 
-
-  return (
-    <PublicLayout>
-      <PageHero
-        eyebrow="Who We Are"
-        title="About JVBNA"
-        subtitle="Jain Vishwa Bharati of North America — a center for peace, Preksha Meditation, and the timeless values of nonviolence."
-      />
-
-      {/* Intro */}
+  const sections = {
+    intro: (
       <section className="py-16 bg-white">
         <div className="container-custom max-w-5xl">
           <div className="grid md:grid-cols-12 gap-8 items-start">
             <div className="md:col-span-4">
               <div className="sticky top-24">
                 <div className="w-16 h-1 bg-primary mb-4 rounded-full" />
-                <h2 className="font-serif text-2xl md:text-3xl font-bold text-foreground leading-tight">
-                  A Non-Violent Way of Life
-                </h2>
+                {has('introHeading') && (
+                  <h2 className="font-serif text-2xl md:text-3xl font-bold text-foreground leading-tight">
+                    {t('introHeading')}
+                  </h2>
+                )}
               </div>
             </div>
             <RichText
@@ -38,8 +35,8 @@ export default function AboutPage() {
           </div>
         </div>
       </section>
-
-      {/* Mission */}
+    ),
+    mission: (
       <section className="py-16 bg-gradient-to-br from-section to-muted/30">
         <div className="container-custom max-w-5xl">
           <div className="bg-white rounded-2xl shadow-sm border border-border p-8 md:p-12 relative overflow-hidden">
@@ -49,21 +46,21 @@ export default function AboutPage() {
                 <Target className="w-6 h-6" />
               </div>
               <div>
-                <p className="text-primary font-semibold text-sm uppercase tracking-wider mb-1">Our Mission</p>
-                <h3 className="font-serif text-2xl md:text-3xl font-bold text-foreground">Spreading the universal message</h3>
+                {has('missionEyebrow') && <p className="text-primary font-semibold text-sm uppercase tracking-wider mb-1">{t('missionEyebrow')}</p>}
+                {has('missionHeading') && <h3 className="font-serif text-2xl md:text-3xl font-bold text-foreground">{t('missionHeading')}</h3>}
               </div>
             </div>
             <RichText value={aboutContent.mission} className="text-muted-foreground leading-relaxed text-lg pl-16" />
           </div>
         </div>
       </section>
-
-      {/* Programs */}
+    ),
+    programs: (
       <section className="py-16 bg-white">
         <div className="container-custom max-w-6xl">
           <div className="text-center max-w-2xl mx-auto mb-12">
-            <p className="text-primary font-semibold text-sm uppercase tracking-wider mb-2">What We Do</p>
-            <h2 className="font-serif text-3xl md:text-4xl font-bold text-foreground mb-4">Our Programs</h2>
+            {has('programsEyebrow') && <p className="text-primary font-semibold text-sm uppercase tracking-wider mb-2">{t('programsEyebrow')}</p>}
+            {has('programsHeading') && <h2 className="font-serif text-3xl md:text-4xl font-bold text-foreground mb-4">{t('programsHeading')}</h2>}
             <RichText value={aboutContent.programs} className="text-muted-foreground" />
           </div>
 
@@ -86,23 +83,30 @@ export default function AboutPage() {
           </div>
         </div>
       </section>
-
-      {/* Leadership CTA */}
+    ),
+    leadership: (
       <section className="py-16 bg-gradient-to-br from-section to-muted/30">
         <div className="container-custom max-w-4xl text-center">
-          <p className="text-primary font-semibold text-sm uppercase tracking-wider mb-2">Leadership</p>
-          <h2 className="font-serif text-3xl md:text-4xl font-bold text-foreground mb-4">Management (Present)</h2>
-          <p className="text-muted-foreground mb-6">Meet the Board of Directors and Executive Committee who guide JVBNA.</p>
-          <a
-            href="/about/leadership"
-            className="inline-block bg-secondary text-secondary-foreground font-semibold px-6 py-3 rounded-lg hover:opacity-90 transition-opacity"
-          >
-            View Leadership
-          </a>
+          {has('leadershipEyebrow') && <p className="text-primary font-semibold text-sm uppercase tracking-wider mb-2">{t('leadershipEyebrow')}</p>}
+          {has('leadershipHeading') && <h2 className="font-serif text-3xl md:text-4xl font-bold text-foreground mb-4">{t('leadershipHeading')}</h2>}
+          <RichText value={t('leadershipText')} className="text-muted-foreground mb-6" />
+          {has('leadershipButton') && (
+            <SmartLink
+              to={t('leadershipButtonLink')}
+              className="inline-block bg-secondary text-secondary-foreground font-semibold px-6 py-3 rounded-lg hover:opacity-90 transition-opacity"
+            >
+              {t('leadershipButton')}
+            </SmartLink>
+          )}
         </div>
       </section>
+    ),
+  };
 
-      <PageSections pageId="about" />
+  return (
+    <PublicLayout>
+      <PageHero eyebrow={t('heroEyebrow')} title={t('heroTitle')} subtitle={t('heroSubtitle')} image={t('heroImage')} />
+      <OrderedSections pageId="about" sections={sections} />
     </PublicLayout>
   );
 }

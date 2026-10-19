@@ -1,7 +1,8 @@
-import React, { createContext, useContext, useState, useEffect, useCallback, ReactNode } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback, useRef, ReactNode } from 'react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import type { PageBlock } from '@/hooks/useCustomPages';
+import type { PageLayout } from '@/data/pageContent';
 import {
   BannerSlide,
   Activity,
@@ -95,6 +96,15 @@ interface SiteContentContextType {
   pageSections: Record<string, PageBlock[]>;
   setPageSections: (pageId: string, blocks: PageBlock[]) => void;
 
+  // Admin overrides for built-in pages' fixed text, keyed `<page>.<field>` — see
+  // src/data/pageContent.ts. `null` in an update removes the override (back to the default).
+  pageText: Record<string, string>;
+  setPageText: (updates: Record<string, string | null>) => void;
+
+  // Section order / hidden sections per built-in page.
+  pageLayout: Record<string, PageLayout>;
+  setPageLayout: (pageId: string, layout: PageLayout) => void;
+
   // True once the initial Supabase load has settled (success or failure). Consumers
   // that pick a single "best" item from a list (e.g. the homepage event popup) should
   // wait for this before deciding — otherwise they may act on stale fallback data.
@@ -127,7 +137,12 @@ export function SiteContentProvider({ children }: { children: ReactNode }) {
   const [popupConfig, setPopupConfigState] = useState<PopupConfig>(defaultPopupConfig);
   const [pageOrder, setPageOrderState] = useState<string[]>(defaultPageOrder);
   const [pageSections, setPageSectionsState] = useState<Record<string, PageBlock[]>>({});
+  const [pageText, setPageTextState] = useState<Record<string, string>>({});
+  const [pageLayout, setPageLayoutState] = useState<Record<string, PageLayout>>({});
   const [contentLoaded, setContentLoaded] = useState(false);
+  // Latest values for the merge-style setters, so two saves in a row never drop each other's keys.
+  const pageTextRef = useRef(pageText);
+  const pageLayoutRef = useRef(pageLayout);
 
   // Load all settings from Supabase on mount, overriding defaults with DB values
   useEffect(() => {
@@ -165,6 +180,8 @@ export function SiteContentProvider({ children }: { children: ReactNode }) {
         if (m.has('popupConfig'))        setPopupConfigState(m.get('popupConfig') as PopupConfig);
         if (m.has('pageOrder'))          setPageOrderState(m.get('pageOrder') as string[]);
         if (m.has('pageSections'))       setPageSectionsState(m.get('pageSections') as Record<string, PageBlock[]>);
+        if (m.has('pageText'))           { pageTextRef.current = m.get('pageText') as unknown as Record<string, string>; setPageTextState(pageTextRef.current); }
+        if (m.has('pageLayout'))         { pageLayoutRef.current = m.get('pageLayout') as unknown as Record<string, PageLayout>; setPageLayoutState(pageLayoutRef.current); }
         setContentLoaded(true);
       });
   }, []);
@@ -211,6 +228,24 @@ export function SiteContentProvider({ children }: { children: ReactNode }) {
     persist('pageSections', next);
   };
 
+  const setPageText = (updates: Record<string, string | null>) => {
+    const next = { ...pageTextRef.current };
+    for (const [key, value] of Object.entries(updates)) {
+      if (value === null) delete next[key];
+      else next[key] = value;
+    }
+    pageTextRef.current = next;
+    setPageTextState(next);
+    persist('pageText', next);
+  };
+
+  const setPageLayout = (pageId: string, layout: PageLayout) => {
+    const next = { ...pageLayoutRef.current, [pageId]: layout };
+    pageLayoutRef.current = next;
+    setPageLayoutState(next);
+    persist('pageLayout', next);
+  };
+
   return (
     <SiteContentContext.Provider
       value={{
@@ -233,6 +268,8 @@ export function SiteContentProvider({ children }: { children: ReactNode }) {
         popupConfig, setPopupConfig,
         pageOrder, setPageOrder,
         pageSections, setPageSections,
+        pageText, setPageText,
+        pageLayout, setPageLayout,
         contentLoaded,
       }}
     >

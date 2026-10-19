@@ -13,6 +13,10 @@ import RichTextEditor from '@/components/admin/RichTextEditor';
 import RichText from '@/components/RichText';
 import { toRichHtml } from '@/lib/richText';
 import PageSectionsCard from '@/components/admin/PageSectionsCard';
+import ReorderButtons from '@/components/admin/ReorderButtons';
+import { moveItem } from '@/lib/reorder';
+import { PageTextCard } from '@/components/admin/PageTextFields';
+import PageLayoutCard from '@/components/admin/PageLayoutCard';
 
 export default function AdminSpiritualGuidancePage() {
   const { spiritualMasters, setSpiritualMasters } = useSiteContent();
@@ -72,12 +76,28 @@ export default function AdminSpiritualGuidancePage() {
           </Button>
         </div>
 
+        <PageLayoutCard pageId="spiritual-guidance" />
+        <PageTextCard page="spiritual-guidance" section="hero" description="The colored title banner at the top of the page." />
+        <PageTextCard page="spiritual-guidance" section="intro" />
+        <PageTextCard
+          page="spiritual-guidance"
+          section="masters"
+          title="Spiritual Masters — section text"
+          description='The heading above the Samanijis, the "About Our Samanijis" box, and the social media label. The Samanijis themselves are below; social media links are in Settings.'
+        />
+
         <div className="grid md:grid-cols-2 gap-6">
-          {spiritualMasters.map((master) => (
+          {spiritualMasters.map((master, index) => (
             <Card key={master.id}>
               <CardHeader className="pb-3">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
+                    <ReorderButtons
+                      index={index}
+                      count={spiritualMasters.length}
+                      label="Samaniji"
+                      onMove={(dir) => setSpiritualMasters(moveItem(spiritualMasters, index, dir))}
+                    />
                     <BookOpen className="w-5 h-5 text-primary" />
                     {editingId === master.id ? (
                       <Input

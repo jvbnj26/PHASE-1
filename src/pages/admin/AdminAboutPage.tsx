@@ -11,6 +11,10 @@ import RichTextEditor from '@/components/admin/RichTextEditor';
 import RichText from '@/components/RichText';
 import { toRichHtml } from '@/lib/richText';
 import PageSectionsCard from '@/components/admin/PageSectionsCard';
+import ReorderButtons from '@/components/admin/ReorderButtons';
+import { moveItem } from '@/lib/reorder';
+import PageTextFields, { PageTextCard } from '@/components/admin/PageTextFields';
+import PageLayoutCard from '@/components/admin/PageLayoutCard';
 
 export default function AdminAboutPage() {
   const { aboutContent, setAboutContent } = useSiteContent();
@@ -81,6 +85,9 @@ export default function AdminAboutPage() {
           )}
         </div>
 
+        <PageLayoutCard pageId="about" />
+        <PageTextCard page="about" section="hero" description="The colored title banner at the top of the page." />
+
         <div className="space-y-6">
           {/* Introduction */}
           <Card>
@@ -91,6 +98,7 @@ export default function AdminAboutPage() {
               </CardTitle>
             </CardHeader>
             <CardContent>
+              <PageTextFields page="about" section="intro" className="mb-4" />
               {isEditing ? (
                 <div className="space-y-2">
                   <Label>Introduction Text</Label>
@@ -111,6 +119,7 @@ export default function AdminAboutPage() {
               <CardTitle>Mission Statement</CardTitle>
             </CardHeader>
             <CardContent>
+              <PageTextFields page="about" section="mission" className="mb-4" />
               {isEditing ? (
                 <div className="space-y-2">
                   <Label>Mission</Label>
@@ -131,6 +140,7 @@ export default function AdminAboutPage() {
               <CardTitle>Programs Introduction</CardTitle>
             </CardHeader>
             <CardContent>
+              <PageTextFields page="about" section="programs" className="mb-4" />
               {isEditing ? (
                 <div className="space-y-2">
                   <Label>Programs Introduction Text</Label>
@@ -164,7 +174,13 @@ export default function AdminAboutPage() {
                   <div key={idx} className="bg-muted/50 rounded-lg p-4">
                     {isEditing ? (
                       <div className="space-y-3">
-                        <div className="flex items-center justify-between">
+                        <div className="flex items-center justify-between gap-1">
+                          <ReorderButtons
+                            index={idx}
+                            count={editForm.programSections.length}
+                            label="program"
+                            onMove={(dir) => setEditForm((f) => ({ ...f, programSections: moveItem(f.programSections, idx, dir) }))}
+                          />
                           <Input
                             value={section.title}
                             onChange={(e) => handleProgramSectionChange(idx, 'title', e.target.value)}
@@ -198,6 +214,8 @@ export default function AdminAboutPage() {
             </CardContent>
           </Card>
         </div>
+
+        <PageTextCard page="about" section="leadership" title="Leadership (link to the Leadership page)" />
 
         <PageSectionsCard pageId="about" />
       </div>

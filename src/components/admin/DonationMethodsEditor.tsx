@@ -11,6 +11,8 @@ import type { DonationMethod, DonationMethodIcon } from '@/data/siteContent';
 import { DONATION_METHOD_ICONS, newDonationMethod } from '@/lib/donationMethods';
 import { toRichHtml } from '@/lib/richText';
 import { uploadSiteImage } from '@/lib/siteImages';
+import ImageSizePicker from '@/components/admin/ImageSizePicker';
+import { toImageSize } from '@/lib/imageSize';
 
 /** Add / edit / reorder / remove the "How to Donate" cards. */
 export default function DonationMethodsEditor({
@@ -144,7 +146,15 @@ export default function DonationMethodsEditor({
               <Label htmlFor={`rec-${m.id}`}>Highlight as recommended</Label>
             </div>
           </div>
-          {m.imageUrl && <img src={m.imageUrl} alt="" className="max-h-40 rounded border bg-white p-1" />}
+          {m.imageUrl && (
+            <div className="flex flex-wrap items-center gap-3">
+              <img src={m.imageUrl} alt="" className="max-h-40 rounded border bg-white p-1" />
+              <div className="space-y-1">
+                <Label className="text-xs text-muted-foreground">Image size on the card</Label>
+                <ImageSizePicker value={toImageSize(m.imageSize, 'lg')} onChange={(imageSize) => update(m.id, { imageSize })} />
+              </div>
+            </div>
+          )}
         </div>
       ))}
 

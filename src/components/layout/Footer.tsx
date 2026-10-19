@@ -1,41 +1,45 @@
 import { Link } from 'react-router-dom';
-import { Facebook, Youtube, Mail, Phone, MapPin } from 'lucide-react';
+import { Mail, Phone, MapPin } from 'lucide-react';
+import RichText from '@/components/RichText';
+import { useSocialLinks } from '@/components/SocialLinks';
+import { usePageText } from '@/hooks/usePageText';
 
 export default function Footer() {
+  // Footer text and social links are editable in Admin > Settings.
+  const { t, has } = usePageText('site');
+  const socialLinks = useSocialLinks();
+  const phone = t('footerPhone').trim();
+  const email = t('footerEmail').trim();
+
   return (
     <footer className="bg-foreground text-background">
       <div className="container-custom py-12">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
           {/* About */}
           <div>
-            <h3 className="font-serif text-xl font-bold mb-4">JVBNA New Jersey</h3>
-            <p className="text-background/70 text-sm leading-relaxed">
-              Center for Peace and Preksha Meditation. Promoting nonviolence, inner peace, 
-              and spiritual growth through the timeless teachings of Jain philosophy.
-            </p>
-            <div className="flex gap-4 mt-4">
-              <a
-                href="https://facebook.com"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="w-10 h-10 rounded-full bg-background/10 flex items-center justify-center hover:bg-primary transition-colors"
-              >
-                <Facebook className="w-5 h-5" />
-              </a>
-              <a
-                href="https://youtube.com"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="w-10 h-10 rounded-full bg-background/10 flex items-center justify-center hover:bg-primary transition-colors"
-              >
-                <Youtube className="w-5 h-5" />
-              </a>
-            </div>
+            {has('footerHeading') && <h3 className="font-serif text-xl font-bold mb-4">{t('footerHeading')}</h3>}
+            <RichText value={t('footerBlurb')} onDark className="text-background/70 text-sm leading-relaxed" />
+            {socialLinks.length > 0 && (
+              <div className="flex gap-4 mt-4">
+                {socialLinks.map(({ href, label, Icon }) => (
+                  <a
+                    key={label}
+                    href={href}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    aria-label={label}
+                    className="w-10 h-10 rounded-full bg-background/10 flex items-center justify-center hover:bg-primary transition-colors"
+                  >
+                    <Icon className="w-5 h-5" />
+                  </a>
+                ))}
+              </div>
+            )}
           </div>
 
           {/* Quick Links */}
           <div>
-            <h3 className="font-serif text-lg font-bold mb-4">Quick Links</h3>
+            {has('quickLinksHeading') && <h3 className="font-serif text-lg font-bold mb-4">{t('quickLinksHeading')}</h3>}
             <ul className="space-y-2 text-sm">
               <li>
                 <Link to="/about" className="text-background/70 hover:text-primary transition-colors">
@@ -67,38 +71,37 @@ export default function Footer() {
 
           {/* Contact Info */}
           <div>
-            <h3 className="font-serif text-lg font-bold mb-4">Contact Us</h3>
+            {has('contactHeading') && <h3 className="font-serif text-lg font-bold mb-4">{t('contactHeading')}</h3>}
             <ul className="space-y-3 text-sm">
-              <li className="flex items-start gap-3">
-                <MapPin className="w-5 h-5 text-primary flex-shrink-0 mt-0.5" />
-                <span className="text-background/70">
-                  151 Middlesex Avenue,<br />
-                  Iselin, NJ 08830
-                </span>
-              </li>
-              <li className="flex items-center gap-3">
-                <Phone className="w-5 h-5 text-primary flex-shrink-0" />
-                <a href="tel:848-219-5195" className="text-background/70 hover:text-primary transition-colors">
-                  848-219-5195
-                </a>
-              </li>
-              <li className="flex items-center gap-3">
-                <Mail className="w-5 h-5 text-primary flex-shrink-0" />
-                <a href="mailto:info@jvbnj.org" className="text-background/70 hover:text-primary transition-colors">
-                  info@jvbnj.org
-                </a>
-              </li>
+              {has('footerAddress') && (
+                <li className="flex items-start gap-3">
+                  <MapPin className="w-5 h-5 text-primary flex-shrink-0 mt-0.5" />
+                  <RichText value={t('footerAddress')} onDark className="text-background/70" />
+                </li>
+              )}
+              {phone && (
+                <li className="flex items-center gap-3">
+                  <Phone className="w-5 h-5 text-primary flex-shrink-0" />
+                  <a href={`tel:${phone.replace(/[^\d+]/g, '')}`} className="text-background/70 hover:text-primary transition-colors">
+                    {phone}
+                  </a>
+                </li>
+              )}
+              {email && (
+                <li className="flex items-center gap-3">
+                  <Mail className="w-5 h-5 text-primary flex-shrink-0" />
+                  <a href={`mailto:${email}`} className="text-background/70 hover:text-primary transition-colors">
+                    {email}
+                  </a>
+                </li>
+              )}
             </ul>
           </div>
 
           {/* Hours */}
           <div>
-            <h3 className="font-serif text-lg font-bold mb-4">Center Hours</h3>
-            <p className="text-background/70 text-sm leading-relaxed">
-              Open for Members and Visitors<br />
-              Seven days a week<br />
-              9:00 AM to 6:00 PM
-            </p>
+            {has('hoursHeading') && <h3 className="font-serif text-lg font-bold mb-4">{t('hoursHeading')}</h3>}
+            <RichText value={t('hoursText')} onDark className="text-background/70 text-sm leading-relaxed" />
             <Link
               to="/admin"
               className="inline-block mt-4 text-sm text-background/50 hover:text-primary transition-colors"
@@ -109,7 +112,7 @@ export default function Footer() {
         </div>
 
         <div className="border-t border-background/10 mt-10 pt-6 flex flex-col items-center gap-2 text-center text-sm text-background/50">
-          <p>&copy; {new Date().getFullYear()} Jain Vishwa Bharati of North America - New Jersey. All rights reserved.</p>
+          <p>&copy; {new Date().getFullYear()} {t('copyright')}</p>
           <a
             href="/about-app.txt"
             download

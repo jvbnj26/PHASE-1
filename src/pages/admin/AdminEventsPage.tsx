@@ -22,6 +22,9 @@ import { Switch } from '@/components/ui/switch';
 import { useToast } from '@/hooks/use-toast';
 import { Event, EventMediaItem } from '@/data/siteContent';
 import { imageMap as legacyImageMap } from '@/lib/imageMap';
+import { PageTextCard } from '@/components/admin/PageTextFields';
+import PageLayoutCard from '@/components/admin/PageLayoutCard';
+import PageSectionsCard from '@/components/admin/PageSectionsCard';
 
 const MAX_MEDIA_ITEMS = 5;
 const MAX_IMAGE_BYTES = 5 * 1024 * 1024;
@@ -365,6 +368,13 @@ export default function AdminEventsPage() {
             {adding ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Plus className="w-4 h-4 mr-2" />}
             Add Event
           </Button>
+        </div>
+
+        <div className="space-y-6 mb-6">
+          <PageTextCard page="events" section="hero" title="Events Page Banner" description="The colored title bar at the top of the public Events page." />
+          <PageTextCard page="events" section="list" title="Events Page — Tabs, Messages & Flyer Size" />
+          <PageLayoutCard pageId="events" />
+          <PageSectionsCard pageId="events" />
         </div>
 
         {/* Homepage Popup Config */}

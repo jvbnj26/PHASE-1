@@ -5,9 +5,12 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useSiteContent } from '@/contexts/SiteContentContext';
-import { Settings, Calendar, Save, ExternalLink } from 'lucide-react';
+import { Calendar, Save, ExternalLink } from 'lucide-react';
 import { toast } from 'sonner';
 import { toCalendarEmbedUrl } from '@/lib/calendarUrl';
+import { PageTextCard } from '@/components/admin/PageTextFields';
+import PageLayoutCard from '@/components/admin/PageLayoutCard';
+import PageSectionsCard from '@/components/admin/PageSectionsCard';
 
 export default function AdminSettingsPage() {
   const { calendarUrl, setCalendarUrl } = useSiteContent();
@@ -83,30 +86,20 @@ export default function AdminSettingsPage() {
           </CardContent>
         </Card>
 
-        {/* Site Information */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Settings className="w-5 h-5 text-primary" />
-              Site Information
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid md:grid-cols-2 gap-4">
-              <div className="bg-muted/50 rounded-lg p-4">
-                <h4 className="font-semibold text-foreground mb-1">Site Name</h4>
-                <p className="text-muted-foreground">JVBNA - Jain Vishwa Bharati of North America</p>
-              </div>
-              <div className="bg-muted/50 rounded-lg p-4">
-                <h4 className="font-semibold text-foreground mb-1">Tagline</h4>
-                <p className="text-muted-foreground">Center for Peace and Preksha Meditation</p>
-              </div>
-            </div>
-            <p className="text-xs text-muted-foreground mt-4">
-              Site name and tagline are displayed in the header. To modify these, contact the developer.
-            </p>
-          </CardContent>
-        </Card>
+        <PageTextCard page="calendar" section="hero" title="Calendar Page Banner" description="The colored title bar at the top of the public Calendar page." />
+        <PageTextCard page="calendar" section="body" title="Calendar Page Text" />
+        <PageLayoutCard pageId="calendar" />
+        <PageSectionsCard pageId="calendar" />
+
+        {/* Site-wide: header, social links, footer */}
+        <PageTextCard page="site" section="header" title="Site Header" description="The site name and tagline next to the logo at the top of every page." />
+        <PageTextCard
+          page="site"
+          section="social"
+          title="Social Media Links"
+          description="Used by the social buttons in the footer and on the Spiritual Guidance and Volunteer pages."
+        />
+        <PageTextCard page="site" section="footer" title="Site Footer" />
 
         {/* Quick Links */}
         <Card>

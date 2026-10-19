@@ -13,6 +13,10 @@ import RichTextEditor from '@/components/admin/RichTextEditor';
 import RichText from '@/components/RichText';
 import { toRichHtml } from '@/lib/richText';
 import PageSectionsCard from '@/components/admin/PageSectionsCard';
+import ReorderButtons from '@/components/admin/ReorderButtons';
+import { moveItem } from '@/lib/reorder';
+import { PageTextCard } from '@/components/admin/PageTextFields';
+import PageLayoutCard from '@/components/admin/PageLayoutCard';
 
 const iconOptions = [
   { value: 'Heart', label: 'Heart', icon: Heart },
@@ -85,13 +89,28 @@ export default function AdminVolunteerPage() {
           </Button>
         </div>
 
+        <PageLayoutCard pageId="volunteer" />
+        <PageTextCard page="volunteer" section="hero" description="The colored title banner at the top of the page." />
+        <PageTextCard
+          page="volunteer"
+          section="opportunities"
+          title="Volunteer Opportunities — card link"
+          description="The link shown at the bottom of every opportunity card. The opportunities themselves are below."
+        />
+
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {volunteerSections.map((section) => (
+          {volunteerSections.map((section, index) => (
             <Card key={section.id}>
               <CardHeader className="pb-3">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-full bg-primary/10 text-primary flex items-center justify-center">
+                    <ReorderButtons
+                      index={index}
+                      count={volunteerSections.length}
+                      label="card"
+                      onMove={(dir) => setVolunteerSections(moveItem(volunteerSections, index, dir))}
+                    />
+                    <div className="w-10 h-10 rounded-full bg-primary/10 text-primary flex items-center justify-center shrink-0">
                       {getIcon(section.icon)}
                     </div>
                     {editingId === section.id ? (
@@ -164,6 +183,8 @@ export default function AdminVolunteerPage() {
             </Card>
           ))}
         </div>
+
+        <PageTextCard page="volunteer" section="cta" title="Call-to-Action & Social (bottom of page)" description="Social media links themselves are in Settings." />
 
         <PageSectionsCard pageId="volunteer" />
       </div>

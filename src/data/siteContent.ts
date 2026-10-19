@@ -1,3 +1,4 @@
+import type { ImageSize } from '@/lib/imageSize';
 // Site content data structure - simulating CMS data
 // In production, this would come from a database
 
@@ -356,6 +357,7 @@ export interface DonationMethod {
   buttonLabel: string;
   buttonUrl: string; // the button only shows when this is set
   imageUrl: string; // optional, e.g. a QR code to scan
+  imageSize?: ImageSize; // display size of that image; default 'lg'
   recommended: boolean; // highlighted green card with a "Recommended" badge
 }
 
@@ -491,6 +493,11 @@ export const SECTION_PAGES = {
   'spiritual-guidance': 'Spiritual Guidance',
   volunteer: 'Volunteer',
   contact: 'Contact Us',
+  events: 'Events',
+  photos: 'Photos',
+  calendar: 'Calendar',
+  leadership: 'Leadership',
+  blog: 'Blog',
 } as const;
 
 export type SectionPageId = keyof typeof SECTION_PAGES;

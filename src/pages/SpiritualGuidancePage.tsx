@@ -1,48 +1,42 @@
 import PublicLayout from '@/components/layout/PublicLayout';
 import PageHero from '@/components/layout/PageHero';
 import { useSiteContent } from '@/contexts/SiteContentContext';
-import { Facebook, Youtube, Camera, Quote } from 'lucide-react';
+import { Quote } from 'lucide-react';
 import { getImageSrc } from '@/lib/imageMap';
 import RichText from '@/components/RichText';
 import { isRichTextEmpty } from '@/lib/richText';
-import PageSections from '@/components/PageSections';
+import OrderedSections from '@/components/OrderedSections';
+import SocialLinks, { useSocialLinks } from '@/components/SocialLinks';
+import { usePageText } from '@/hooks/usePageText';
+import { MASTER_GRID, toImageSize } from '@/lib/imageSize';
 
 export default function SpiritualGuidancePage() {
   const { spiritualMasters } = useSiteContent();
+  const { t, has } = usePageText('spiritual-guidance');
+  const hasSocial = useSocialLinks().length > 0;
 
-  return (
-    <PublicLayout>
-      <PageHero
-        eyebrow="Our Guides"
-        title="Spiritual Guidance"
-        subtitle="JVBNA operates under the blessings of visiting Samanijis from Jain Vishwa Bharati, India."
-      />
-
-      {/* Pull-quote intro */}
+  const sections = {
+    intro: has('introQuote') && (
       <section className="py-16 bg-white">
         <div className="container-custom max-w-4xl">
           <div className="relative bg-gradient-to-br from-section to-muted/30 rounded-2xl p-8 md:p-10 border-l-4 border-primary">
             <Quote className="absolute top-6 right-6 w-12 h-12 text-primary/20" />
-            <p className="text-muted-foreground leading-relaxed text-[17px]">
-              In 1980, under the guidance of Acharya Shri Tulsi and Acharya Shri Mahapragya, a special
-              Jain monk status of <span className="font-semibold text-foreground">Samani</span> was established.
-              Samanijis adopt the five prime vows of Jain monk-life — Ahimsa (nonviolence), Satya (truthfulness),
-              Achaurya, Brahmacharya, and Aparigrah — and are committed to purity and detachment for life.
-              They are permitted to travel outside India to propagate the message of Bhagwan Mahaveer.
-            </p>
+            <RichText value={t('introQuote')} className="text-muted-foreground leading-relaxed text-[17px]" />
           </div>
         </div>
       </section>
-
-      {/* Masters Grid */}
+    ),
+    masters: (
       <section className="py-16 bg-gradient-to-br from-section to-muted/30">
         <div className="container-custom max-w-6xl">
-          <div className="text-center mb-12">
-            <p className="text-primary font-semibold text-sm uppercase tracking-wider mb-2">Resident Samanijis</p>
-            <h2 className="font-serif text-3xl md:text-4xl font-bold text-foreground">Our Spiritual Masters</h2>
-          </div>
+          {(has('mastersEyebrow') || has('mastersHeading')) && (
+            <div className="text-center mb-12">
+              {has('mastersEyebrow') && <p className="text-primary font-semibold text-sm uppercase tracking-wider mb-2">{t('mastersEyebrow')}</p>}
+              {has('mastersHeading') && <h2 className="font-serif text-3xl md:text-4xl font-bold text-foreground">{t('mastersHeading')}</h2>}
+            </div>
+          )}
 
-          <div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto">
+          <div className={`grid ${MASTER_GRID[toImageSize(t('mastersPhotoSize'), 'lg')]} gap-8 mx-auto`}>
             {spiritualMasters.map((master) => (
               <div
                 key={master.id}
@@ -70,43 +64,29 @@ export default function SpiritualGuidancePage() {
           </div>
 
           {/* About Samanijis */}
-          <div className="mt-12 max-w-4xl mx-auto bg-white rounded-2xl p-8 border border-border">
-            <h3 className="font-serif font-bold text-xl text-foreground mb-3">About Our Samanijis</h3>
-            <p className="text-muted-foreground leading-relaxed">
-              JVBNA is blessed to host Samanijis year round. Our resident Samanijis typically hold advanced
-              (Masters and Ph.D.) degrees in Jain Philosophy and Comparative Studies, Science of Living,
-              Sanskrit and English. They are well versed with the practical aspects of common life and are
-              experts in the practice of Preksha (yoga and meditation) and natural health therapies. They
-              provide spiritual guidance to Jains and non-Jains alike, and inspire the community to adopt a
-              non-violent way of life.
-            </p>
-          </div>
+          {(has('aboutHeading') || has('aboutText')) && (
+            <div className="mt-12 max-w-4xl mx-auto bg-white rounded-2xl p-8 border border-border">
+              {has('aboutHeading') && <h3 className="font-serif font-bold text-xl text-foreground mb-3">{t('aboutHeading')}</h3>}
+              <RichText value={t('aboutText')} className="text-muted-foreground leading-relaxed" />
+            </div>
+          )}
 
           {/* Social */}
-          <div className="mt-12 flex flex-col items-center gap-4">
-            <p className="text-muted-foreground text-sm uppercase tracking-wider font-semibold">Follow Their Discourses</p>
-            <div className="flex gap-3">
-              {[
-                { href: 'https://facebook.com', Icon: Facebook, color: 'bg-[#1877F2]' },
-                { href: 'https://flickr.com', Icon: Camera, color: 'bg-[#FF0084]' },
-                { href: 'https://youtube.com', Icon: Youtube, color: 'bg-[#FF0000]' },
-              ].map(({ href, Icon, color }, i) => (
-                <a
-                  key={i}
-                  href={href}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className={`w-12 h-12 rounded-full ${color} flex items-center justify-center text-white hover:scale-110 transition-transform shadow-md`}
-                >
-                  <Icon className="w-5 h-5" />
-                </a>
-              ))}
+          {hasSocial && (
+            <div className="mt-12 flex flex-col items-center gap-4">
+              {has('socialLabel') && <p className="text-muted-foreground text-sm uppercase tracking-wider font-semibold">{t('socialLabel')}</p>}
+              <SocialLinks className="flex gap-3" />
             </div>
-          </div>
+          )}
         </div>
       </section>
+    ),
+  };
 
-      <PageSections pageId="spiritual-guidance" />
+  return (
+    <PublicLayout>
+      <PageHero eyebrow={t('heroEyebrow')} title={t('heroTitle')} subtitle={t('heroSubtitle')} image={t('heroImage')} />
+      <OrderedSections pageId="spiritual-guidance" sections={sections} />
     </PublicLayout>
   );
 }

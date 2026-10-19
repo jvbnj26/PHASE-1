@@ -6,13 +6,17 @@ import AdminLayout from '@/components/admin/AdminLayout';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Plus, Trash2, GripVertical, Save, ArrowRight } from 'lucide-react';
+import { Plus, Trash2, Save, ArrowRight } from 'lucide-react';
 import { ImageUploadButton } from '@/components/admin/ImageUploadButton';
 import { useToast } from '@/hooks/use-toast';
 import { getImageSrc } from '@/lib/imageMap';
 import RichTextEditor from '@/components/admin/RichTextEditor';
 import { toRichHtml } from '@/lib/richText';
 import PageSectionsCard from '@/components/admin/PageSectionsCard';
+import PageTextFields, { PageTextCard } from '@/components/admin/PageTextFields';
+import PageLayoutCard from '@/components/admin/PageLayoutCard';
+import ReorderButtons from '@/components/admin/ReorderButtons';
+import { moveItem } from '@/lib/reorder';
 
 export default function AdminHomePage() {
   const { isAuthenticated } = useAuth();
@@ -24,10 +28,12 @@ export default function AdminHomePage() {
   const { toast } = useToast();
 
   const [localBanners, setLocalBanners] = useState(bannerSlides);
+  useEffect(() => setLocalBanners(bannerSlides), [bannerSlides]);
   const [localWelcome, setLocalWelcome] = useState(welcomeText);
   // Saved content arrives from the database after this page mounts — show it, not the defaults.
   useEffect(() => setLocalWelcome(welcomeText), [welcomeText]);
   const [localActivities, setLocalActivities] = useState(activities2025.map(a => typeof a === 'string' ? a : a.name));
+  useEffect(() => setLocalActivities(activities2025.map(a => typeof a === 'string' ? a : a.name)), [activities2025]);
 
   if (!isAuthenticated) {
     return <Navigate to="/admin" replace />;
@@ -90,6 +96,8 @@ export default function AdminHomePage() {
           </p>
         </div>
 
+        <div className="mb-8"><PageLayoutCard pageId="home" /></div>
+
         {/* Banner Carousel Section */}
         <section className="admin-card mb-8">
           <div className="flex items-center justify-between mb-6">
@@ -104,9 +112,14 @@ export default function AdminHomePage() {
             {localBanners.map((banner, index) => (
               <div key={banner.id} className="border rounded-lg p-4 bg-muted/30">
                 <div className="flex items-start gap-4">
-                  <div className="flex items-center gap-2 text-muted-foreground">
-                    <GripVertical className="w-5 h-5" />
+                  <div className="flex flex-col items-center gap-1 text-muted-foreground">
                     <span className="text-sm font-medium">#{index + 1}</span>
+                    <ReorderButtons
+                      index={index}
+                      count={localBanners.length}
+                      label="slide"
+                      onMove={(dir) => setLocalBanners((b) => moveItem(b, index, dir))}
+                    />
                   </div>
                   
                   <div className="flex-1 grid gap-4">
@@ -171,6 +184,7 @@ export default function AdminHomePage() {
         {/* Welcome Section */}
         <section className="admin-card mb-8">
           <h2 className="font-serif text-xl font-bold text-foreground mb-6">Welcome Section</h2>
+          <PageTextFields page="home" section="welcome" className="mb-4" />
           
           <div className="space-y-4">
             <div>
@@ -215,7 +229,12 @@ export default function AdminHomePage() {
               </Button>
             </Link>
           </div>
+          <PageTextFields page="home" section="events" className="mt-4" />
         </section>
+
+        <div className="mb-8">
+          <PageTextCard page="home" section="cta" title="Join Our Community (bottom banner)" />
+        </div>
 
         {/* Activities 2025 */}
         <section className="admin-card mb-8">

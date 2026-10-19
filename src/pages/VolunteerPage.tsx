@@ -1,9 +1,12 @@
 import PublicLayout from '@/components/layout/PublicLayout';
 import PageHero from '@/components/layout/PageHero';
 import { useSiteContent } from '@/contexts/SiteContentContext';
-import { Heart, GraduationCap, Megaphone, ArrowRight, Facebook, Youtube, Camera } from 'lucide-react';
+import { Heart, GraduationCap, Megaphone, ArrowRight } from 'lucide-react';
 import RichText from '@/components/RichText';
-import PageSections from '@/components/PageSections';
+import OrderedSections from '@/components/OrderedSections';
+import SmartLink from '@/components/SmartLink';
+import SocialLinks, { useSocialLinks } from '@/components/SocialLinks';
+import { usePageText } from '@/hooks/usePageText';
 
 const iconMap: { [key: string]: React.ReactNode } = {
   Heart: <Heart className="w-7 h-7" />,
@@ -13,16 +16,11 @@ const iconMap: { [key: string]: React.ReactNode } = {
 
 export default function VolunteerPage() {
   const { volunteerSections } = useSiteContent();
+  const { t, has } = usePageText('volunteer');
+  const hasSocial = useSocialLinks().length > 0;
 
-  return (
-    <PublicLayout>
-      <PageHero
-        eyebrow="Get Involved"
-        title="Volunteer With Us"
-        subtitle="Lend your time, talent, and voice to help our community grow and thrive."
-      />
-
-      {/* Three pillars */}
+  const sections = {
+    opportunities: (
       <section className="py-16 bg-white">
         <div className="container-custom max-w-6xl">
           <div className="grid md:grid-cols-3 gap-6">
@@ -40,57 +38,55 @@ export default function VolunteerPage() {
                 </div>
                 <h3 className="font-serif text-xl font-bold text-foreground mb-3">{section.title}</h3>
                 <RichText value={section.description} className="text-muted-foreground leading-relaxed text-sm mb-5" />
-                <a
-                  href="/contact"
-                  className="inline-flex items-center gap-1.5 text-secondary font-semibold text-sm hover:gap-2.5 transition-all"
-                >
-                  Get in touch <ArrowRight className="w-4 h-4" />
-                </a>
+                {has('cardLink') && (
+                  <SmartLink
+                    to={t('cardLinkUrl')}
+                    className="inline-flex items-center gap-1.5 text-secondary font-semibold text-sm hover:gap-2.5 transition-all"
+                  >
+                    {t('cardLink')} <ArrowRight className="w-4 h-4" />
+                  </SmartLink>
+                )}
               </article>
             ))}
           </div>
         </div>
       </section>
-
-      {/* CTA + Socials */}
+    ),
+    cta: (
       <section className="py-16 bg-gradient-to-br from-section to-muted/30">
         <div className="container-custom max-w-5xl">
           <div className="bg-gradient-to-r from-secondary to-primary rounded-2xl p-10 text-white text-center relative overflow-hidden">
             <div className="absolute -top-20 -right-20 w-60 h-60 rounded-full bg-white/10" />
             <div className="absolute -bottom-24 -left-12 w-48 h-48 rounded-full bg-white/5" />
             <div className="relative">
-              <h3 className="font-serif text-3xl md:text-4xl font-bold mb-3">Ready to make a difference?</h3>
-              <p className="text-white/90 mb-6 max-w-xl mx-auto">
-                We are always looking for people with various backgrounds, talents, and skill levels.
-              </p>
-              <a
-                href="/contact"
-                className="inline-flex items-center gap-2 px-7 py-3.5 rounded-lg bg-white text-secondary font-semibold hover:bg-white/90 transition-colors"
-              >
-                Contact Us <ArrowRight className="w-4 h-4" />
-              </a>
+              {has('ctaHeading') && <h3 className="font-serif text-3xl md:text-4xl font-bold mb-3">{t('ctaHeading')}</h3>}
+              <RichText value={t('ctaText')} onDark className="text-white/90 mb-6 max-w-xl mx-auto" />
+              {has('ctaButton') && (
+                <SmartLink
+                  to={t('ctaButtonLink')}
+                  className="inline-flex items-center gap-2 px-7 py-3.5 rounded-lg bg-white text-secondary font-semibold hover:bg-white/90 transition-colors"
+                >
+                  {t('ctaButton')} <ArrowRight className="w-4 h-4" />
+                </SmartLink>
+              )}
             </div>
           </div>
 
-          <div className="mt-12 text-center">
-            <p className="text-muted-foreground text-sm uppercase tracking-wider font-semibold mb-4">Connect With Us</p>
-            <div className="flex justify-center gap-3">
-              {[
-                { href: 'https://facebook.com', Icon: Facebook, color: 'bg-[#1877F2]' },
-                { href: 'https://flickr.com', Icon: Camera, color: 'bg-[#FF0084]' },
-                { href: 'https://youtube.com', Icon: Youtube, color: 'bg-[#FF0000]' },
-              ].map(({ href, Icon, color }, i) => (
-                <a key={i} href={href} target="_blank" rel="noopener noreferrer"
-                  className={`w-12 h-12 rounded-full ${color} text-white flex items-center justify-center hover:scale-110 transition-transform shadow-md`}>
-                  <Icon className="w-5 h-5" />
-                </a>
-              ))}
+          {hasSocial && (
+            <div className="mt-12 text-center">
+              {has('socialLabel') && <p className="text-muted-foreground text-sm uppercase tracking-wider font-semibold mb-4">{t('socialLabel')}</p>}
+              <SocialLinks className="flex justify-center gap-3" />
             </div>
-          </div>
+          )}
         </div>
       </section>
+    ),
+  };
 
-      <PageSections pageId="volunteer" />
+  return (
+    <PublicLayout>
+      <PageHero eyebrow={t('heroEyebrow')} title={t('heroTitle')} subtitle={t('heroSubtitle')} image={t('heroImage')} />
+      <OrderedSections pageId="volunteer" sections={sections} />
     </PublicLayout>
   );
 }

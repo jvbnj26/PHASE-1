@@ -10,10 +10,14 @@ import { Button } from '@/components/ui/button';
 import EventPopup from '@/components/EventPopup';
 import { getImageSrc } from '@/lib/imageMap';
 import RichText from '@/components/RichText';
-import PageSections from '@/components/PageSections';
+import OrderedSections from '@/components/OrderedSections';
+import SmartLink from '@/components/SmartLink';
+import { usePageText } from '@/hooks/usePageText';
+import { HOME_MASTER_PHOTO, toImageSize } from '@/lib/imageSize';
 
 export default function HomePage() {
   const { bannerSlides, welcomeText, spiritualMasters } = useSiteContent();
+  const { t, has } = usePageText('home');
   const [currentSlide, setCurrentSlide] = useState(0);
 
   // Auto-rotate slides every 5 seconds
@@ -90,78 +94,78 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Welcome Section with Spiritual Masters */}
-      <section className="py-16 bg-white">
-        <div className="container-custom">
-          <div className="grid lg:grid-cols-2 gap-12 items-start">
-            {/* Welcome text */}
-            <div>
-              <h2 className="font-serif text-3xl md:text-4xl font-bold text-foreground mb-6">
-                {welcomeText.title}
-              </h2>
-              <RichText
-                value={welcomeText.content}
-                className="text-lg text-muted-foreground leading-relaxed mb-4 [--rt-gap:1.5rem]"
-              />
-            </div>
-
-            {/* Spiritual Masters */}
-            <div className="flex justify-center flex-wrap gap-4 sm:gap-8">
-              {spiritualMasters.map((master) => (
-                <div key={master.id} className="text-center">
-                  <div className="w-32 h-40 sm:w-40 sm:h-48 md:w-48 md:h-56 rounded-lg overflow-hidden bg-muted mb-3 shadow-md">
-                    <img
-                      src={getImageSrc(master.imageUrl)}
-                      alt={master.name}
-                      className="w-full h-full object-cover"
-                      onError={(e) => {
-                        if (e.currentTarget.src.endsWith('/placeholder.svg')) return;
-                        e.currentTarget.src = '/placeholder.svg';
-                      }}
+      <OrderedSections
+        pageId="home"
+        sections={{
+          // Welcome text with the Spiritual Masters' photos
+          welcome: (
+            <section className="py-16 bg-white">
+              <div className="container-custom">
+                <div className="grid lg:grid-cols-2 gap-12 items-start">
+                  {/* Welcome text */}
+                  <div>
+                    <h2 className="font-serif text-3xl md:text-4xl font-bold text-foreground mb-6">
+                      {welcomeText.title}
+                    </h2>
+                    <RichText
+                      value={welcomeText.content}
+                      className="text-lg text-muted-foreground leading-relaxed mb-4 [--rt-gap:1.5rem]"
                     />
                   </div>
-                  <p className="font-medium text-foreground">{master.name}</p>
+
+                  {/* Spiritual Masters */}
+                  <div className="flex justify-center flex-wrap gap-4 sm:gap-8">
+                    {spiritualMasters.map((master) => (
+                      <div key={master.id} className="text-center">
+                        <div className={`${HOME_MASTER_PHOTO[toImageSize(t('mastersPhotoSize'), 'md')]} rounded-lg overflow-hidden bg-muted mb-3 shadow-md`}>
+                          <img
+                            src={getImageSrc(master.imageUrl)}
+                            alt={master.name}
+                            className="w-full h-full object-cover"
+                            onError={(e) => {
+                              if (e.currentTarget.src.endsWith('/placeholder.svg')) return;
+                              e.currentTarget.src = '/placeholder.svg';
+                            }}
+                          />
+                        </div>
+                        <p className="font-medium text-foreground">{master.name}</p>
+                      </div>
+                    ))}
+                  </div>
                 </div>
-              ))}
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Events & Activities */}
-      <EventsAndActivities />
-
-
-      {/* Quick Links / CTA */}
-      <section className="py-16 bg-primary text-primary-foreground">
-        <div className="container-custom text-center">
-          <h2 className="font-serif text-3xl md:text-4xl font-bold mb-6">
-            Join Our Community
-          </h2>
-          <p className="text-xl text-primary-foreground/80 mb-8 max-w-2xl mx-auto">
-            Experience inner peace through Preksha Meditation, Yoga, and the timeless wisdom of Jain philosophy.
-          </p>
-          <div className="flex flex-wrap justify-center gap-4">
-            <Link to="/events/upcoming">
-              <Button variant="secondary" size="lg" className="font-semibold">
-                Upcoming Events
-              </Button>
-            </Link>
-            <Link to="/volunteer">
-              <Button variant="secondary" size="lg" className="font-semibold">
-                Get Involved
-              </Button>
-            </Link>
-            <Link to="/donate">
-              <Button variant="secondary" size="lg" className="font-semibold">
-                Donate Now
-              </Button>
-            </Link>
-          </div>
-        </div>
-      </section>
-
-      <PageSections pageId="home" />
+              </div>
+            </section>
+          ),
+          events: <EventsAndActivities />,
+          cta: (
+            <section className="py-16 bg-primary text-primary-foreground">
+              <div className="container-custom text-center">
+                {has('ctaHeading') && (
+                  <h2 className="font-serif text-3xl md:text-4xl font-bold mb-6">
+                    {t('ctaHeading')}
+                  </h2>
+                )}
+                <RichText value={t('ctaText')} onDark className="text-xl text-primary-foreground/80 mb-8 max-w-2xl mx-auto" />
+                <div className="flex flex-wrap justify-center gap-4">
+                  {([
+                    ['ctaButton1', 'ctaButton1Link'],
+                    ['ctaButton2', 'ctaButton2Link'],
+                    ['ctaButton3', 'ctaButton3Link'],
+                  ] as const).map(([text, link]) =>
+                    has(text) ? (
+                      <SmartLink key={text} to={t(link)}>
+                        <Button variant="secondary" size="lg" className="font-semibold">
+                          {t(text)}
+                        </Button>
+                      </SmartLink>
+                    ) : null,
+                  )}
+                </div>
+              </div>
+            </section>
+          ),
+        }}
+      />
     </PublicLayout>
   );
 }
@@ -249,6 +253,7 @@ function PastRow({ event }: { event: Event }) {
  */
 function HomeEventsCard() {
   const { events, loading } = useEvents();
+  const { t, has } = usePageText('home');
 
   const ongoing = useMemo(() => eventsForTab(events, 'ongoing'), [events]);
   const upcoming = useMemo(() => eventsForTab(events, 'upcoming').slice(0, 3), [events]);
@@ -258,8 +263,8 @@ function HomeEventsCard() {
   return (
     <div className="bg-white rounded-2xl shadow-lg border border-border overflow-hidden">
       <div className="px-8 py-6 bg-gradient-to-r from-primary to-primary/80">
-        <p className="text-primary-foreground/80 text-sm uppercase tracking-wider font-semibold">Stay Connected</p>
-        <h3 className="font-serif text-3xl font-bold text-primary-foreground">Events</h3>
+        {has('eventsEyebrow') && <p className="text-primary-foreground/80 text-sm uppercase tracking-wider font-semibold">{t('eventsEyebrow')}</p>}
+        {has('eventsHeading') && <h3 className="font-serif text-3xl font-bold text-primary-foreground">{t('eventsHeading')}</h3>}
       </div>
 
       {loading ? (
@@ -270,9 +275,11 @@ function HomeEventsCard() {
         <div className="grid sm:grid-cols-5 divide-y sm:divide-y-0 sm:divide-x divide-border">
           {/* Ongoing & Upcoming */}
           <div className="sm:col-span-3 flex flex-col">
-            <p className="px-6 pt-5 pb-3 text-xs font-bold uppercase tracking-wider text-muted-foreground">
-              Ongoing &amp; Upcoming
-            </p>
+            {has('eventsCurrentLabel') && (
+              <p className="px-6 pt-5 pb-3 text-xs font-bold uppercase tracking-wider text-muted-foreground">
+                {t('eventsCurrentLabel')}
+              </p>
+            )}
             {hasCurrent ? (
               <div className="flex flex-col gap-4 px-6 pb-6">
                 {ongoing.map((ev) => (
@@ -287,16 +294,18 @@ function HomeEventsCard() {
                 <div className="w-14 h-14 rounded-full bg-muted flex items-center justify-center">
                   <CalendarX className="w-6 h-6 text-muted-foreground" />
                 </div>
-                <p className="text-muted-foreground text-sm">No upcoming events right now — check back soon.</p>
+                {has('eventsEmpty') && <p className="text-muted-foreground text-sm">{t('eventsEmpty')}</p>}
               </div>
             )}
           </div>
 
           {/* Past */}
           <div className="sm:col-span-2 flex flex-col bg-section/30">
-            <p className="px-6 pt-5 pb-2 text-xs font-bold uppercase tracking-wider text-muted-foreground">
-              Past Events
-            </p>
+            {has('eventsPastLabel') && (
+              <p className="px-6 pt-5 pb-2 text-xs font-bold uppercase tracking-wider text-muted-foreground">
+                {t('eventsPastLabel')}
+              </p>
+            )}
             {past.length > 0 ? (
               <ul className="divide-y divide-border max-h-[26rem] overflow-y-auto">
                 {past.map((ev) => (
@@ -305,16 +314,18 @@ function HomeEventsCard() {
               </ul>
             ) : (
               <div className="flex-1 flex items-center justify-center px-6 py-10 text-center">
-                <p className="text-muted-foreground text-sm">No past events yet.</p>
+                {has('eventsPastEmpty') && <p className="text-muted-foreground text-sm">{t('eventsPastEmpty')}</p>}
               </div>
             )}
-            <div className="px-6 py-4 border-t border-border mt-auto">
-              <Link to="/events/past">
-                <Button variant="outline" size="sm" className="w-full font-semibold">
-                  View All Past Events
-                </Button>
-              </Link>
-            </div>
+            {has('eventsViewAll') && (
+              <div className="px-6 py-4 border-t border-border mt-auto">
+                <SmartLink to={t('eventsViewAllLink')}>
+                  <Button variant="outline" size="sm" className="w-full font-semibold">
+                    {t('eventsViewAll')}
+                  </Button>
+                </SmartLink>
+              </div>
+            )}
           </div>
         </div>
       )}

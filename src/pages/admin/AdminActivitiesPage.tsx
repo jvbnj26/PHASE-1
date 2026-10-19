@@ -6,13 +6,17 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { useSiteContent } from '@/contexts/SiteContentContext';
-import { Megaphone, Plus, Trash2, GripVertical, Save, X } from 'lucide-react';
+import { Megaphone, Plus, Trash2, Save, X } from 'lucide-react';
 import { Activity } from '@/data/siteContent';
 import { toast } from 'sonner';
 import RichTextEditor from '@/components/admin/RichTextEditor';
 import RichText from '@/components/RichText';
 import { toRichHtml } from '@/lib/richText';
 import PageSectionsCard from '@/components/admin/PageSectionsCard';
+import ReorderButtons from '@/components/admin/ReorderButtons';
+import { moveItem } from '@/lib/reorder';
+import { PageTextCard } from '@/components/admin/PageTextFields';
+import PageLayoutCard from '@/components/admin/PageLayoutCard';
 
 export default function AdminActivitiesPage() {
   const { activities, setActivities } = useSiteContent();
@@ -83,13 +87,28 @@ export default function AdminActivitiesPage() {
           </Button>
         </div>
 
+        <PageLayoutCard pageId="activities" />
+        <PageTextCard page="activities" section="hero" description="The colored title banner at the top of the page." />
+        <PageTextCard page="activities" section="intro" title="Who It's For (two boxes under the banner)" />
+        <PageTextCard
+          page="activities"
+          section="ongoing"
+          title="Ongoing Activities — section text"
+          description="The heading above the activity cards, and labels used on every card. The activities themselves are below."
+        />
+
         <div className="space-y-4">
-          {activities.map((activity) => (
+          {activities.map((activity, index) => (
             <Card key={activity.id}>
               <CardHeader className="pb-3">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
-                    <GripVertical className="w-5 h-5 text-muted-foreground cursor-move" />
+                    <ReorderButtons
+                      index={index}
+                      count={activities.length}
+                      label="activity"
+                      onMove={(dir) => setActivities(moveItem(activities, index, dir))}
+                    />
                     <Megaphone className="w-5 h-5 text-primary" />
                     {editingId === activity.id ? (
                       <Input
@@ -181,6 +200,8 @@ export default function AdminActivitiesPage() {
             </Card>
           ))}
         </div>
+
+        <PageTextCard page="activities" section="calendar" title="Calendar Banner (bottom of page)" />
 
         <PageSectionsCard pageId="activities" />
       </div>

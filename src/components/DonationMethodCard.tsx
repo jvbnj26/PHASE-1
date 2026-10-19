@@ -3,6 +3,7 @@ import RichText from '@/components/RichText';
 import type { DonationMethod } from '@/data/siteContent';
 import { DONATION_METHOD_ICONS, donationButtonHref } from '@/lib/donationMethods';
 import { isRichTextEmpty } from '@/lib/richText';
+import { DONATION_CARD_IMAGE, toImageSize } from '@/lib/imageSize';
 
 /**
  * One "How to Donate" card. `accent` alternates the icon color between plain cards; recommended
@@ -63,7 +64,7 @@ export default function DonationMethodCard({ method, accent }: { method: Donatio
           src={method.imageUrl}
           alt={`${method.title} — scan or save`}
           loading="lazy"
-          className="w-full max-h-56 object-contain rounded-lg bg-white p-2 mb-4"
+          className={`w-full ${DONATION_CARD_IMAGE[toImageSize(method.imageSize, 'lg')]} object-contain rounded-lg bg-white p-2 mb-4`}
         />
       )}
 

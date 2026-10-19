@@ -15,6 +15,9 @@ import { supabase } from '@/integrations/supabase/client';
 import { usePosts, slugify, type Post, type PostStatus } from '@/hooks/usePosts';
 import RichTextEditor from '@/components/admin/RichTextEditor';
 import { toast } from 'sonner';
+import { PageTextCard } from '@/components/admin/PageTextFields';
+import PageLayoutCard from '@/components/admin/PageLayoutCard';
+import PageSectionsCard from '@/components/admin/PageSectionsCard';
 
 function fileToDataUrl(f: File): Promise<string> {
   return new Promise((res, rej) => {
@@ -144,6 +147,13 @@ export default function AdminBlogPage() {
           >
             <Plus className="w-4 h-4" /> New post
           </Button>
+        </div>
+
+        <div className="space-y-6 mb-8">
+          <PageTextCard page="blog" section="hero" title="Blog Page Banner" description="The colored title banner at the top of the public Blog page." />
+          <PageTextCard page="blog" section="list" title="Blog Page — Post List Text" />
+          <PageLayoutCard pageId="blog" />
+          <PageSectionsCard pageId="blog" />
         </div>
 
         <div className="grid lg:grid-cols-[320px_1fr] gap-6">

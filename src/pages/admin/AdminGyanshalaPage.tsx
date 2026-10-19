@@ -11,6 +11,10 @@ import RichTextEditor from '@/components/admin/RichTextEditor';
 import RichText from '@/components/RichText';
 import { toRichHtml } from '@/lib/richText';
 import PageSectionsCard from '@/components/admin/PageSectionsCard';
+import ReorderButtons from '@/components/admin/ReorderButtons';
+import { moveItem } from '@/lib/reorder';
+import PageTextFields, { PageTextCard, adminSectionAnchor } from '@/components/admin/PageTextFields';
+import PageLayoutCard from '@/components/admin/PageLayoutCard';
 
 export default function AdminGyanshalaPage() {
   const { gyanshalaContent, setGyanshalaContent } = useSiteContent();
@@ -79,9 +83,12 @@ export default function AdminGyanshalaPage() {
           )}
         </div>
 
+        <PageLayoutCard pageId="gyanshala" />
+        <PageTextCard page="gyanshala" section="hero" description="The colored title banner at the top of the page." />
+
         <div className="space-y-6">
           {/* Introduction */}
-          <Card>
+          <Card id={adminSectionAnchor('gyanshala', 'intro')} className="scroll-mt-6">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <BookOpen className="w-5 h-5 text-primary" />
@@ -104,7 +111,7 @@ export default function AdminGyanshalaPage() {
           </Card>
 
           {/* Pillars */}
-          <Card>
+          <Card id={adminSectionAnchor('gyanshala', 'pillars')} className="scroll-mt-6">
             <CardHeader>
               <div className="flex items-center justify-between">
                 <CardTitle>Pillars</CardTitle>
@@ -122,7 +129,13 @@ export default function AdminGyanshalaPage() {
                   <div key={idx} className="bg-muted/50 rounded-lg p-4">
                     {isEditing ? (
                       <div className="space-y-3">
-                        <div className="flex items-center justify-between">
+                        <div className="flex items-center justify-between gap-1">
+                          <ReorderButtons
+                            index={idx}
+                            count={editForm.pillars.length}
+                            label="pillar"
+                            onMove={(dir) => setEditForm((f) => ({ ...f, pillars: moveItem(f.pillars, idx, dir) }))}
+                          />
                           <Input
                             value={pillar.title}
                             onChange={(e) => handlePillarChange(idx, 'title', e.target.value)}
@@ -156,12 +169,19 @@ export default function AdminGyanshalaPage() {
             </CardContent>
           </Card>
 
+          <PageTextCard
+            page="gyanshala"
+            section="coordinators"
+            description='Coordinators are listed automatically from Board & EC Members whose role includes "Gyanshala".'
+          />
+
           {/* Call to action */}
           <Card>
             <CardHeader>
               <CardTitle>Enrollment Call-to-Action</CardTitle>
             </CardHeader>
             <CardContent>
+              <PageTextFields page="gyanshala" section="cta" className="mb-4" />
               {isEditing ? (
                 <div className="space-y-3">
                   <div className="space-y-2">
@@ -188,6 +208,8 @@ export default function AdminGyanshalaPage() {
             </CardContent>
           </Card>
         </div>
+
+        <PageTextCard page="gyanshala" section="dates" />
 
         <PageSectionsCard pageId="gyanshala" />
       </div>

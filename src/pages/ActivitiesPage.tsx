@@ -3,20 +3,16 @@ import PageHero from '@/components/layout/PageHero';
 import { useSiteContent } from '@/contexts/SiteContentContext';
 import { ExternalLink, Calendar, Youtube, BookOpen, CheckCircle2 } from 'lucide-react';
 import RichText from '@/components/RichText';
-import PageSections from '@/components/PageSections';
+import OrderedSections from '@/components/OrderedSections';
+import SmartLink from '@/components/SmartLink';
+import { usePageText } from '@/hooks/usePageText';
 
 export default function ActivitiesPage() {
   const { activities } = useSiteContent();
+  const { t, has } = usePageText('activities');
 
-  return (
-    <PublicLayout>
-      <PageHero
-        eyebrow="Daily Practice"
-        title="Activities"
-        subtitle="Weekly sessions, workshops, camps and seminars on Jain principles, Preksha Meditation and yoga — guided by our Samanijis."
-      />
-
-      {/* Intro band */}
+  const sections = {
+    intro: (
       <section className="py-14 bg-white">
         <div className="container-custom max-w-5xl">
           <div className="grid md:grid-cols-2 gap-6">
@@ -24,35 +20,27 @@ export default function ActivitiesPage() {
               <div className="w-12 h-12 rounded-xl bg-primary text-primary-foreground flex items-center justify-center mb-4">
                 <BookOpen className="w-6 h-6" />
               </div>
-              <h3 className="font-serif font-bold text-lg text-foreground mb-2">For Everyone</h3>
-              <p className="text-muted-foreground text-sm leading-relaxed">
-                Under Samanijis' guidance, JVBNA offers weekly sessions, special workshops, camps and seminars on
-                Jain principles and philosophy; Preksha meditation and yoga — promoting introspection, self-discipline,
-                and spiritual enlightenment.
-              </p>
+              {has('everyoneHeading') && <h3 className="font-serif font-bold text-lg text-foreground mb-2">{t('everyoneHeading')}</h3>}
+              <RichText value={t('everyoneText')} className="text-muted-foreground text-sm leading-relaxed" />
             </div>
             <div className="bg-gradient-to-br from-secondary/5 to-secondary/10 rounded-2xl p-7 border border-secondary/10">
               <div className="w-12 h-12 rounded-xl bg-secondary text-secondary-foreground flex items-center justify-center mb-4">
                 <CheckCircle2 className="w-6 h-6" />
               </div>
-              <h3 className="font-serif font-bold text-lg text-foreground mb-2">For Children & Families</h3>
-              <p className="text-muted-foreground text-sm leading-relaxed">
-                JVB Gyanshala for children teaches Jain Philosophy, Science of Living and life values.
-                JVB Gyan-Sabha – Swadhyay sessions for adults and celebrations of Jain and Indian festivals
-                foster a strong sense of community.
-              </p>
+              {has('familiesHeading') && <h3 className="font-serif font-bold text-lg text-foreground mb-2">{t('familiesHeading')}</h3>}
+              <RichText value={t('familiesText')} className="text-muted-foreground text-sm leading-relaxed" />
             </div>
           </div>
         </div>
       </section>
-
-      {/* Ongoing Activities */}
+    ),
+    ongoing: (
       <section className="py-14 bg-gradient-to-br from-section to-muted/30">
         <div className="container-custom max-w-6xl">
           <div className="flex items-end justify-between mb-10 flex-wrap gap-4">
             <div>
-              <p className="text-primary font-semibold text-sm uppercase tracking-wider mb-2">What's Happening</p>
-              <h2 className="font-serif text-3xl md:text-4xl font-bold text-foreground">Ongoing Activities</h2>
+              {has('ongoingEyebrow') && <p className="text-primary font-semibold text-sm uppercase tracking-wider mb-2">{t('ongoingEyebrow')}</p>}
+              {has('ongoingHeading') && <h2 className="font-serif text-3xl md:text-4xl font-bold text-foreground">{t('ongoingHeading')}</h2>}
             </div>
             <div className="h-1 flex-1 max-w-[200px] bg-gradient-to-r from-primary to-secondary rounded-full" />
           </div>
@@ -85,18 +73,18 @@ export default function ActivitiesPage() {
                 {activity.dates && (
                   <div className="flex items-start gap-2 text-sm bg-section rounded-lg p-3 mb-3">
                     <Calendar className="w-4 h-4 text-primary mt-0.5 shrink-0" />
-                    <span className="text-foreground"><span className="font-semibold">Dates:</span> {activity.dates}</span>
+                    <span className="text-foreground">{has('datesLabel') && <><span className="font-semibold">{t('datesLabel')}</span>{' '}</>}{activity.dates}</span>
                   </div>
                 )}
 
-                {activity.zoomLink && (
+                {activity.zoomLink && has('zoomLabel') && (
                   <a
                     href={activity.zoomLink}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="inline-flex items-center gap-2 text-secondary hover:text-primary font-semibold text-sm transition-colors"
                   >
-                    Join via Zoom <ExternalLink className="w-4 h-4" />
+                    {t('zoomLabel')} <ExternalLink className="w-4 h-4" />
                   </a>
                 )}
               </article>
@@ -104,8 +92,8 @@ export default function ActivitiesPage() {
           </div>
         </div>
       </section>
-
-      {/* Calendar CTA */}
+    ),
+    calendar: (
       <section className="py-14 bg-white">
         <div className="container-custom max-w-5xl">
           <div className="bg-gradient-to-r from-primary to-secondary rounded-2xl p-8 md:p-10 text-white relative overflow-hidden">
@@ -113,28 +101,35 @@ export default function ActivitiesPage() {
             <div className="absolute -bottom-16 -left-8 w-40 h-40 rounded-full bg-white/5" />
             <div className="relative grid md:grid-cols-[1fr,auto] gap-6 items-center">
               <div>
-                <h3 className="font-serif text-2xl md:text-3xl font-bold mb-2">Visit JVBNA Calendar of Events</h3>
-                <p className="text-white/90">All sessions can be attended via Zoom, or watched on JVBNA YouTube Channel.</p>
+                {has('calendarHeading') && <h3 className="font-serif text-2xl md:text-3xl font-bold mb-2">{t('calendarHeading')}</h3>}
+                <RichText value={t('calendarText')} onDark className="text-white/90" />
               </div>
               <div className="flex flex-wrap gap-3">
-                <a href="/calendar" className="inline-flex items-center gap-2 px-5 py-3 rounded-lg bg-white text-primary font-semibold hover:bg-white/90 transition-colors">
-                  <Calendar className="w-4 h-4" /> View Calendar
-                </a>
-                <a
-                  href="https://www.youtube.com/@JVBNANewJersey"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-2 px-5 py-3 rounded-lg bg-white/10 border border-white/30 text-white font-semibold hover:bg-white/20 transition-colors"
-                >
-                  <Youtube className="w-4 h-4" /> YouTube
-                </a>
+                {has('calendarButton') && (
+                  <SmartLink to={t('calendarButtonLink')} className="inline-flex items-center gap-2 px-5 py-3 rounded-lg bg-white text-primary font-semibold hover:bg-white/90 transition-colors">
+                    <Calendar className="w-4 h-4" /> {t('calendarButton')}
+                  </SmartLink>
+                )}
+                {has('youtubeButton') && (
+                  <SmartLink
+                    to={t('youtubeButtonLink')}
+                    className="inline-flex items-center gap-2 px-5 py-3 rounded-lg bg-white/10 border border-white/30 text-white font-semibold hover:bg-white/20 transition-colors"
+                  >
+                    <Youtube className="w-4 h-4" /> {t('youtubeButton')}
+                  </SmartLink>
+                )}
               </div>
             </div>
           </div>
         </div>
       </section>
+    ),
+  };
 
-      <PageSections pageId="activities" />
+  return (
+    <PublicLayout>
+      <PageHero eyebrow={t('heroEyebrow')} title={t('heroTitle')} subtitle={t('heroSubtitle')} image={t('heroImage')} />
+      <OrderedSections pageId="activities" sections={sections} />
     </PublicLayout>
   );
 }

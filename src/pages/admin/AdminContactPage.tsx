@@ -11,6 +11,10 @@ import { toast } from 'sonner';
 import RichTextEditor from '@/components/admin/RichTextEditor';
 import { toRichHtml } from '@/lib/richText';
 import PageSectionsCard from '@/components/admin/PageSectionsCard';
+import ReorderButtons from '@/components/admin/ReorderButtons';
+import { moveItem } from '@/lib/reorder';
+import PageTextFields, { PageTextCard } from '@/components/admin/PageTextFields';
+import PageLayoutCard from '@/components/admin/PageLayoutCard';
 
 export default function AdminContactPage() {
   const { contactInfo, setContactInfo, satelliteCenters, setSatelliteCenters } = useSiteContent();
@@ -76,6 +80,9 @@ export default function AdminContactPage() {
           </p>
         </div>
 
+        <PageLayoutCard pageId="contact" />
+        <PageTextCard page="contact" section="hero" description="The colored title bar at the top of the page." />
+
         {/* Main Contact Info */}
         <Card>
           <CardHeader>
@@ -103,6 +110,10 @@ export default function AdminContactPage() {
             </div>
           </CardHeader>
           <CardContent>
+            <div className="grid lg:grid-cols-2 gap-4 mb-4">
+              <PageTextFields page="contact" section="mailing" />
+              <PageTextFields page="contact" section="events" />
+            </div>
             {isEditingMain ? (
               <div className="grid md:grid-cols-2 gap-6">
                 <div className="space-y-4">
@@ -269,6 +280,9 @@ export default function AdminContactPage() {
           </CardContent>
         </Card>
 
+        <PageTextCard page="contact" section="mailingMap" title="Map — Samaniji & Mailing Address" />
+        <PageTextCard page="contact" section="eventsMap" title="Map — JVBNA Events Address" />
+
         {/* Satellite Centers */}
         <Card>
           <CardHeader>
@@ -284,8 +298,9 @@ export default function AdminContactPage() {
             </div>
           </CardHeader>
           <CardContent>
+            <PageTextFields page="contact" section="centers" className="mb-4" />
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {satelliteCenters.map((center) => (
+              {satelliteCenters.map((center, index) => (
                 <div key={center.id} className="bg-muted/50 rounded-lg p-4">
                   {editingCenterId === center.id && centerForm ? (
                     <div className="space-y-3">
@@ -344,6 +359,15 @@ export default function AdminContactPage() {
                           <span className="font-semibold text-foreground">{center.city}, {center.state}</span>
                         </div>
                         <div className="flex gap-1">
+                          {/* The first center is always the Parent Organization; only the satellites reorder. */}
+                          {index > 0 && (
+                            <ReorderButtons
+                              index={index - 1}
+                              count={satelliteCenters.length - 1}
+                              label="center"
+                              onMove={(dir) => setSatelliteCenters([satelliteCenters[0], ...moveItem(satelliteCenters.slice(1), index - 1, dir)])}
+                            />
+                          )}
                           <Button size="sm" variant="ghost" className="h-7 w-7 p-0" onClick={() => handleEditCenter(center)}>
                             <Edit2 className="w-3 h-3" />
                           </Button>
@@ -352,6 +376,9 @@ export default function AdminContactPage() {
                           </Button>
                         </div>
                       </div>
+                      {index === 0 && (
+                        <p className="text-[10px] font-semibold uppercase tracking-wide text-primary mb-1">Parent organization</p>
+                      )}
                       <p className="text-sm text-muted-foreground">{center.name}</p>
                       <p className="text-xs text-muted-foreground mt-1">{center.street}</p>
                       <p className="text-xs text-muted-foreground">Ph: {center.phone}</p>

@@ -1,5 +1,6 @@
 import { useEffect, useState, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import type { ImageSize } from '@/lib/imageSize';
 
 export type PageBlock = {
   id: string;
@@ -8,6 +9,8 @@ export type PageBlock = {
   body?: string;
   imageUrl?: string;
   imageAlt?: string;
+  /** Display size of the image; unset = the layout's original size. */
+  imageSize?: ImageSize;
 };
 
 export type PageStatus = 'published' | 'draft' | 'archived';

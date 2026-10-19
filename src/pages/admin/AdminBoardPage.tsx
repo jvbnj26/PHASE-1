@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Navigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { useSiteContent } from '@/contexts/SiteContentContext';
@@ -8,6 +8,11 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Plus, Trash2, Save, Users } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { PageTextCard } from '@/components/admin/PageTextFields';
+import ReorderButtons from '@/components/admin/ReorderButtons';
+import { moveItem } from '@/lib/reorder';
+import PageLayoutCard from '@/components/admin/PageLayoutCard';
+import PageSectionsCard from '@/components/admin/PageSectionsCard';
 
 export default function AdminBoardPage() {
   const { isAuthenticated } = useAuth();
@@ -19,6 +24,9 @@ export default function AdminBoardPage() {
 
   const [localBoard, setLocalBoard] = useState(boardMembers);
   const [localEC, setLocalEC] = useState(executiveCommittee);
+  // Saved members arrive from the database after this page mounts — show them, not the defaults.
+  useEffect(() => setLocalBoard(boardMembers), [boardMembers]);
+  useEffect(() => setLocalEC(executiveCommittee), [executiveCommittee]);
 
   if (!isAuthenticated) {
     return <Navigate to="/admin" replace />;
@@ -73,6 +81,12 @@ export default function AdminBoardPage() {
           </p>
         </div>
 
+        <div className="space-y-6 mb-8">
+          <PageTextCard page="leadership" section="hero" title="Leadership Page Banner" description="The colored title banner at the top of the public Leadership page." />
+          <PageTextCard page="leadership" section="lists" />
+          <PageLayoutCard pageId="leadership" />
+        </div>
+
         {/* Board of Directors */}
         <section className="admin-card mb-8">
           <div className="flex items-center justify-between mb-6">
@@ -86,6 +100,7 @@ export default function AdminBoardPage() {
           <div className="space-y-2">
             {localBoard.map((member, index) => (
               <div key={member.id} className="flex items-center gap-4">
+                <ReorderButtons index={index} count={localBoard.length} label="member" onMove={(dir) => setLocalBoard((b) => moveItem(b, index, dir))} />
                 <span className="text-sm text-muted-foreground w-8">{index + 1}.</span>
                 <Input
                   value={member.name}
@@ -125,8 +140,9 @@ export default function AdminBoardPage() {
           </div>
 
           <div className="space-y-3">
-            {localEC.map((member) => (
+            {localEC.map((member, index) => (
               <div key={member.id} className="flex items-center gap-4 p-3 bg-muted/30 rounded-lg">
+                <ReorderButtons index={index} count={localEC.length} label="member" onMove={(dir) => setLocalEC((m) => moveItem(m, index, dir))} />
                 <div className="flex-1 grid md:grid-cols-2 gap-4">
                   <div>
                     <Label className="text-xs text-muted-foreground">Role</Label>
@@ -175,6 +191,10 @@ export default function AdminBoardPage() {
             Save Executive Committee
           </Button>
         </section>
+
+        <div className="mt-8">
+          <PageSectionsCard pageId="leadership" />
+        </div>
       </div>
     </AdminLayout>
   );

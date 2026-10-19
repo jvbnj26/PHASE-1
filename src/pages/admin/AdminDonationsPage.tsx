@@ -15,6 +15,8 @@ import RichTextEditor from '@/components/admin/RichTextEditor';
 import RichText from '@/components/RichText';
 import { toRichHtml } from '@/lib/richText';
 import PageSectionsCard from '@/components/admin/PageSectionsCard';
+import PageTextFields, { PageTextCard } from '@/components/admin/PageTextFields';
+import PageLayoutCard from '@/components/admin/PageLayoutCard';
 
 export default function AdminDonationsPage() {
   const { donationContent, setDonationContent } = useSiteContent();
@@ -83,6 +85,9 @@ export default function AdminDonationsPage() {
           )}
         </div>
 
+        <PageLayoutCard pageId="donate" />
+        <PageTextCard page="donate" section="hero" description="The colored title banner at the top of the page." />
+
         <div className="space-y-6">
           {/* Introduction */}
           <Card>
@@ -93,6 +98,7 @@ export default function AdminDonationsPage() {
               </CardTitle>
             </CardHeader>
             <CardContent>
+              <PageTextFields page="donate" section="intro" className="mb-4" />
               {isEditing ? (
                 <div className="space-y-2">
                   <Label>Introduction (shown at top of page)</Label>
@@ -113,6 +119,7 @@ export default function AdminDonationsPage() {
               <CardTitle>Annual Fund Raising Pledge Info</CardTitle>
             </CardHeader>
             <CardContent>
+              <PageTextFields page="donate" section="pledge" className="mb-4" />
               {isEditing ? (
                 <div className="space-y-2">
                   <Label>Pledge Information</Label>
@@ -133,6 +140,7 @@ export default function AdminDonationsPage() {
               <CardTitle>Donor Categories Image</CardTitle>
             </CardHeader>
             <CardContent className="space-y-3">
+              <PageTextFields page="donate" section="categories" className="mb-4" />
               <img
                 src={(isEditing ? editForm : donationContent).donorCategoriesImage || donorCategoriesImg}
                 alt="Donor categories"
@@ -168,6 +176,7 @@ export default function AdminDonationsPage() {
               <CardTitle>Tax Exemption Notice</CardTitle>
             </CardHeader>
             <CardContent>
+              <PageTextFields page="donate" section="tax" className="mb-4" />
               {isEditing ? (
                 <div className="space-y-2">
                   <Label>Tax Information</Label>
@@ -188,6 +197,7 @@ export default function AdminDonationsPage() {
               <CardTitle>How to Donate — Donation Methods</CardTitle>
             </CardHeader>
             <CardContent>
+              <PageTextFields page="donate" section="methods" className="mb-4" />
               {isEditing ? (
                 <DonationMethodsEditor
                   methods={editForm.paymentMethods}
@@ -209,6 +219,8 @@ export default function AdminDonationsPage() {
             </CardContent>
           </Card>
         </div>
+
+        <PageTextCard page="donate" section="cta" title="Make a Difference (bottom banner)" />
 
         <PageSectionsCard pageId="donate" />
       </div>

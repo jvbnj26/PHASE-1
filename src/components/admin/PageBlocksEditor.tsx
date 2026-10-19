@@ -6,6 +6,7 @@ import { Trash2, Plus, ImagePlus, ArrowUp, ArrowDown, Loader2 } from 'lucide-rea
 import RichTextEditor from '@/components/admin/RichTextEditor';
 import type { PageBlock } from '@/hooks/useCustomPages';
 import { toast } from 'sonner';
+import ImageSizePicker from '@/components/admin/ImageSizePicker';
 
 // Single unified template: every block has an optional heading, body text, and image.
 // Layout choice controls how text + image are arranged — formatting handled for the user.
@@ -140,7 +141,16 @@ export default function PageBlocksEditor({
                 {b.imageUrl && <Button size="sm" variant="ghost" onClick={() => updateBlock(idx, { imageUrl: '' })}>Remove</Button>}
               </div>
               {b.imageUrl && (
-                <img src={b.imageUrl} alt="" className="max-h-48 rounded border" />
+                <div className="flex flex-wrap items-center gap-3">
+                  <img src={b.imageUrl} alt="" className="max-h-48 rounded border" />
+                  <div className="space-y-1">
+                    <p className="text-xs text-muted-foreground">Image size</p>
+                    <ImageSizePicker
+                      value={b.imageSize ?? (b.layout === 'image' ? 'lg' : 'full')}
+                      onChange={(imageSize) => updateBlock(idx, { imageSize })}
+                    />
+                  </div>
+                </div>
               )}
             </div>
           )}
