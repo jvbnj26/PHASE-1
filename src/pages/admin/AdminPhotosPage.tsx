@@ -7,39 +7,18 @@ import { Label } from '@/components/ui/label';
 import { useSiteContent } from '@/contexts/SiteContentContext';
 import { PhotoAlbum } from '@/data/siteContent';
 import { normalizeAlbums, validatePhotoAlbums } from '@/lib/photoAlbums';
-import { supabase } from '@/integrations/supabase/client';
+import { uploadSiteImage } from '@/lib/siteImages';
 import { Camera, Plus, Trash2, ArrowUp, ArrowDown, Save, ExternalLink, Images, Loader2, X } from 'lucide-react';
 import { toast } from 'sonner';
-
-const MAX_IMAGE_BYTES = 5 * 1024 * 1024;
-
-// Album images live in the existing public `event-images` bucket (admin-only writes) under
-// their own folder, so only the public URL is stored in site_settings.
-async function uploadAlbumImage(file: File): Promise<string> {
-  const ext = file.name.includes('.') ? file.name.split('.').pop() : (file.type.split('/')[1] || 'bin');
-  const path = `photo-albums/${crypto.randomUUID()}.${ext}`;
-  const { error } = await supabase.storage.from('event-images').upload(path, file, { contentType: file.type });
-  if (error) throw error;
-  const { data } = supabase.storage.from('event-images').getPublicUrl(path);
-  return data.publicUrl;
-}
 
 function AlbumImageUpload({ imageUrl, onChange }: { imageUrl?: string; onChange: (url: string) => void }) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
 
   const handleFile = async (file: File) => {
-    if (!file.type.startsWith('image/')) {
-      toast.error(`${file.name} is not an image.`);
-      return;
-    }
-    if (file.size > MAX_IMAGE_BYTES) {
-      toast.error('Images must be under 5MB.');
-      return;
-    }
     setUploading(true);
     try {
-      onChange(await uploadAlbumImage(file));
+      onChange(await uploadSiteImage(file, 'photo-albums'));
     } catch (err) {
       toast.error(`Upload failed: ${err instanceof Error ? err.message : String(err)}`);
     } finally {

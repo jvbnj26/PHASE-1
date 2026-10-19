@@ -3,26 +3,13 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Layers, Save } from 'lucide-react';
 import { toast } from 'sonner';
-import { supabase } from '@/integrations/supabase/client';
 import { useSiteContent } from '@/contexts/SiteContentContext';
 import { SECTION_PAGES, type SectionPageId } from '@/data/siteContent';
 import type { PageBlock } from '@/hooks/useCustomPages';
 import PageBlocksEditor from '@/components/admin/PageBlocksEditor';
+import { uploadSiteImage } from '@/lib/siteImages';
 
-const MAX_IMAGE_BYTES = 5 * 1024 * 1024;
-
-// Section images go to the existing public `event-images` bucket (admin-only writes) so only a
-// URL is stored in site_settings, which every visitor loads on every page.
-async function uploadSectionImage(file: File): Promise<string> {
-  if (!file.type.startsWith('image/')) throw new Error(`${file.name} is not an image.`);
-  if (file.size > MAX_IMAGE_BYTES) throw new Error('Images must be under 5MB.');
-  const ext = file.name.includes('.') ? file.name.split('.').pop() : (file.type.split('/')[1] || 'bin');
-  const path = `page-sections/${crypto.randomUUID()}.${ext}`;
-  const { error } = await supabase.storage.from('event-images').upload(path, file, { contentType: file.type });
-  if (error) throw error;
-  const { data } = supabase.storage.from('event-images').getPublicUrl(path);
-  return data.publicUrl;
-}
+const uploadSectionImage = (file: File) => uploadSiteImage(file, 'page-sections');
 
 /** "Additional Sections" editor for a built-in page — same section builder as Admin > Pages. */
 export default function PageSectionsCard({ pageId }: { pageId: SectionPageId }) {

@@ -6,10 +6,11 @@ import { useSiteContent } from '@/contexts/SiteContentContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
-import { CreditCard, Building2, Globe, CheckCircle, Heart, Shield, ArrowRight, LogIn } from 'lucide-react';
+import { Heart, Shield, ArrowRight, LogIn } from 'lucide-react';
 import donorCategoriesImg from '@/assets/donor-categories.png';
 import RichText from '@/components/RichText';
 import PageSections from '@/components/PageSections';
+import DonationMethodCard from '@/components/DonationMethodCard';
 
 export default function DonatePage() {
   const { donationContent } = useSiteContent();
@@ -80,7 +81,7 @@ export default function DonatePage() {
           </div>
           <div className="bg-white rounded-2xl border border-border p-4 md:p-6">
             <img
-              src={donorCategoriesImg}
+              src={donationContent.donorCategoriesImage || donorCategoriesImg}
               alt="Donor contribution categories, amounts, and benefits"
               className="w-full rounded-lg object-contain"
             />
@@ -99,46 +100,17 @@ export default function DonatePage() {
             </p>
           </div>
 
-          <div className="grid md:grid-cols-3 gap-6">
-            {/* Check */}
-            <div className="group relative bg-white rounded-2xl border border-border p-7 hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
-              <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-primary to-primary/70 text-primary-foreground flex items-center justify-center mb-5 group-hover:scale-110 transition-transform shadow-md">
-                <CreditCard className="w-7 h-7" />
+          {/* Flex-wrap (not grid) so any number of cards stays centered. */}
+          <div className="flex flex-wrap justify-center gap-6">
+            {donationContent.paymentMethods.map((method, idx, all) => (
+              <div key={method.id} className="w-full md:w-[calc(33.333%-16px)] flex">
+                <DonationMethodCard
+                  method={method}
+                  // Alternate icon colors across the plain (non-recommended) cards.
+                  accent={all.slice(0, idx).filter((m) => !m.recommended).length % 2 === 1}
+                />
               </div>
-              <h4 className="font-serif font-bold text-xl text-foreground mb-2">Pay by Check</h4>
-              <p className="text-sm text-muted-foreground mb-4">Mail check or hand it to any EC member.</p>
-              <div className="text-xs text-muted-foreground bg-section rounded-lg p-4 space-y-1.5">
-                <p><span className="font-semibold text-foreground">Address:</span> 151 Middlesex Avenue, Iselin, NJ 08830</p>
-                <p><span className="font-semibold text-foreground">Payable to:</span> JVBNA</p>
-                <p><span className="font-semibold text-foreground">Memo:</span> Donation category</p>
-              </div>
-            </div>
-
-            {/* Bank Transfer */}
-            <div className="group relative bg-gradient-to-br from-secondary to-secondary/80 rounded-2xl border border-secondary p-7 text-white hover:shadow-2xl hover:-translate-y-1 transition-all duration-300 overflow-hidden">
-              <div className="absolute top-3 right-3 px-3 py-1 rounded-full bg-white/20 text-white text-[10px] font-bold uppercase tracking-wider">
-                Recommended
-              </div>
-              <div className="w-14 h-14 rounded-2xl bg-white/15 text-white flex items-center justify-center mb-5 group-hover:scale-110 transition-transform">
-                <Building2 className="w-7 h-7" />
-              </div>
-              <h4 className="font-serif font-bold text-xl mb-2">Bank Transfer (ACH)</h4>
-              <p className="text-sm text-white/90 mb-4">Preferred and safe — pay directly from your bank account.</p>
-              <div className="flex items-center gap-2 bg-white/10 rounded-lg px-4 py-3">
-                <CheckCircle className="w-5 h-5" />
-                <span className="text-sm font-medium">Lowest fees, fastest processing</span>
-              </div>
-            </div>
-
-            {/* International */}
-            <div className="group relative bg-white rounded-2xl border border-border p-7 hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
-              <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-accent to-accent/70 text-accent-foreground flex items-center justify-center mb-5 group-hover:scale-110 transition-transform shadow-md">
-                <Globe className="w-7 h-7" />
-              </div>
-              <h4 className="font-serif font-bold text-xl text-foreground mb-2">International Donors</h4>
-              <p className="text-sm text-muted-foreground mb-4">Outside the USA? PayPal works worldwide.</p>
-              <Button variant="outline" className="w-full">Donate via PayPal</Button>
-            </div>
+            ))}
           </div>
         </div>
       </section>

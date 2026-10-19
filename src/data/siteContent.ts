@@ -345,31 +345,66 @@ export const defaultGyanshalaContent = {
   ctaText: 'Sign up as a member and select Gyanshala during registration, or reach out to the office directly.',
 };
 
+export type DonationMethodIcon = 'check' | 'bank' | 'globe' | 'mobile' | 'qr' | 'heart';
+
+export interface DonationMethod {
+  id: string;
+  icon: DonationMethodIcon;
+  title: string;
+  description: string; // rich text
+  details: string; // rich text, shown in the card's info box
+  buttonLabel: string;
+  buttonUrl: string; // the button only shows when this is set
+  imageUrl: string; // optional, e.g. a QR code to scan
+  recommended: boolean; // highlighted green card with a "Recommended" badge
+}
+
 export const defaultDonationContent = {
   intro: `JVBNA is a non profit and as such is run entirely on your contributions. Irrespective of any situation, we continue maintaining our both centers and continue spending money for it's day to day operations. To cover these costs (like daily maintenance, utilities, unexpected repairs, Samani ji related expenses), we do ask for donations ONLY once in a year (during Paryushan).
 
 In addition, JVBNA also drives many fund raising event throughout the year to support specific causes, where the fund raised is strictly dedicated to that cause. You at the time of donation can also how your funds should be put to use among the available categories.
 
 We sincerely hope, you will continue supporting JVB New Jersey as before.`,
+  // Uploaded replacement for the Donor Categories chart; empty = the bundled original image.
+  donorCategoriesImage: '',
   pledgeInfo: `We are grateful to you for supporting our organization by generous donations.
 We are fortunate to have continued presence of Samanijis enlightening us with spiritual pursuits all round the year. In light of costs that have gone up post covid to approximately 30% plus from travel tickets, to visa, to both center maintenance, insurance, camp cost etc, after careful consideration we have revised the donation amount for each category.`,
-  donationMethods: [
+  // "How to Donate" cards on the Donate page, in display order (Admin > Donations).
+  paymentMethods: [
     {
-      title: 'Pay by CHECK',
-      description: 'You can either mail check or hand it over to any EC member.',
-      details: 'Address to mail check: 151 Middlesex Avenue, Iselin, NJ 08830. Payable to: JVBNA. Memo: Donation category',
+      id: 'check',
+      icon: 'check',
+      title: 'Pay by Check',
+      description: 'Mail check or hand it to any EC member.',
+      details: '<p><strong>Address:</strong> 151 Middlesex Avenue, Iselin, NJ 08830</p><p><strong>Payable to:</strong> JVBNA</p><p><strong>Memo:</strong> Donation category</p>',
+      buttonLabel: '',
+      buttonUrl: '',
+      imageUrl: '',
+      recommended: false,
     },
     {
-      title: 'Pay using Bank account (ACH method)',
-      description: 'Preferred and Safe - Use QR Code or bank transfer',
-      details: '',
+      id: 'ach',
+      icon: 'bank',
+      title: 'Bank Transfer (ACH)',
+      description: 'Preferred and safe — pay directly from your bank account.',
+      details: 'Lowest fees, fastest processing',
+      buttonLabel: '',
+      buttonUrl: '',
+      imageUrl: '',
+      recommended: true,
     },
     {
+      id: 'international',
+      icon: 'globe',
       title: 'International Donors',
-      description: 'Outside USA donors, please use PayPal.',
+      description: 'Outside the USA? PayPal works worldwide.',
       details: '',
+      buttonLabel: 'Donate via PayPal',
+      buttonUrl: '',
+      imageUrl: '',
+      recommended: false,
     },
-  ],
+  ] as DonationMethod[],
   taxInfo: 'Your Contribution to our organization may entitle for tax exemption under section 501c, charitable organization.',
 };
 

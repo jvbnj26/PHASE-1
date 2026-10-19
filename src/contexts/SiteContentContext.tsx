@@ -155,7 +155,9 @@ export function SiteContentProvider({ children }: { children: ReactNode }) {
         if (m.has('satelliteCenters'))   setSatelliteCentersState(m.get('satelliteCenters') as SatelliteCenter[]);
         if (m.has('aboutContent'))       setAboutContentState(m.get('aboutContent') as typeof defaultAboutContent);
         if (m.has('gyanshalaContent'))   setGyanshalaContentState(m.get('gyanshalaContent') as typeof defaultGyanshalaContent);
-        if (m.has('donationContent'))    setDonationContentState(m.get('donationContent') as typeof defaultDonationContent);
+        // Merged over the defaults so fields added after content was first saved (e.g. the
+        // donor categories image, payment method cards) get their default instead of undefined.
+        if (m.has('donationContent'))    setDonationContentState({ ...defaultDonationContent, ...(m.get('donationContent') as Partial<typeof defaultDonationContent>) });
         if (m.has('events2025'))         setEvents2025State(m.get('events2025') as (string | { name: string; subItem: boolean })[]);
         if (m.has('activities2025'))     setActivities2025State(m.get('activities2025') as (string | { name: string; subItem: boolean })[]);
         if (m.has('calendarUrl'))        setCalendarUrlState(m.get('calendarUrl') as string);
