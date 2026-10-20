@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, useCallback, useRef, ReactNode } from 'react';
 import { toast } from 'sonner';
+import { Loader2 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import type { PageBlock } from '@/hooks/useCustomPages';
 import type { PageLayout } from '@/data/pageContent';
@@ -147,6 +148,15 @@ export function SiteContentProvider({ children }: { children: ReactNode }) {
   const [pageText, setPageTextState] = useState<Record<string, string>>({});
   const [pageLayout, setPageLayoutState] = useState<Record<string, PageLayout>>({});
   const [contentLoaded, setContentLoaded] = useState(false);
+  // Pages wait for saved content before rendering, so the built-in defaults (old banners,
+  // Samaniji photos, …) never flash on refresh. If the database is slow, give up waiting
+  // after a few seconds and show the defaults rather than a blank screen.
+  const [renderReady, setRenderReady] = useState(false);
+  useEffect(() => {
+    if (contentLoaded) { setRenderReady(true); return; }
+    const timer = setTimeout(() => setRenderReady(true), 5000);
+    return () => clearTimeout(timer);
+  }, [contentLoaded]);
   // Latest values for the merge-style setters, so two saves in a row never drop each other's keys.
   const pageTextRef = useRef(pageText);
   const pageLayoutRef = useRef(pageLayout);
@@ -290,7 +300,11 @@ export function SiteContentProvider({ children }: { children: ReactNode }) {
         contentLoaded,
       }}
     >
-      {children}
+      {renderReady ? children : (
+        <div className="min-h-screen flex items-center justify-center" aria-busy="true">
+          <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" aria-label="Loading" />
+        </div>
+      )}
     </SiteContentContext.Provider>
   );
 }
