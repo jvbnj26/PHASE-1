@@ -9,6 +9,7 @@ import {
   BoardMember,
   ExecutiveCommitteeMember,
   SpiritualMaster,
+  HomePhoto,
   VolunteerSection,
   ContactInfo,
   SatelliteCenter,
@@ -52,6 +53,11 @@ interface SiteContentContextType {
 
   spiritualMasters: SpiritualMaster[];
   setSpiritualMasters: (masters: SpiritualMaster[]) => void;
+
+  // Photos beside the homepage welcome text. `null` = never customised, so the homepage shows
+  // the Samanijis from the Spiritual Guidance page instead.
+  homePhotos: HomePhoto[] | null;
+  setHomePhotos: (photos: HomePhoto[] | null) => void;
 
   volunteerSections: VolunteerSection[];
   setVolunteerSections: (sections: VolunteerSection[]) => void;
@@ -120,6 +126,7 @@ export function SiteContentProvider({ children }: { children: ReactNode }) {
   const [boardMembers, setBoardMembersState] = useState<BoardMember[]>(defaultBoardMembers);
   const [executiveCommittee, setExecutiveCommitteeState] = useState<ExecutiveCommitteeMember[]>(defaultExecutiveCommittee);
   const [spiritualMasters, setSpiritualMastersState] = useState<SpiritualMaster[]>(defaultSpiritualMasters);
+  const [homePhotos, setHomePhotosState] = useState<HomePhoto[] | null>(null);
   const [volunteerSections, setVolunteerSectionsState] = useState<VolunteerSection[]>(defaultVolunteerSections);
   const [contactInfo, setContactInfoState] = useState<ContactInfo>(defaultContactInfo);
   const [satelliteCenters, setSatelliteCentersState] = useState<SatelliteCenter[]>(defaultSatelliteCenters);
@@ -165,6 +172,7 @@ export function SiteContentProvider({ children }: { children: ReactNode }) {
         if (m.has('boardMembers'))       setBoardMembersState(m.get('boardMembers') as BoardMember[]);
         if (m.has('executiveCommittee')) setExecutiveCommitteeState(m.get('executiveCommittee') as ExecutiveCommitteeMember[]);
         if (m.has('spiritualMasters'))   setSpiritualMastersState(m.get('spiritualMasters') as SpiritualMaster[]);
+        if (m.has('homePhotos'))         setHomePhotosState(m.get('homePhotos') as HomePhoto[] | null);
         if (m.has('volunteerSections'))  setVolunteerSectionsState(m.get('volunteerSections') as VolunteerSection[]);
         if (m.has('contactInfo'))        setContactInfoState(m.get('contactInfo') as ContactInfo);
         if (m.has('satelliteCenters'))   setSatelliteCentersState(m.get('satelliteCenters') as SatelliteCenter[]);
@@ -202,6 +210,14 @@ export function SiteContentProvider({ children }: { children: ReactNode }) {
   const setBoardMembers       = (v: BoardMember[])                                             => { setBoardMembersState(v);       persist('boardMembers', v); };
   const setExecutiveCommittee = (v: ExecutiveCommitteeMember[])                                => { setExecutiveCommitteeState(v); persist('executiveCommittee', v); };
   const setSpiritualMasters   = (v: SpiritualMaster[])                                        => { setSpiritualMastersState(v);   persist('spiritualMasters', v); };
+  // `null` deletes the saved list (value is NOT NULL) so the homepage follows the Samanijis again.
+  const setHomePhotos = (v: HomePhoto[] | null) => {
+    setHomePhotosState(v);
+    if (v) { persist('homePhotos', v); return; }
+    supabase.from('site_settings').delete().eq('key', 'homePhotos').then(({ error }) => {
+      if (error) toast.error(`Save failed: ${error.message}`);
+    });
+  };
   const setVolunteerSections  = (v: VolunteerSection[])                                       => { setVolunteerSectionsState(v);  persist('volunteerSections', v); };
   const setContactInfo        = (v: ContactInfo)                                               => { setContactInfoState(v);        persist('contactInfo', v); };
   const setSatelliteCenters   = (v: SatelliteCenter[])                                        => { setSatelliteCentersState(v);   persist('satelliteCenters', v); };
@@ -255,6 +271,7 @@ export function SiteContentProvider({ children }: { children: ReactNode }) {
         boardMembers, setBoardMembers,
         executiveCommittee, setExecutiveCommittee,
         spiritualMasters, setSpiritualMasters,
+        homePhotos, setHomePhotos,
         volunteerSections, setVolunteerSections,
         contactInfo, setContactInfo,
         satelliteCenters, setSatelliteCenters,

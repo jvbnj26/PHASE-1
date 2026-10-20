@@ -6,7 +6,7 @@ import AdminLayout from '@/components/admin/AdminLayout';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Plus, Trash2, Save, ArrowRight } from 'lucide-react';
+import { Plus, Trash2, Save, ArrowRight, RotateCcw } from 'lucide-react';
 import { ImageUploadButton } from '@/components/admin/ImageUploadButton';
 import { useToast } from '@/hooks/use-toast';
 import { getImageSrc } from '@/lib/imageMap';
@@ -17,12 +17,14 @@ import PageTextFields, { PageTextCard } from '@/components/admin/PageTextFields'
 import PageLayoutCard from '@/components/admin/PageLayoutCard';
 import ReorderButtons from '@/components/admin/ReorderButtons';
 import { moveItem } from '@/lib/reorder';
+import type { HomePhoto } from '@/data/siteContent';
 
 export default function AdminHomePage() {
   const { isAuthenticated } = useAuth();
   const {
     bannerSlides, setBannerSlides,
     welcomeText, setWelcomeText,
+    spiritualMasters, homePhotos, setHomePhotos,
     activities2025, setActivities2025
   } = useSiteContent();
   const { toast } = useToast();
@@ -32,6 +34,12 @@ export default function AdminHomePage() {
   const [localWelcome, setLocalWelcome] = useState(welcomeText);
   // Saved content arrives from the database after this page mounts — show it, not the defaults.
   useEffect(() => setLocalWelcome(welcomeText), [welcomeText]);
+  // Until customised, the homepage shows the Samanijis from the Spiritual Guidance page.
+  const toLocalPhotos = (): HomePhoto[] =>
+    (homePhotos ?? spiritualMasters).map(({ id, name, imageUrl }) => ({ id, name, imageUrl }));
+  const [localPhotos, setLocalPhotos] = useState<HomePhoto[]>(toLocalPhotos);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  useEffect(() => setLocalPhotos(toLocalPhotos()), [homePhotos, spiritualMasters]);
   const [localActivities, setLocalActivities] = useState(activities2025.map(a => typeof a === 'string' ? a : a.name));
   useEffect(() => setLocalActivities(activities2025.map(a => typeof a === 'string' ? a : a.name)), [activities2025]);
 
@@ -53,6 +61,26 @@ export default function AdminHomePage() {
       title: "Welcome Section Updated",
       description: "The welcome section has been saved successfully.",
     });
+  };
+
+  const handleSavePhotos = () => {
+    setHomePhotos(localPhotos);
+    toast({
+      title: "Welcome Photos Updated",
+      description: "The homepage photos have been saved successfully.",
+    });
+  };
+
+  const handleResetPhotos = () => {
+    setHomePhotos(null);
+    toast({
+      title: "Welcome Photos Reset",
+      description: "The homepage now shows the Samanijis from the Spiritual Guidance page.",
+    });
+  };
+
+  const updatePhoto = (id: string, field: keyof HomePhoto, value: string) => {
+    setLocalPhotos((photos) => photos.map((p) => (p.id === id ? { ...p, [field]: value } : p)));
   };
 
   const handleSaveActivities = () => {
@@ -208,6 +236,99 @@ export default function AdminHomePage() {
             <Save className="w-4 h-4 mr-2" />
             Save Welcome Section
           </Button>
+        </section>
+
+        {/* Welcome photos — shown beside the welcome text */}
+        <section className="admin-card mb-8">
+          <div className="flex items-center justify-between mb-2">
+            <h2 className="font-serif text-xl font-bold text-foreground">Welcome Photos</h2>
+            <Button
+              onClick={() => setLocalPhotos((p) => [...p, { id: String(Date.now()), name: '', imageUrl: '' }])}
+              size="sm"
+              variant="outline"
+            >
+              <Plus className="w-4 h-4 mr-2" />
+              Add Photo
+            </Button>
+          </div>
+          <p className="text-sm text-muted-foreground mb-6">
+            {homePhotos
+              ? 'These photos appear beside the welcome text on the homepage.'
+              : 'Currently showing the Samanijis from the Spiritual Guidance page. Saving here gives the homepage its own photos.'}
+          </p>
+
+          <div className="space-y-4">
+            {localPhotos.map((photo, index) => (
+              <div key={photo.id} className="border rounded-lg p-4 bg-muted/30">
+                <div className="flex items-start gap-4">
+                  <div className="flex flex-col items-center gap-1 text-muted-foreground">
+                    <span className="text-sm font-medium">#{index + 1}</span>
+                    <ReorderButtons
+                      index={index}
+                      count={localPhotos.length}
+                      label="photo"
+                      onMove={(dir) => setLocalPhotos((p) => moveItem(p, index, dir))}
+                    />
+                  </div>
+
+                  <div className="w-20 h-24 shrink-0 rounded border overflow-hidden bg-muted">
+                    {photo.imageUrl && (
+                      <img src={getImageSrc(photo.imageUrl)} alt="" className="w-full h-full object-cover" />
+                    )}
+                  </div>
+
+                  <div className="flex-1 grid gap-4">
+                    <div>
+                      <Label>Caption</Label>
+                      <Input
+                        value={photo.name}
+                        onChange={(e) => updatePhoto(photo.id, 'name', e.target.value)}
+                        placeholder="Name shown under the photo (optional)"
+                      />
+                    </div>
+                    <div>
+                      <Label>Image</Label>
+                      <div className="flex gap-2">
+                        <Input
+                          value={photo.imageUrl}
+                          onChange={(e) => updatePhoto(photo.id, 'imageUrl', e.target.value)}
+                          placeholder="Image URL or upload"
+                        />
+                        <ImageUploadButton
+                          iconOnly
+                          label="Upload photo"
+                          onUploaded={(url) => updatePhoto(photo.id, 'imageUrl', url)}
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => setLocalPhotos((p) => p.filter((x) => x.id !== photo.id))}
+                    className="text-destructive hover:text-destructive"
+                    aria-label="Remove photo"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </Button>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <div className="flex flex-wrap gap-2 mt-4">
+            <Button onClick={handleSavePhotos}>
+              <Save className="w-4 h-4 mr-2" />
+              Save Photos
+            </Button>
+            {homePhotos && (
+              <Button variant="outline" onClick={handleResetPhotos}>
+                <RotateCcw className="w-4 h-4 mr-2" />
+                Use Samanijis from Spiritual Guidance
+              </Button>
+            )}
+          </div>
         </section>
 
         {/* Events — the homepage's Events card is now a live view of the real Events data

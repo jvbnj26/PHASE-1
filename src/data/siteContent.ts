@@ -59,6 +59,13 @@ export interface SpiritualMaster {
   description: string;
 }
 
+/** A photo in the homepage Welcome section (beside the welcome text). */
+export interface HomePhoto {
+  id: string;
+  name: string;
+  imageUrl: string;
+}
+
 export interface VolunteerSection {
   id: string;
   title: string;

@@ -16,7 +16,8 @@ import { usePageText } from '@/hooks/usePageText';
 import { HOME_MASTER_PHOTO, toImageSize } from '@/lib/imageSize';
 
 export default function HomePage() {
-  const { bannerSlides, welcomeText, spiritualMasters } = useSiteContent();
+  const { bannerSlides, welcomeText, spiritualMasters, homePhotos } = useSiteContent();
+  const welcomePhotos = homePhotos ?? spiritualMasters;
   const { t, has } = usePageText('home');
   const [currentSlide, setCurrentSlide] = useState(0);
 
@@ -115,7 +116,7 @@ export default function HomePage() {
 
                   {/* Spiritual Masters */}
                   <div className="flex justify-center flex-wrap gap-4 sm:gap-8">
-                    {spiritualMasters.map((master) => (
+                    {welcomePhotos.map((master) => (
                       <div key={master.id} className="text-center">
                         <div className={`${HOME_MASTER_PHOTO[toImageSize(t('mastersPhotoSize'), 'md')]} rounded-lg overflow-hidden bg-muted mb-3 shadow-md`}>
                           <img
@@ -128,7 +129,7 @@ export default function HomePage() {
                             }}
                           />
                         </div>
-                        <p className="font-medium text-foreground">{master.name}</p>
+                        {master.name && <p className="font-medium text-foreground">{master.name}</p>}
                       </div>
                     ))}
                   </div>
