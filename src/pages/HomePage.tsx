@@ -17,7 +17,8 @@ import { HOME_MASTER_PHOTO, toImageSize } from '@/lib/imageSize';
 
 export default function HomePage() {
   const { bannerSlides, welcomeText, spiritualMasters, homePhotos } = useSiteContent();
-  const welcomePhotos = homePhotos ?? spiritualMasters;
+  // Skip entries with no image so they don't render as empty placeholder boxes.
+  const welcomePhotos = (homePhotos ?? spiritualMasters).filter((p) => p.imageUrl);
   const { t, has } = usePageText('home');
   const [currentSlide, setCurrentSlide] = useState(0);
 

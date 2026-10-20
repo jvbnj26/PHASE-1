@@ -64,10 +64,15 @@ export default function AdminHomePage() {
   };
 
   const handleSavePhotos = () => {
-    setHomePhotos(localPhotos);
+    // A photo with no image would render as an empty box on the homepage — leave it out.
+    const withImage = localPhotos.filter((p) => p.imageUrl.trim());
+    const skipped = localPhotos.length - withImage.length;
+    setHomePhotos(withImage);
     toast({
       title: "Welcome Photos Updated",
-      description: "The homepage photos have been saved successfully.",
+      description: skipped
+        ? `Saved ${withImage.length} photo${withImage.length === 1 ? '' : 's'}. ${skipped} without an image ${skipped === 1 ? 'was' : 'were'} left out.`
+        : "The homepage photos have been saved successfully.",
     });
   };
 
@@ -271,9 +276,11 @@ export default function AdminHomePage() {
                     />
                   </div>
 
-                  <div className="w-20 h-24 shrink-0 rounded border overflow-hidden bg-muted">
-                    {photo.imageUrl && (
+                  <div className="w-20 h-24 shrink-0 rounded border overflow-hidden bg-muted flex items-center justify-center">
+                    {photo.imageUrl ? (
                       <img src={getImageSrc(photo.imageUrl)} alt="" className="w-full h-full object-cover" />
+                    ) : (
+                      <span className="text-[10px] text-muted-foreground text-center px-1">No image yet</span>
                     )}
                   </div>
 
